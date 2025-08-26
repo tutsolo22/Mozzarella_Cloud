@@ -1,24 +1,36 @@
-# Mozzarella_Cloud
+# Mozzarella Cloud
 
-**Mozzarella Cloud** es un sistema de gestión integral para pizzerías, diseñado para ser una solución moderna, escalable y eficiente. El objetivo es optimizar todas las áreas del negocio, desde la toma de pedidos hasta la entrega final.
+**Mozzarella Cloud** es un sistema de gestión integral (ERP/CRM) para pizzerías, diseñado para ser una solución moderna, escalable y eficiente. El objetivo es optimizar todas las áreas del negocio, desde la toma de pedidos hasta la entrega final.
+
+Este proyecto está siendo construido con un stack tecnológico moderno para asegurar un alto rendimiento y una excelente experiencia de usuario.
+
+## Documentación Clave
+
+*   [Arquitectura del Proyecto](./ARCHITECTURE.md)
+*   [Esquema de la Base de Datos](./DATABASE_SCHEMA.md)
+*   [Guía de Contribución](./CONTRIBUTING.md)
+*   [Registro de Cambios](./CHANGELOG.md)
+
+## Stack Tecnológico
+
+| Componente                | Tecnología Recomendada          |
+| ------------------------- | ------------------------------- |
+| **Backend**               | Node.js (con NestJS) + TypeScript |
+| **Base de Datos Principal** | PostgreSQL con PostGIS          |
+| **Base de Datos Tiempo Real** | Firebase Realtime / Firestore   |
+| **Frontend Web (Admin/CRM)**  | React + Ant Design (AntD)       |
+| **App Móvil (Repartidores)**  | React Native                    |
+| **Despliegue**            | Docker                          |
+| **Chatbot WhatsApp**      | API de Twilio / Meta            |
+| **Optimización de Rutas** | API de Google Maps / Mapbox     |
 
 ## Módulos Principales
 
-- **Módulo de Recepción y CRM:**
-  - Gestión de clientes y sus datos.
-  - Toma de pedidos (telefónicos y presenciales).
-  - Integración con Chatbot de WhatsApp para automatización de pedidos.
+- **Módulo de Recepción y CRM:** Gestión de clientes, toma de pedidos e integración con Chatbot de WhatsApp.
+- **Módulo de Cocina:** Gestión de recetas, control de inventario y Kitchen Display System (KDS).
+- **Módulo de Producción y Despacho:** Transformación de inventario y asignación de pedidos.
+- **Módulo de Reparto y Logística:** App móvil para repartidores, optimización de rutas y seguimiento en tiempo real.
 
-- **Módulo de Cocina:**
-  - Gestión de recetas e ingredientes.
-  - Control de inventario en tiempo real.
-  - Kitchen Display System (KDS) para visualizar órdenes activas.
+## Gestión del Proyecto
 
-- **Módulo de Producción y Despacho:**
-  - Transformación de ingredientes a producto terminado (descuento de inventario).
-  - Asignación de pedidos a repartidores.
-
-- **Módulo de Reparto y Logística:**
-  - App móvil para repartidores.
-  - Algoritmo de optimización de rutas de entrega.
-  - Seguimiento de repartidores en tiempo real.
+La gestión de tareas, reporte de bugs y planificación de nuevas características se realiza a través de [GitHub Issues](https://github.com/tu-usuario/Mozzarella_Cloud/issues).
