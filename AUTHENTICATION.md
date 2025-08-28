@@ -25,6 +25,17 @@ sequenceDiagram
     AuthService-->>-AuthController: Devuelve { access_token: '...' }
     AuthController-->>-Client: Responde con el token JWT
 ```
+### Payload del Token
+
+Una vez que el `AuthService` valida al usuario, crea un "payload" (carga útil) con información esencial y lo firma para generar el `access_token`. Este payload es lo que se recupera en las rutas protegidas.
+
+El payload contiene:
+*   `sub`: El ID del usuario (userId).
+*   `email`: El email del usuario.
+*   `role`: El rol del usuario (ej. 'admin').
+*   `tenantId`: El ID del tenant al que pertenece el usuario.
+
+Este payload es validado por la `JwtStrategy` en cada petición a una ruta protegida.
 
 ## Flujo de Autorización (Rutas Protegidas)
 
@@ -53,7 +64,7 @@ sequenceDiagram
 
 *   **`auth.service.ts`**:
     *   `validateUser(email, pass)`: Busca un usuario por email y compara la contraseña recibida con el hash guardado en la base de datos usando `bcrypt.compare`.
-    *   `login(user)`: Si la validación es exitosa, crea un payload con información del usuario (ID, email, rol) y lo firma usando `jwtService` para generar el `access_token`.
+    *   `login(user)`: Si la validación es exitosa, crea un payload con información del usuario (ID, email, rol, tenantId) y lo firma usando `jwtService` para generar el `access_token`.
 
 *   **`strategies/local.strategy.ts`**:
     *   Implementa la lógica de Passport para la estrategia 'local'.

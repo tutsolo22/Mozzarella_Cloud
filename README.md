@@ -1,36 +1,25 @@
 # Mozzarella Cloud
 
-**Mozzarella Cloud** es un sistema de gestión integral (ERP/CRM) para pizzerías, diseñado para ser una solución moderna, escalable y eficiente. El objetivo es optimizar todas las áreas del negocio, desde la toma de pedidos hasta la entrega final.
+Bienvenido a Mozzarella Cloud, un sistema de gestión integral para pizzerías y restaurantes. Este repositorio contiene todo el código fuente y la documentación del proyecto.
 
-Este proyecto está siendo construido con un stack tecnológico moderno para asegurar un alto rendimiento y una excelente experiencia de usuario.
+## Estructura del Proyecto
 
-## Documentación Clave
+Este proyecto está organizado como un **monorepo** para facilitar la gestión y el desarrollo de sus diferentes componentes. Para más detalles, consulta el documento de **Estructura del Proyecto**.
 
-*   [Arquitectura del Proyecto](./ARCHITECTURE.md)
-*   [Esquema de la Base de Datos](./DATABASE_SCHEMA.md)
-*   [Guía de Contribución](./CONTRIBUTING.md)
-*   [Registro de Cambios](./CHANGELOG.md)
+-   `backend/`: La API principal construida con NestJS.
+-   `frontend/`: El panel de administración construido con React y Vite.
 
-## Stack Tecnológico
+## Documentación Técnica
 
-| Componente                | Tecnología Recomendada          |
-| ------------------------- | ------------------------------- |
-| **Backend**               | Node.js (con NestJS) + TypeScript |
-| **Base de Datos Principal** | PostgreSQL con PostGIS          |
-| **Base de Datos Tiempo Real** | Firebase Realtime / Firestore   |
-| **Frontend Web (Admin/CRM)**  | React + Ant Design (AntD)       |
-| **App Móvil (Repartidores)**  | React Native                    |
-| **Despliegue**            | Docker                          |
-| **Chatbot WhatsApp**      | API de Twilio / Meta            |
-| **Optimización de Rutas** | API de Google Maps / Mapbox     |
+La documentación es una parte vital de este proyecto. Está organizada en varios archivos para cubrir diferentes aspectos del sistema:
 
-## Módulos Principales
+*   **Guía de Contribución**: ¿Quieres contribuir? Empieza por aquí. Contiene las instrucciones para configurar tu entorno de desarrollo local.
+*   **Documentación de la API**: La referencia completa de todos los endpoints de la API, incluyendo ejemplos de peticiones y respuestas.
+*   **Arquitectura del Sistema**: Una visión general de alto nivel sobre cómo están diseñados e interconectados los componentes del sistema.
+*   **Esquema de la Base de Datos**: Descripción detallada de todas las tablas, columnas y relaciones de la base de datos.
+*   **Flujo de Autenticación**: Una explicación técnica de cómo funciona el login, la generación de tokens JWT y la protección de rutas.
+*   **Registro de Cambios (Changelog)**: Un historial de todas las versiones y los cambios notables que se han realizado en el proyecto.
 
-- **Módulo de Recepción y CRM:** Gestión de clientes, toma de pedidos e integración con Chatbot de WhatsApp.
-- **Módulo de Cocina:** Gestión de recetas, control de inventario y Kitchen Display System (KDS).
-- **Módulo de Producción y Despacho:** Transformación de inventario y asignación de pedidos.
-- **Módulo de Reparto y Logística:** App móvil para repartidores, optimización de rutas y seguimiento en tiempo real.
+## Cómo Empezar
 
-## Gestión del Proyecto
-
-La gestión de tareas, reporte de bugs y planificación de nuevas características se realiza a través de [GitHub Issues](https://github.com/tu-usuario/Mozzarella_Cloud/issues).
+Para poner en marcha el proyecto en tu máquina local, sigue las instrucciones detalladas en la **Guía de Contribución**.

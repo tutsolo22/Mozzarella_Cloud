@@ -8,6 +8,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      TZ: America/Merida
       POSTGRES_DB: mozzarella_cloud_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password

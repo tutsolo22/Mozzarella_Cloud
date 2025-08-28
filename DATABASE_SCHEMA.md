@@ -113,3 +113,12 @@ CREATE TYPE inventory_movement_type AS ENUM ('purchase', 'sale_deduction', 'wast
 - `quantity_change` (DECIMAL, NOT NULL): Cantidad que se movió (negativo para salidas, positivo para entradas).
 - `reason` (TEXT, NULLABLE): Razón del movimiento (e.g., "Venta pedido P-00123", "Ajuste por merma").
 - `created_at` (TIMESTAMPZ): Fecha del movimiento.
+## Tabla: `inventory_movements`
+- `id` (UUID, PK): Identificador único del movimiento.
+- `ingredient_id` (UUID, FK to `ingredients.id`): Ingrediente afectado.
+- `order_id` (UUID, FK to `orders.id`, NULLABLE): Pedido que causó el movimiento (si aplica).
+- `user_id` (UUID, FK to `users.id`, NULLABLE): Usuario que registró el movimiento (para ajustes manuales).
+- `type` (inventory_movement_type, NOT NULL): Tipo de movimiento.
+- `quantity_change` (DECIMAL, NOT NULL): Cantidad que se movió (negativo para salidas, positivo para entradas).
+- `reason` (TEXT, NULLABLE): Razón del movimiento (e.g., "Venta pedido P-00123", "Ajuste por merma").
+- `created_at` (TIMESTAMPZ): Fecha del movimiento.
