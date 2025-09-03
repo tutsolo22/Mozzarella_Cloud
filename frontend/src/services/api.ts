@@ -1,205 +1,122 @@
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
+import { LoginCredentials, User, CreateUserDto, UpdateUserDto } from '../types/user';
+import { Order, OrderStatus } from '../types/order';
+import { Product, Ingredient, ProductCategory, RecipeItem } from '../types/product';
+import { OptimizedRoute } from '../types/delivery';
+import { CashierSession } from '../types/reports';
+import { TenantConfiguration } from '../types/tenant';
+import { OverheadCost } from '../types/financials';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-export const api = axios.create({
-  baseURL: API_URL,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export const getWasteReport = async (startDate?: string, endDate?: string) => {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    const response = await api.get(`/ingredients/reports/waste?${params.toString()}`);
-    return response.data;
-};
-
-export const getTenants = async () => {
-  const response = await api.get('/super-admin/tenants');
+// --- Auth ---
+export const login = async (credentials: LoginCredentials): Promise<{ access_token: string; user: User }> => {
+  const response = await axiosClient.post('/auth/login', credentials);
+  // El backend devuelve un objeto con { access_token, user }
   return response.data;
 };
 
-export const updateTenantStatus = async (tenantId: string, status: string) => {
-  const response = await api.patch(`/super-admin/tenants/${tenantId}/status`, { status });
+// --- Orders ---
+export const getOrders = async (): Promise<Order[]> => {
+  const response = await axiosClient.get('/orders');
   return response.data;
 };
 
-interface LicenseData {
-  userLimit: number;
-  branchLimit: number;
-  durationInDays: number;
-}
-export const generateLicense = async (tenantId: string, data: LicenseData) => {
-  const response = await api.post(`/super-admin/tenants/${tenantId}/license`, data);
+export const updateOrderStatus = async (orderId: string, newStatus: OrderStatus): Promise<Order> => {
+  const response = await axiosClient.patch(`/orders/${orderId}/status`, { status: newStatus });
   return response.data;
 };
 
-export const requestPasswordReset = async (email: string) => {
-  const response = await api.post('/auth/forgot-password', { email });
-  return response.data;
-};
-
-export const resetPassword = async (token: string, password: string) => {
-  const response = await api.post('/auth/reset-password', { token, password });
-  return response.data;
-};
-
-export const revokeLicense = async (tenantId: string) => {
-  const response = await api.post(`/super-admin/tenants/${tenantId}/license/revoke`);
-  return response.data;
-};
-
-// --- Super Admin API ---
-
-export const getSuperAdminDashboardStats = async () => {
-  const response = await api.get('/super-admin/dashboard-stats');
-  return response.data;
-};
-
-// --- Products API ---
-
-export const getProducts = async () => {
-  const response = await api.get('/products');
-  return response.data;
-};
-
-export const createProduct = async (productData: any) => {
-  const response = await api.post('/products', productData);
-  return response.data;
-};
-
-export const updateProduct = async (id: string, productData: any) => {
-  const response = await api.patch(`/products/${id}`, productData);
-  return response.data;
-};
-
-export const deleteProduct = async (id: string) => {
-  await api.delete(`/products/${id}`);
-};
-
-export const uploadProductImage = async (id: string, file: File) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const response = await api.post(`/products/${id}/image`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data;
-};
-
-// --- Product Categories API ---
-
-export const getProductCategories = async () => {
-  const response = await api.get('/product-categories');
-  return response.data;
-};
-
-// --- Ingredients API ---
-
-export const getIngredients = async () => {
-  const response = await api.get('/ingredients');
-  return response.data;
-};
-
-export const createIngredient = async (data: any) => {
-  const response = await api.post('/ingredients', data);
-  return response.data;
-};
-
-export const updateIngredient = async (id: string, data: any) => {
-  const response = await api.patch(`/ingredients/${id}`, data);
-  return response.data;
-};
-
-export const deleteIngredient = async (id: string) => {
-  await api.delete(`/ingredients/${id}`);
-};
-
-export const purchaseIngredients = async (items: any[]) => {
-  await api.post('/ingredients/purchase', { items });
-};
-
-export const registerWaste = async (items: any[]) => {
-  await api.post('/ingredients/waste', { items });
-};
-
-export const adjustStock = async (items: any[]) => {
-  await api.post('/ingredients/adjust-stock', { items });
-};
-
-// --- Recipe API ---
-
-export const getProductRecipe = async (productId: string) => {
-  const response = await api.get(`/products/${productId}/ingredients`);
-  return response.data;
-};
-
-export const assignProductRecipe = async (productId: string, ingredients: any[]) => {
-  await api.post(`/products/${productId}/ingredients`, { ingredients });
-};
-
-// --- Orders API ---
-
-export const getOrders = async () => {
-  const response = await api.get('/orders');
-  return response.data;
-};
-
-export const updateOrderStatus = async (orderId: string, status: string) => {
-  const response = await api.patch(`/orders/${orderId}/status`, { status });
-  return response.data;
-};
-
-export const createOrder = async (items: { productId: string; quantity: number; notes?: string }[]) => {
-  const response = await api.post('/orders', { items });
-  return response.data;
-};
-
-// --- Reports API ---
-
-export const getSalesReport = async (startDate?: string, endDate?: string) => {
+export const getOrdersByStatus = async (statuses: OrderStatus[]): Promise<Order[]> => {
   const params = new URLSearchParams();
-  if (startDate) params.append('startDate', startDate);
-  if (endDate) params.append('endDate', endDate);
-
-  const response = await api.get(`/orders/reports/sales?${params.toString()}`);
+  statuses.forEach(status => params.append('statuses', status));
+  const response = await axiosClient.get(`/orders/by-status?${params.toString()}`);
   return response.data;
 };
 
-export const getIngredientConsumptionReport = async (startDate?: string, endDate?: string) => {
-  const params = new URLSearchParams();
-  if (startDate) params.append('startDate', startDate);
-  if (endDate) params.append('endDate', endDate);
-
-  const response = await api.get(`/orders/reports/ingredient-consumption?${params.toString()}`);
+export const updateOrderPriority = async (orderId: string, isPriority: boolean): Promise<Order> => {
+  const response = await axiosClient.patch(`/orders/${orderId}/priority`, { isPriority });
   return response.data;
 };
 
-export const getProductProfitabilityReport = async () => {
-  const response = await api.get('/orders/reports/profitability');
+export const assignDriverToOrder = async (orderId: string, driverId: string): Promise<Order> => {
+  const response = await axiosClient.patch(`/orders/${orderId}/assign-driver`, { driverId });
   return response.data;
 };
 
-// --- Notifications API ---
-
-export const getNotifications = async () => {
-  const response = await api.get('/notifications');
+export const setPreparationTime = async (orderId: string, preparationTimeMinutes: number): Promise<Order> => {
+  const response = await axiosClient.patch(`/orders/${orderId}/prepare`, { preparationTimeMinutes });
   return response.data;
 };
 
-export const markNotificationAsRead = async (id: string) => {
-  await api.patch(`/notifications/${id}/read`);
+export const updateOrderCoordinates = async (orderId: string, latitude: number, longitude: number): Promise<Order> => {
+  const response = await axiosClient.patch(`/orders/${orderId}/coordinates`, { latitude, longitude });
+  return response.data;
 };
 
-export const markAllNotificationsAsRead = async () => {
-  await api.post('/notifications/read-all');
+export const getMyDeliveries = async (): Promise<Order[]> => {
+  // Este endpoint debe ser creado en el backend.
+  // Devolverá los pedidos del día asignados al repartidor autenticado.
+  const response = await axiosClient.get('/orders/my-deliveries');
+  return response.data;
+};
+
+// --- Delivery ---
+export const optimizeRoutes = async (maxOrdersPerDriver: number): Promise<OptimizedRoute[]> => {
+  const response = await axiosClient.post('/delivery/optimize-routes', { maxOrdersPerDriver });
+  return response.data;
+};
+
+// --- Users ---
+export const getUsersByRole = async (role: string): Promise<User[]> => {
+  const response = await axiosClient.get(`/users/by-role?role=${role}`);
+  return response.data;
+};
+
+export const updateUser = async (userId: string, data: Partial<User>): Promise<User> => {
+  const response = await axiosClient.patch(`/users/${userId}`, data);
+  return response.data;
+};
+
+export const getUsers = async (): Promise<User[]> => {
+  const response = await axiosClient.get('/users');
+  return response.data;
+};
+
+export const createUser = async (data: CreateUserDto): Promise<User> => {
+  const response = await axiosClient.post('/users', data);
+  return response.data;
+};
+
+export const deleteUser = async (userId: string): Promise<void> => {
+  await axiosClient.delete(`/users/${userId}`);
+};
+
+// --- Financials ---
+export const getOverheadCosts = async (startDate?: string, endDate?: string): Promise<OverheadCost[]> => {
+  const response = await axiosClient.get('/financials/overhead-costs', { params: { startDate, endDate } });
+  return response.data;
+};
+
+export const createOverheadCost = async (data: Partial<OverheadCost>): Promise<OverheadCost> => {
+  const response = await axiosClient.post('/financials/overhead-costs', data);
+  return response.data;
+};
+
+export const updateOverheadCost = async (id: string, data: Partial<OverheadCost>): Promise<OverheadCost> => {
+  const response = await axiosClient.patch(`/financials/overhead-costs/${id}`, data);
+  return response.data;
+};
+
+export const deleteOverheadCost = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/financials/overhead-costs/${id}`);
+};
+
+// --- Tenant Configuration ---
+export const getTenantConfiguration = async (): Promise<TenantConfiguration> => {
+  const response = await axiosClient.get('/tenants/configuration');
+  return response.data;
+};
+
+export const updateTenantConfiguration = async (data: Partial<TenantConfiguration>): Promise<TenantConfiguration> => {
+  const response = await axiosClient.patch('/tenants/configuration', data);
+  return response.data;
 };

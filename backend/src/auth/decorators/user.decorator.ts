@@ -7,6 +7,7 @@ export interface UserPayload {
   userId: string; // Mapeado desde 'sub' en el token
   email: string;
   role: string;
+  locationId?: string;
   tenantId: string;
 }
 

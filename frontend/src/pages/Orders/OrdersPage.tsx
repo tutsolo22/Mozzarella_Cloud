@@ -1,119 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Typography, Spin, Alert, Tag, Select, Button, notification } from 'antd';
-import { getOrders, updateOrderStatus } from '../../services/api';
+import React, { useEffect, useState } from 'react';
+import { Table, Tag, Space, Button, Tooltip, Alert, Typography } from 'antd';
+import { getOrders } from '../../services/api';
 import { Order, OrderStatus } from '../../types/order';
+import { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
+import { EyeOutlined, WarningOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
-
-const statusColors: { [key in OrderStatus]: string } = {
-  pending_confirmation: 'gold',
-  confirmed: 'lime',
-  in_preparation: 'processing',
-  ready_for_delivery: 'cyan',
-  in_delivery: 'blue',
-  delivered: 'success',
-  cancelled: 'error',
-};
-
-const statusLabels: { [key in OrderStatus]: string } = {
-  pending_confirmation: 'Pendiente',
-  confirmed: 'Confirmado',
-  in_preparation: 'En Preparación',
-  ready_for_delivery: 'Listo para Entregar',
-  in_delivery: 'En Reparto',
-  delivered: 'Entregado',
-  cancelled: 'Cancelado',
-};
 
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await getOrders();
-      setOrders(data);
-    } catch (err) {
-      setError('No se pudieron cargar los pedidos.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await getOrders();
+        setOrders(data);
+      } catch (err) {
+        setError('No se pudieron cargar los pedidos.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-    try {
-      await updateOrderStatus(orderId, newStatus);
-      notification.success({ message: 'Estado del pedido actualizado' });
-      fetchOrders(); // Recargar la lista de pedidos
-    } catch (err) {
-      notification.error({ message: 'Error al actualizar el estado' });
-    }
-  };
-
-  const columns = [
+  const columns: ColumnsType<Order> = [
     {
       title: 'ID Pedido',
-      dataIndex: 'id',
-      key: 'id',
-      render: (id: string) => <code>{id.split('-')[0]}</code>,
-    },
-    {
-      title: 'Items',
-      dataIndex: 'items',
-      key: 'items',
-      render: (items: any[]) => items.map(item => (
-        <div key={item.id}>
-          {item.quantity}x {item.product.name}
-          {item.notes && (
-            <div style={{ fontSize: '0.8em', color: 'gray' }}><em>Nota: {item.notes}</em></div>
+      dataIndex: 'shortId',
+      key: 'shortId',
+      render: (text, record) => (
+        <Space>
+          {record.notes?.includes('¡ATENCIÓN! Pedido fuera del área de entrega.') && (
+            <Tooltip title="Pedido fuera del área de entrega">
+              <WarningOutlined style={{ color: '#faad14', fontSize: '16px' }} />
+            </Tooltip>
           )}
-        </div>
-      )),
+          <span>#{text}</span>
+        </Space>
+      ),
     },
     {
-      title: 'Total',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
-      render: (amount: number) => `$${amount.toFixed(2)}`,
+      title: 'Cliente',
+      dataIndex: ['customer', 'fullName'],
+      key: 'customer',
+      render: (text) => text || 'Consumidor Final',
     },
     {
       title: 'Estado',
       dataIndex: 'status',
       key: 'status',
-      render: (status: OrderStatus, record: Order) => (
-        <Select
-          defaultValue={status}
-          style={{ width: 150 }}
-          onChange={(newStatus) => handleStatusChange(record.id, newStatus)}
-        >
-          {Object.entries(statusLabels).map(([key, label]) => (
-            <Select.Option key={key} value={key}>{label}</Select.Option>
-          ))}
-        </Select>
-      ),
+      render: (status: OrderStatus) => {
+        let color = 'geekblue';
+        if (status === OrderStatus.Delivered) color = 'green';
+        if (status === OrderStatus.Cancelled) color = 'red';
+        if (status === OrderStatus.InDelivery) color = 'orange';
+        return <Tag color={color}>{status.replace(/_/g, ' ').toUpperCase()}</Tag>;
+      },
+    },
+    {
+      title: 'Total',
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      render: (amount) => `$${parseFloat(amount).toFixed(2)}`,
     },
     {
       title: 'Fecha',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleString('es-ES'),
+      render: (date) => dayjs(date).format('DD/MM/YYYY HH:mm'),
+    },
+    {
+      title: 'Acciones',
+      key: 'actions',
+      render: (_, record) => (
+        <Button icon={<EyeOutlined />} onClick={() => console.log('Ver detalle', record.id)}>Ver</Button>
+      ),
     },
   ];
 
-  if (loading) return <Spin tip="Cargando pedidos..." size="large" />;
-  if (error) return <Alert message={error} type="error" showIcon />;
+  // Función para añadir una clase CSS a la fila si está fuera de zona
+  const getRowClassName = (record: Order) => {
+    return record.notes?.includes('¡ATENCIÓN! Pedido fuera del área de entrega.') ? 'table-row-warning' : '';
+  };
 
   return (
-    <>
+    <div>
+      <style>{`.table-row-warning > td { background: #fffbe6 !important; }`}</style>
       <Title level={2}>Gestión de Pedidos</Title>
-      <Table columns={columns} dataSource={orders} rowKey="id" />
-    </>
+      {error && <Alert message="Error" description={error} type="error" showIcon style={{ marginBottom: 16 }} />}
+      <Table columns={columns} dataSource={orders} loading={loading} rowKey="id" rowClassName={getRowClassName} />
+    </div>
   );
 };
 

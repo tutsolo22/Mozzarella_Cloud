@@ -1,14 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +14,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto, tenantId: string): Promise<User> {
-    const { email, password, fullName, roleId } = createUserDto;
+    const { email, password, locationId, ...rest } = createUserDto;
 
     const existingUser = await this.userRepository.findOneBy({ email });
     if (existingUser) {
@@ -27,51 +23,42 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = this.userRepository.create({
-      fullName,
+    const user = this.userRepository.create({
+      ...rest,
       email,
       password: hashedPassword,
-      tenantId, // Asignar el tenant del admin que lo crea
-      roleId,
-      status: UserStatus.Active, // Los usuarios creados por un admin están activos por defecto
+      tenantId,
+      locationId: locationId || null, // Ensure it's null if not provided
+      status: UserStatus.Active, // Assume active for users created by admin
     });
 
-    const savedUser = await this.userRepository.save(newUser);
+    const savedUser = await this.userRepository.save(user);
     delete savedUser.password;
     return savedUser;
   }
 
   findAll(tenantId: string): Promise<User[]> {
-    return this.userRepository.find({ where: { tenantId } });
-  }
-
-  async findOne(id: string, tenantId?: string): Promise<User> {
-    const whereClause: any = { id };
-    if (tenantId) {
-      whereClause.tenantId = tenantId;
-    }
-    const user = await this.userRepository.findOne({ where: whereClause });
-
-    if (!user) {
-      throw new NotFoundException(`Usuario con ID "${id}" no encontrado.`);
-    }
-    delete user.password;
-    return user;
+    return this.userRepository.find({
+      where: { tenantId },
+      relations: ['role', 'location'], // Eager load role and location
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, tenantId: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id, tenantId });
+    // Allow un-assigning a location
+    if (updateUserDto.hasOwnProperty('locationId') && !updateUserDto.locationId) {
+      updateUserDto.locationId = null;
+    }
+
+    const user = await this.userRepository.preload({
+      id,
+      tenantId,
+      ...updateUserDto,
+    });
+
     if (!user) {
       throw new NotFoundException(`Usuario con ID "${id}" no encontrado.`);
     }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
-
-    // `merge` actualiza de forma segura la entidad `user` con los campos
-    // proporcionados en el DTO. TypeORM maneja las propiedades parciales correctamente.
-    this.userRepository.merge(user, updateUserDto);
 
     const updatedUser = await this.userRepository.save(user);
     delete updatedUser.password;

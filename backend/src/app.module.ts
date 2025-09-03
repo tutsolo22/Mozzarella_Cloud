@@ -3,6 +3,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
@@ -16,6 +17,21 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
 import { FilesModule } from './files/files.module';
 import { AppService } from './app.service';
 import { NotificationsModule } from './notifications/notifications.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { GeofencingModule } from './geofencing/geofencing.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { HrModule } from './hr/hr.module';
+import { FinancialsModule } from './financials/financials.module';
+import { ReportsModule } from './reports/reports.module';
+import { LocationsModule } from './locations/locations.module';
+import { KdsModule } from './kds/kds.module';
+import { PreparationZonesModule } from './preparation-zones/preparation-zones.module';
+import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integration.module';
+import { PromotionsModule } from './promotions/promotions.module';
+import { PaymentsModule } from './payments/payments.module';
+import { TasksModule } from './tasks/tasks.module';
+import { CsvModule } from './csv/csv.module';
 
 @Module({
   imports: [
@@ -36,6 +52,7 @@ import { NotificationsModule } from './notifications/notifications.module';
         synchronize: true, // ¡Solo para desarrollo! Sincroniza el esquema de la BD.
       }),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     ProductsModule,
@@ -47,6 +64,21 @@ import { NotificationsModule } from './notifications/notifications.module';
     SuperAdminModule,
     FilesModule,
     NotificationsModule,
+    GeocodingModule,
+    TenantsModule,
+    GeofencingModule,
+    DeliveryModule,
+    HrModule,
+    FinancialsModule,
+    ReportsModule,
+    LocationsModule,
+    KdsModule,
+    PreparationZonesModule,
+    WhatsappIntegrationModule,
+    PromotionsModule,
+    PaymentsModule,
+    TasksModule,
+    CsvModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -34,6 +34,7 @@ El payload contiene:
 *   `email`: El email del usuario.
 *   `role`: El rol del usuario (ej. 'admin').
 *   `tenantId`: El ID del tenant al que pertenece el usuario.
+*   `locationId`: El ID de la sucursal a la que está asignado el usuario. Este campo puede ser `null` para roles como el `Admin` del tenant, que tienen acceso a todas las sucursales.
 
 Este payload es validado por la `JwtStrategy` en cada petición a una ruta protegida.
 
@@ -49,7 +50,7 @@ sequenceDiagram
     participant JwtStrategy
 
     Client->>+ProtectedController: GET /users/profile (Header: Bearer <token>)
-    ProtectedController->>+JwtAuthGuard: Activa el guard
+    ProtectedController->>+JwtAuthGuard: Activa el guard (y el RolesGuard)
     JwtAuthGuard->>+JwtStrategy: Valida la firma y expiración del token
     JwtStrategy-->>-JwtAuthGuard: Devuelve el payload del token decodificado
     JwtAuthGuard-->>-ProtectedController: Adjunta el payload a la petición (req.user)
@@ -64,7 +65,7 @@ sequenceDiagram
 
 *   **`auth.service.ts`**:
     *   `validateUser(email, pass)`: Busca un usuario por email y compara la contraseña recibida con el hash guardado en la base de datos usando `bcrypt.compare`.
-    *   `login(user)`: Si la validación es exitosa, crea un payload con información del usuario (ID, email, rol, tenantId) y lo firma usando `jwtService` para generar el `access_token`.
+    *   `login(user)`: Si la validación es exitosa, crea un payload con información del usuario (ID, email, rol, tenantId, locationId) y lo firma usando `jwtService` para generar el `access_token`.
 
 *   **`strategies/local.strategy.ts`**:
     *   Implementa la lógica de Passport para la estrategia 'local'.

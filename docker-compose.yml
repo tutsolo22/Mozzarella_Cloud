@@ -1,19 +1,24 @@
 version: '3.8'
 
 services:
-  postgres-db:
+  db:
     image: postgis/postgis:15-3.3
-    container_name: mozzarella_db
+    container_name: mozzarella_dev_db
     restart: always
     ports:
       - "5432:5432"
     environment:
       TZ: America/Merida
       POSTGRES_DB: mozzarella_cloud_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: Christhian
+      POSTGRES_PASSWORD: 'm^W9zB&vH3g$!cKxL2pQ-@R4uJ_T7fD0Yt5P(S;E:N,I>M?O]'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Christhian -d mozzarella_cloud_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

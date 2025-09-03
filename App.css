@@ -1,0 +1,4 @@
+.deleted-row td {
+  color: #aaa;
+  text-decoration: line-through;
+}

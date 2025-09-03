@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -8,12 +14,14 @@ export class OrderItem {
   id: string;
 
   @ManyToOne(() => Order, (order) => order.items)
+  @JoinColumn({ name: 'orderId' })
   order: Order;
 
   @Column()
   orderId: string;
 
-  @ManyToOne(() => Product, { eager: true })
+  @ManyToOne(() => Product, { eager: true }) // Eager load product info
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column()
@@ -23,8 +31,8 @@ export class OrderItem {
   quantity: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  unitPrice: number; // Price at the time of purchase
+  unitPrice: number;
 
   @Column({ type: 'text', nullable: true })
-  notes: string;
+  notes?: string;
 }

@@ -1,50 +1,57 @@
-import React from 'react';
-import { Button, Form, Input, Card, Typography, message } from 'antd';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { Title } = Typography;
 
 const LoginPage: React.FC = () => {
+  // 1. Obtenemos la función `login` de nuestro contexto de autenticación.
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
+  // 2. Esta función se ejecuta cuando el formulario se envía.
   const onFinish = async (values: any) => {
+    setLoading(true);
     try {
-      // Hacemos la petición al endpoint de login del backend
-      const response = await axios.post('http://localhost:3000/auth/login', {
-        email: values.email,
-        password: values.password,
-      });
+      // 3. Llamamos a la función `login` con las credenciales del formulario.
+      // Esta función ya se encarga de la petición, guardar el token y actualizar el estado.
+      await login({ email: values.email, password: values.password });
 
-      const { access_token } = response.data;
-
-      // Guardamos el token para futuras peticiones (por ahora en localStorage)
-      localStorage.setItem('accessToken', access_token);
-
-      message.success('¡Login exitoso!');
-
-      // Redirigimos al usuario al dashboard principal
-      navigate('/admin');
-    } catch (error) {
-      console.error('Error en el login:', error);
-      message.error('Credenciales incorrectas. Por favor, inténtalo de nuevo.');
+      // 4. Si el login es exitoso, redirigimos al usuario al dashboard.
+      // Cambiamos '/admin' a '/' para que coincida con nuestra ProtectedRoute.
+      navigate('/');
+    } catch (error: any) {
+      // 5. Si hay un error (ej. credenciales incorrectas), mostramos un mensaje.
+      // El AuthContext se encarga de lanzar el error si la API falla.
+      const errorMessage = error.response?.data?.message || 'Error al iniciar sesión. Por favor, inténtalo de nuevo.';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Card title={<Title level={3}>Iniciar Sesión</Title>} style={{ width: 400 }}>
-        <Form name="login" onFinish={onFinish} layout="vertical" autoComplete="off">
-          <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
-            <Input />
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f0f2f5' }}>
+      <Card style={{ width: 400 }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <Title level={2}>Mozzarella Cloud</Title>
+        </div>
+        <Form name="login" onFinish={onFinish} autoComplete="off">
+          <Form.Item name="email" rules={[{ required: true, message: 'Por favor, introduce tu email' }]}>
+            <Input prefix={<UserOutlined />} placeholder="Email" type="email" />
           </Form.Item>
 
-          <Form.Item label="Contraseña" name="password" rules={[{ required: true }]}>
-            <Input.Password />
+          <Form.Item name="password" rules={[{ required: true, message: 'Por favor, introduce tu contraseña' }]}>
+            <Input.Password prefix={<LockOutlined />} placeholder="Contraseña" />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>Ingresar</Button>
+            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
+              Iniciar Sesión
+            </Button>
           </Form.Item>
         </Form>
       </Card>

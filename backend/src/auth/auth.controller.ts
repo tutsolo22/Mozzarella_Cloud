@@ -1,12 +1,27 @@
-import { Controller, Post, UseGuards, Request, Body, Get, Query, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  Body,
+  Get,
+  Query,
+  Res,
+  HttpCode,
+  HttpStatus,
+  Patch,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Response } from 'express';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Roles } from './decorators/roles.decorator';
+import { RoleEnum } from '../roles/enums/role.enum';
+import { User, UserPayload } from './decorators/user.decorator';
+import { SwitchLocationDto } from './dto/switch-location.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,24 +43,13 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Get('verify-email')
-  async verifyEmail(@Query('token') token: string, @Res() res: Response) {
-    await this.authService.verifyEmail(token);
-    const frontendUrl = this.configService.get('FRONTEND_URL');
-    return res.redirect(`${frontendUrl}/login?verified=true`);
-  }
-
-  @Post('forgot-password')
-  @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    // Siempre devolvemos OK para no revelar si un email existe o no
-    await this.authService.requestPasswordReset(forgotPasswordDto.email);
-    return { message: 'Si el correo electrónico está registrado, recibirás un enlace para resetear tu contraseña.' };
-  }
-
-  @Post('reset-password')
-  @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.password);
+  @Patch('switch-location')
+  @UseGuards(JwtAuthGuard)
+  @Roles(RoleEnum.Admin) // Solo los Admins pueden cambiar de sucursal
+  async switchLocation(
+    @User() user: UserPayload,
+    @Body() switchLocationDto: SwitchLocationDto,
+  ) {
+    return this.authService.switchLocation(user.userId, switchLocationDto.locationId);
   }
 }

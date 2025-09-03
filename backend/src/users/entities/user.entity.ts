@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Location } from '../../locations/entities/location.entity';
 
 export enum UserStatus {
   PendingVerification = 'pending_verification',
@@ -59,6 +60,29 @@ export class User {
 
   @Column({ nullable: true }) // Super-admin no necesita un tenant
   tenantId: string;
+
+  @Column({ type: 'uuid', nullable: true, comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)' })
+  locationId?: string;
+
+  @ManyToOne(() => Location, location => location.users, { nullable: true, eager: false })
+  @JoinColumn({ name: 'locationId' })
+  location?: Location;
+
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    comment: 'Capacidad máxima de carga en kg para repartidores',
+  })
+  maxWeightCapacityKg?: number;
+
+  @Column('decimal', {
+    precision: 10,
+    scale: 4,
+    nullable: true,
+    comment: 'Capacidad máxima de volumen en m³ para repartidores',
+  })
+  maxVolumeCapacityM3?: number;
 
   @CreateDateColumn()
   createdAt: Date;

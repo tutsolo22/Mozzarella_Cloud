@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -42,8 +42,18 @@ export class IngredientsController {
 
   @Post('adjust-stock')
   @Roles(RoleEnum.Admin, RoleEnum.Manager)
+  @HttpCode(HttpStatus.NO_CONTENT)
   adjustStock(@Body() adjustDto: AdjustStockDto, @User() user: UserPayload) {
     return this.ingredientsService.adjustStock(adjustDto, user.userId, user.tenantId);
+  }
+
+  @Get(':id/movements')
+  @Roles(RoleEnum.Admin, RoleEnum.Manager)
+  getMovementHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @User() user: UserPayload,
+  ) {
+    return this.ingredientsService.getMovementHistory(id, user.tenantId);
   }
 
   // ... otros endpoints como findOne, update, remove, etc. también deben pasar el tenantId

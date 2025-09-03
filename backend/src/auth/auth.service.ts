@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, InternalServerErrorException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, InternalServerErrorException, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -46,12 +46,19 @@ export class AuthService {
   }
 
   async login(user: User) {
+    // Aplanamos los permisos del rol en un array de strings.
+    // El '?' es por si un rol no tuviera permisos asignados.
+    const permissions = user.role.permissions?.map((p) => p.name) || [];
+
     const payload = { 
       email: user.email, 
       sub: user.id, 
       role: user.role.name, 
-      tenantId: user.tenantId 
+      tenantId: user.tenantId,
+      locationId: user.locationId,
+      permissions: permissions,
     };
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -59,6 +66,8 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role.name,
+        // Devolvemos los permisos también en el objeto de usuario para el frontend
+        permissions: permissions,
       }
     };
   }
@@ -196,5 +205,36 @@ export class AuthService {
     // Omitir datos sensibles antes de devolver
     delete user.password;
     return user;
+  }
+
+  async switchLocation(userId: string, locationId: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['role', 'role.permissions', 'tenant', 'tenant.locations'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    // Security check: ensure the requested location belongs to the user's tenant.
+    const canAccessLocation = user.tenant.locations.some(loc => loc.id === locationId);
+    if (!canAccessLocation) {
+      throw new ForbiddenException('No tienes permiso para acceder a esta sucursal.');
+    }
+
+    // The user object is valid and has access. Now, generate a new token
+    // with the updated locationId in the payload.
+    const permissions = user.role.permissions?.map((p) => p.name) || [];
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role.name,
+      tenantId: user.tenantId,
+      locationId: locationId, // The new locationId
+      permissions: permissions,
+    };
+
+    return { access_token: this.jwtService.sign(payload) };
   }
 }

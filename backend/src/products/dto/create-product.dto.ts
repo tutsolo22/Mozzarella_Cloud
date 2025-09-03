@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsNumber, IsUUID, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsUUID,
+  IsBoolean,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -10,13 +18,19 @@ export class CreateProductDto {
   description?: string;
 
   @IsNumber()
+  @Min(0)
   price: number;
 
   @IsUUID()
-  @IsNotEmpty()
   categoryId: string;
 
-  @IsBoolean()
+  @IsNumber()
   @IsOptional()
-  isAvailable?: boolean;
+  @Min(0)
+  weightKg?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  volumeM3?: number;
 }

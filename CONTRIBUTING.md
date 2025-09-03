@@ -1,22 +1,55 @@
-# Guía de Contribución para Mozzarella Cloud
+# Guía de Contribución y Flujo de Trabajo
 
-¡Gracias por tu interés en contribuir a Mozzarella Cloud!
+¡Gracias por tu interés en contribuir a **Mozzarella Cloud**! Este documento te guiará a través del proceso de configuración del entorno de desarrollo y el flujo de trabajo que seguimos para garantizar la calidad y coherencia del código.
 
-## Flujo de Trabajo
+## 1. Flujo de Trabajo con Git
 
-1.  **Busca o crea un Issue**: Antes de empezar a trabajar, busca un issue existente o crea uno nuevo en la pestaña de Issues de GitHub para describir el bug o la característica.
-2.  **Crea una Rama**: Crea una nueva rama a partir de `main` para tu trabajo. Nombra la rama de forma descriptiva (e.g., `feature/user-login` o `fix/order-status-bug`).
-3.  **Desarrolla**: Escribe tu código, asegurándote de seguir las guías de estilo del proyecto.
-4.  **Prueba**: Asegúrate de que tus cambios no rompen ninguna funcionalidad existente.
-5.  **Haz Commit**: Escribe mensajes de commit claros y descriptivos.
-6.  **Crea un Pull Request**: Abre un Pull Request (PR) hacia la rama `main`. En la descripción del PR, enlaza el issue que resuelve (e.g., `Closes #123`).
-7.  **Revisión de Código**: Espera a que otro miembro del equipo revise tu código y apruebe los cambios.
+Para mantener el repositorio organizado, seguimos un flujo de trabajo basado en ramas y Pull Requests.
 
-## Configuración del Entorno de Desarrollo
+### 1.1. Ramas (Branches)
 
-Esta guía te ayudará a configurar el proyecto en tu máquina local para empezar a desarrollar.
+*   **Rama Principal**: La rama `main` es la única fuente de verdad y refleja el código que está en producción. **No se debe hacer push directamente a `main`**.
+*   **Ramas de Trabajo**: Todo el trabajo nuevo (características, corrección de bugs, documentación) se debe realizar en una rama separada creada a partir de `main`.
 
-### 1. Prerrequisitos
+#### Nomenclatura de Ramas
+
+Usa un prefijo descriptivo para nombrar tu rama, seguido de un resumen corto de la tarea.
+
+*   **Nuevas Características**: `feature/nombre-de-la-caracteristica` (ej. `feature/user-login`)
+*   **Corrección de Bugs**: `fix/descripcion-del-bug` (ej. `fix/order-status-error`)
+*   **Documentación**: `docs/tema-documentado` (ej. `docs/update-api-documentation`)
+*   **Tareas y Refactorización**: `chore/descripcion-de-la-tarea` (ej. `chore/refactor-auth-service`)
+
+### 1.2. Commits
+
+Intenta que tus commits sean atómicos (que representen un solo cambio lógico) y escribe mensajes claros. Recomendamos seguir el estándar de Conventional Commits.
+
+**Formato**: `<tipo>(<ámbito opcional>): <descripción>`
+
+*   **Ejemplos**:
+    *   `feat(auth): add password recovery endpoint`
+    *   `fix(kds): prevent duplicate order rendering`
+    *   `docs(readme): update project features list`
+
+### 1.3. Pull Requests (PRs)
+
+Una vez que tu trabajo esté completo y probado en tu rama:
+
+1.  **Haz Push**: Sube tu rama al repositorio remoto de GitHub.
+2.  **Crea un Pull Request**: Abre un PR desde tu rama hacia `main`.
+3.  **Describe tu PR**:
+    *   Usa un título claro y conciso.
+    *   En la descripción, explica **qué** hace el PR y **por qué** es necesario.
+    *   Enlaza el *Issue* que resuelve usando la palabra clave `Closes #123`.
+4.  **Revisión de Código**: Asigna a uno o más miembros del equipo para que revisen tu código. El PR no se podrá fusionar hasta que reciba al menos una aprobación.
+
+---
+
+## 2. Configuración del Entorno de Desarrollo Local
+
+Sigue estos pasos para poner en marcha el proyecto en tu máquina.
+
+### 2.1. Prerrequisitos
 
 Asegúrate de tener instalado el siguiente software:
 
@@ -24,10 +57,10 @@ Asegúrate de tener instalado el siguiente software:
 - **Node.js**: Se recomienda la versión 18 o superior. Puedes usar un gestor de versiones como [nvm](https://github.com/nvm-sh/nvm).
 - **Docker** y **Docker Compose**: Para levantar la base de datos de forma sencilla.
 
-### 2. Clonar el Repositorio
+### 2.2. Clonar el Repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/tu-usuario/Mozzarella_Cloud.git
 cd Mozzarella_Cloud
 ```
 

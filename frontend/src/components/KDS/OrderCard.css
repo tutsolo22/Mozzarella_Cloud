@@ -1,0 +1,11 @@
+@keyframes glowing-purple {
+  0% { box-shadow: 0 0 -5px #a855f7; }
+  40% { box-shadow: 0 0 15px #a855f7; }
+  60% { box-shadow: 0 0 15px #a855f7; }
+  100% { box-shadow: 0 0 -5px #a855f7; }
+}
+
+.order-card-approaching .ant-card-head {
+  border-left: 5px solid #a855f7; /* purple-500 */
+  animation: glowing-purple 1.5s infinite;
+}

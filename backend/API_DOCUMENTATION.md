@@ -58,6 +58,24 @@ Para una explicación más detallada del flujo interno, consulta AUTHENTICATION.
     ```
 *   **Error Response (401 Unauthorized)**: Si la licencia es inválida, expiró o fue revocada.
 
+### 1.4. Cambiar de Sucursal (Switch Location)
+
+*   **Endpoint**: `PATCH /auth/switch-location`
+*   **Descripción**: Permite a un usuario (generalmente un `Admin`) cambiar su sucursal activa. Devuelve un nuevo `access_token` con el `locationId` actualizado en su payload. El frontend debe reemplazar el token antiguo por este nuevo para que las siguientes peticiones se realicen en el contexto de la nueva sucursal.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Request Body**:
+    ```json
+    {
+      "locationId": "uuid-de-la-nueva-sucursal"
+    }
+    ```
+*   **Successful Response (200)**:
+    ```json
+    {
+      "access_token": "ey... (nuevo token)"
+    }
+    ```
+
 ## 2. Autorización (Roles)
 
 El acceso a ciertos endpoints está restringido por roles. El rol del usuario se incluye en el payload del JWT y es verificado por el `RolesGuard` en el backend.
@@ -138,6 +156,8 @@ Los roles disponibles son:
 #### `GET /product-categories`
 *   **Descripción**: Lista todas las categorías de productos.
 *   **Protección**: Público.
+*   **Query Parameters (Opcional)**:
+    *   `includeDeleted` (boolean): Si se establece en `true`, el listado incluirá también las categorías eliminadas (soft-delete). Ejemplo: `/product-categories?includeDeleted=true`.
 *   **Successful Response (200)**:
     ```json
     [
@@ -174,10 +194,30 @@ Los roles disponibles son:
 *   **Successful Response (200)**: Devuelve el objeto de la categoría actualizada.
 
 #### `DELETE /product-categories/:id`
-*   **Descripción**: Elimina una categoría de producto.
+*   **Descripción**: Realiza un "soft delete" de una categoría de producto. La categoría no se elimina permanentemente de la base de datos, sino que se marca como eliminada y se puede restaurar.
 *   **Protección**: `JWT Auth` + `Rol: admin`.
 *   **URL Parameters**: `id` (UUID) de la categoría.
-*   **Successful Response (200)**: `null` o `{}`.
+*   **Successful Response (204 No Content)**.
+
+#### `PATCH /product-categories/:id/restore`
+*   **Descripción**: Restaura una categoría de producto que ha sido eliminada mediante "soft delete".
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) de la categoría a restaurar.
+*   **Successful Response (204 No Content)**.
+
+#### `GET /product-categories/export`
+*   **Descripción**: Exporta todas las categorías de productos a un archivo CSV.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Successful Response (200)**: Un archivo `categories.csv` para descargar.
+
+#### `POST /product-categories/import`
+*   **Descripción**: Importa categorías de productos desde un archivo CSV. El CSV debe tener las columnas `name` y `description`. Si se incluye una columna `id` y coincide con una categoría existente, se actualizará; de lo contrario, se creará una nueva.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Request Body**: `multipart/form-data` con un campo `file` que contiene el archivo CSV.
+*   **Successful Response (201)**:
+    ```json
+    { "created": 10, "updated": 5, "errors": [] }
+    ```
 
 ---
 
@@ -448,7 +488,7 @@ Todos los endpoints de este módulo requieren autenticación (`JWT Auth`) y el r
 *   **URL Parameters**: `id` (UUID) del ingrediente.
 *   **Successful Response (200)**: `null` o `{}`.
 
- #### `GET /ingredients/:id/movements`
+#### `GET /ingredients/:id/movements`
 *   **Descripción**: Obtiene el historial de movimientos de stock para un ingrediente específico.
 *   **Protección**: `JWT Auth` + `Rol: admin` o `manager`.
 *   **URL Parameters**: `id` (UUID) del ingrediente.
@@ -522,6 +562,32 @@ Todos los endpoints de este módulo requieren autenticación (`JWT Auth`) y el r
     ]
     ```
 
+#### `GET /orders/reports/driver-performance`
+*   **Descripción**: Obtiene un reporte de rendimiento para cada repartidor, basado en los pedidos entregados en un rango de fechas.
+*   **Protección**: `JWT Auth` + `Rol: admin` o `manager`.
+*   **Query Parameters**:
+    *   `startDate` (string, opcional): Fecha de inicio en formato `YYYY-MM-DD`.
+    *   `endDate` (string, opcional): Fecha de fin en formato `YYYY-MM-DD`.
+*   **Ejemplo de Petición**: `/orders/reports/driver-performance?startDate=2023-11-01`
+*   **Successful Response (200)**:
+    ```json
+    [
+      {
+        "driverId": "uuid-del-repartidor-1",
+        "driverName": "Juan Repartidor",
+        "totalDeliveries": 52,
+        "totalAmountCollected": 1560.50,
+        "averageDeliveryTimeMinutes": "25.50"
+      },
+      {
+        "driverId": "uuid-del-repartidor-2",
+        "driverName": "Ana Veloz",
+        "totalDeliveries": 45,
+        "totalAmountCollected": 1350.00,
+        "averageDeliveryTimeMinutes": "22.75"
+      }
+    ]
+    ```
 ---
 
 ---

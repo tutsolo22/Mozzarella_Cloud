@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { Product } from './product.entity';
 
 @Entity('product_categories')
 export class ProductCategory {
@@ -6,13 +14,16 @@ export class ProductCategory {
   id: string;
 
   @Column()
-  tenantId: string;
-
-  @Column({ unique: true })
   name: string;
 
-  @Column('text', { nullable: true })
-  description: string;
+  @Column({ type: 'integer', default: 0 })
+  position: number;
+
+  @Column()
+  tenantId: string;
+
+  @OneToMany(() => Product, (product) => product.category)
+  products: Product[];
 
   @CreateDateColumn()
   createdAt: Date;

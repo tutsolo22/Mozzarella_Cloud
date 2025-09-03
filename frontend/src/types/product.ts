@@ -1,6 +1,15 @@
 export interface ProductCategory {
   id: string;
   name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string; // This property indicates if the category is soft-deleted
+}
+
+export interface ProductCategoryDto {
+  name: string;
+  description?: string;
 }
 
 export interface Product {
@@ -8,29 +17,32 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  isAvailable: boolean;
-  imageUrl: string;
   category: ProductCategory;
-  categoryId: string;
-  createdAt: string;
-  updatedAt: string;
+  imageUrl?: string;
+  isAvailable: boolean;
+  deletedAt?: string;
 }
+
+export type CreateProductDto = Omit<Product, 'id' | 'category' | 'isAvailable' | 'deletedAt'> & { categoryId: string };
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 export interface Ingredient {
   id: string;
-  tenantId: string;
   name: string;
   stockQuantity: number;
   unit: string;
   lowStockThreshold: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
+export type CreateIngredientDto = Omit<Ingredient, 'id'>;
+
 export interface RecipeItem {
-  id: string;
-  quantityRequired: number;
-  productId: string;
   ingredientId: string;
-  ingredient: Ingredient;
+  quantityRequired: number;
+  // The backend sends the full ingredient object, which is very useful.
+  ingredient: {
+    id: string;
+    name: string;
+    unit: string;
+  };
 }

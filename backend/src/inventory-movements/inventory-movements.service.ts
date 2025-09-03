@@ -11,7 +11,7 @@ export class InventoryMovementsService {
     private readonly movementRepository: Repository<InventoryMovement>,
   ) {}
 
-  async recordMovement(
+  async logMovement(
     movementData: Partial<InventoryMovement>,
     manager: EntityManager,
   ): Promise<InventoryMovement> {
