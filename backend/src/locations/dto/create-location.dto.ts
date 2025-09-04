@@ -1,28 +1,23 @@
 import {
   IsString,
   IsNotEmpty,
-  IsOptional,
-  IsLatitude,
-  IsLongitude,
-  MinLength,
+  IsOptional, IsJSON,
 } from 'class-validator';
 
 export class CreateLocationDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
   name: string;
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(10)
   address: string;
 
   @IsOptional()
-  @IsLatitude()
-  latitude?: number;
+  @IsString()
+  phone?: string;
 
   @IsOptional()
-  @IsLongitude()
-  longitude?: number;
+  @IsJSON()
+  deliveryArea?: any; // GeoJSON Polygon
 }

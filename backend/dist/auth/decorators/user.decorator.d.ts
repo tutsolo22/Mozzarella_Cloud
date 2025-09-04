@@ -1,7 +1,8 @@
-import { Role } from '../enums/role.enum';
 export interface UserPayload {
     userId: string;
     email: string;
-    role: Role;
+    role: string;
+    locationId?: string;
+    tenantId: string;
 }
 export declare const User: (...dataOrPipes: unknown[]) => ParameterDecorator;

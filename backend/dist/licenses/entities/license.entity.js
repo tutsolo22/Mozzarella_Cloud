@@ -46,7 +46,7 @@ __decorate([
     __metadata("design:type", Date)
 ], License.prototype, "expiresAt", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: license_status_enum_1.LicenseStatus, default: license_status_enum_1.LicenseStatus.Activa }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: license_status_enum_1.LicenseStatus, default: license_status_enum_1.LicenseStatus.Active }),
     __metadata("design:type", String)
 ], License.prototype, "status", void 0);
 __decorate([

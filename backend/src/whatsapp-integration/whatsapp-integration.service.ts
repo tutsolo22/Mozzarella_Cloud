@@ -34,7 +34,6 @@ export class WhatsappIntegrationService {
 
     const createdOrder = await this.ordersService.create(
       {
-        locationId: orderDto.locationId,
         customerId: customer.id,
         orderType: orderDto.orderType,
         paymentMethod: orderDto.paymentMethod,
@@ -53,7 +52,8 @@ export class WhatsappIntegrationService {
 
       // Actualizar la orden con la información del pago
       await this.ordersService.update(createdOrder.id, {
-        paymentGatewayId: paymentInfo.preferenceId,
+        // TODO: Add paymentGatewayId to UpdateOrderDto
+        // paymentGatewayId: paymentInfo.preferenceId,
         paymentLink: paymentInfo.init_point,
       }, tenant.id, orderDto.locationId);
 

@@ -74,9 +74,7 @@ export class GeofencingService {
     tenantId: string,
     driverLocation: Point,
   ): Promise<void> {
-    const tenantConfig = await this.tenantConfigRepository.findOne({
-      where: { tenantId },
-    });
+    const tenantConfig = await this.tenantConfigRepository.findOneBy({ tenantId });
 
     if (!tenantConfig?.restaurantLatitude || !tenantConfig?.restaurantLongitude) {
       return; // No se puede verificar si no hay ubicación del restaurante
@@ -112,11 +110,8 @@ export class GeofencingService {
           order.estimatedPickupArrivalAt = arrivalTime;
         }
         await this.orderRepository.save(order);
-        this.notificationsGateway.sendDriverApproachingNotification(
-          tenantId,
-          order,
-          etaMinutes,
-        );
+        // TODO: Implement sendDriverApproachingNotification in NotificationsGateway
+        // this.notificationsGateway.sendDriverApproachingNotification(tenantId, order, etaMinutes);
       }
     }
   }

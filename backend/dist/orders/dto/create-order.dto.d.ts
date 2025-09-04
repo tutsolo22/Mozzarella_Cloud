@@ -1,15 +1,15 @@
-import { OrderType } from '../enums/order-type.enum';
-import { PaymentMethod } from '../enums/payment-method.enum';
+import { OrderType, PaymentMethod } from '../enums/order-types.enum';
 declare class OrderItemDto {
     productId: string;
     quantity: number;
     notes?: string;
 }
 export declare class CreateOrderDto {
-    customerId: string;
+    customerId?: string;
     orderType: OrderType;
     paymentMethod: PaymentMethod;
-    deliveryAddress: string;
+    deliveryAddress?: string;
     items: OrderItemDto[];
+    deliveryFee?: number;
 }
 export {};

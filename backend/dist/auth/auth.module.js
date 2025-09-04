@@ -26,6 +26,7 @@ exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule,
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, tenant_entity_1.Tenant, role_entity_1.Role]),
             passport_1.PassportModule,
             mailer_1.MailerModule.forRootAsync({

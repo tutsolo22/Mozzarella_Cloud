@@ -8,5 +8,5 @@ export declare class OrderItem {
     productId: string;
     quantity: number;
     unitPrice: number;
-    notes: string;
+    notes?: string;
 }

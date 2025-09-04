@@ -27,37 +27,35 @@ let IngredientsService = class IngredientsService {
         this.inventoryMovementsService = inventoryMovementsService;
         this.dataSource = dataSource;
     }
-    create(createIngredientDto) {
-        const ingredient = this.ingredientRepository.create(createIngredientDto);
+    create(createIngredientDto, tenantId) {
+        const ingredient = this.ingredientRepository.create({ ...createIngredientDto, tenantId });
         return this.ingredientRepository.save(ingredient);
     }
-    findAll() {
-        return this.ingredientRepository.find();
+    findAll(tenantId) {
+        return this.ingredientRepository.find({ where: { tenantId } });
     }
-    async findOne(id) {
-        const ingredient = await this.ingredientRepository.findOneBy({ id });
+    async findOne(id, tenantId) {
+        const ingredient = await this.ingredientRepository.findOneBy({ id, tenantId });
         if (!ingredient) {
             throw new common_1.NotFoundException(`El ingrediente con ID "${id}" no fue encontrado.`);
         }
         return ingredient;
     }
-    async update(id, updateIngredientDto) {
+    async update(id, updateIngredientDto, tenantId) {
+        await this.findOne(id, tenantId);
         const ingredient = await this.ingredientRepository.preload({
             id,
             ...updateIngredientDto,
         });
-        if (!ingredient) {
-            throw new common_1.NotFoundException(`El ingrediente con ID "${id}" no fue encontrado.`);
-        }
         return this.ingredientRepository.save(ingredient);
     }
-    async remove(id) {
-        const result = await this.ingredientRepository.delete(id);
+    async remove(id, tenantId) {
+        const result = await this.ingredientRepository.delete({ id, tenantId });
         if (result.affected === 0) {
             throw new common_1.NotFoundException(`El ingrediente con ID "${id}" no fue encontrado.`);
         }
     }
-    async purchase(purchaseDto, userId) {
+    async purchase(purchaseDto, userId, tenantId) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -65,19 +63,20 @@ let IngredientsService = class IngredientsService {
             for (const item of purchaseDto.ingredients) {
                 const ingredient = await queryRunner.manager.findOneBy(ingredient_entity_1.Ingredient, {
                     id: item.ingredientId,
+                    tenantId,
                 });
                 if (!ingredient) {
                     throw new common_1.NotFoundException(`El ingrediente con ID "${item.ingredientId}" no fue encontrado.`);
                 }
-                await queryRunner.manager.increment(ingredient_entity_1.Ingredient, { id: item.ingredientId }, 'stockQuantity', item.quantity);
+                await queryRunner.manager.increment(ingredient_entity_1.Ingredient, { id: item.ingredientId, tenantId }, 'stockQuantity', item.quantity);
                 await this.inventoryMovementsService.logMovement({
+                    tenantId,
                     ingredientId: item.ingredientId,
                     quantityChange: item.quantity,
-                    type: inventory_movement_type_enum_1.TipoMovimientoInventario.Compra,
+                    type: inventory_movement_type_enum_1.InventoryMovementType.Purchase,
                     userId,
-                    queryRunner,
                     reason: 'Compra de insumos',
-                });
+                }, queryRunner.manager);
             }
             await queryRunner.commitTransaction();
         }
@@ -89,7 +88,7 @@ let IngredientsService = class IngredientsService {
             await queryRunner.release();
         }
     }
-    async registerWaste(registerWasteDto, userId) {
+    async registerWaste(registerWasteDto, userId, tenantId) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -97,6 +96,7 @@ let IngredientsService = class IngredientsService {
             for (const item of registerWasteDto.items) {
                 const ingredient = await queryRunner.manager.findOneBy(ingredient_entity_1.Ingredient, {
                     id: item.ingredientId,
+                    tenantId,
                 });
                 if (!ingredient) {
                     throw new common_1.NotFoundException(`El ingrediente con ID "${item.ingredientId}" no fue encontrado.`);
@@ -104,15 +104,15 @@ let IngredientsService = class IngredientsService {
                 if (Number(ingredient.stockQuantity) < item.quantity) {
                     throw new common_1.BadRequestException(`No se puede registrar una merma de ${item.quantity} para "${ingredient.name}" porque solo hay ${ingredient.stockQuantity} en stock.`);
                 }
-                await queryRunner.manager.decrement(ingredient_entity_1.Ingredient, { id: item.ingredientId }, 'stockQuantity', item.quantity);
+                await queryRunner.manager.decrement(ingredient_entity_1.Ingredient, { id: item.ingredientId, tenantId }, 'stockQuantity', item.quantity);
                 await this.inventoryMovementsService.logMovement({
+                    tenantId,
                     ingredientId: item.ingredientId,
                     quantityChange: -item.quantity,
-                    type: inventory_movement_type_enum_1.TipoMovimientoInventario.Merma,
+                    type: inventory_movement_type_enum_1.InventoryMovementType.Waste,
                     userId,
-                    queryRunner,
                     reason: item.reason || 'Merma registrada',
-                });
+                }, queryRunner.manager);
             }
             await queryRunner.commitTransaction();
         }
@@ -124,15 +124,7 @@ let IngredientsService = class IngredientsService {
             await queryRunner.release();
         }
     }
-    async getMovementHistory(ingredientId) {
-        await this.findOne(ingredientId);
-        return this.movementRepository.find({
-            where: { ingredientId },
-            order: { createdAt: 'DESC' },
-            relations: ['user', 'order'],
-        });
-    }
-    async adjustStock(adjustStockDto, userId) {
+    async adjustStock(adjustStockDto, userId, tenantId) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -140,24 +132,23 @@ let IngredientsService = class IngredientsService {
             for (const item of adjustStockDto.items) {
                 const ingredient = await queryRunner.manager.findOneBy(ingredient_entity_1.Ingredient, {
                     id: item.ingredientId,
+                    tenantId,
                 });
                 if (!ingredient) {
                     throw new common_1.NotFoundException(`El ingrediente con ID "${item.ingredientId}" no fue encontrado.`);
                 }
-                const currentStock = Number(ingredient.stockQuantity);
-                const newStock = item.newQuantity;
-                const quantityChange = newStock - currentStock;
+                const quantityChange = item.newQuantity - Number(ingredient.stockQuantity);
                 if (quantityChange !== 0) {
-                    ingredient.stockQuantity = newStock;
+                    ingredient.stockQuantity = item.newQuantity;
                     await queryRunner.manager.save(ingredient);
                     await this.inventoryMovementsService.logMovement({
+                        tenantId,
                         ingredientId: item.ingredientId,
-                        quantityChange: quantityChange,
-                        type: inventory_movement_type_enum_1.TipoMovimientoInventario.Ajuste,
+                        quantityChange,
+                        type: inventory_movement_type_enum_1.InventoryMovementType.Adjustment,
                         userId,
-                        queryRunner,
                         reason: item.reason,
-                    });
+                    }, queryRunner.manager);
                 }
             }
             await queryRunner.commitTransaction();
@@ -170,57 +161,31 @@ let IngredientsService = class IngredientsService {
             await queryRunner.release();
         }
     }
-    async getWasteReport(queryDto) {
-        const { startDate, endDate } = queryDto;
-        const where = {
-            type: inventory_movement_type_enum_1.TipoMovimientoInventario.Merma,
-        };
-        if (startDate || endDate) {
-            const start = startDate ? new Date(startDate) : new Date(0);
-            const end = endDate ? new Date(endDate) : new Date();
-            start.setHours(0, 0, 0, 0);
-            end.setHours(23, 59, 59, 999);
-            where.createdAt = (0, typeorm_2.Between)(start, end);
-        }
-        const wasteMovements = await this.movementRepository.find({
-            where,
-            relations: ['ingredient', 'user'],
+    async getMovementHistory(ingredientId, tenantId) {
+        await this.findOne(ingredientId, tenantId);
+        return this.movementRepository.find({
+            where: { ingredientId, tenantId },
+            relations: ['user', 'order'],
             order: { createdAt: 'DESC' },
         });
-        const totalWasteEntries = wasteMovements.length;
-        const ingredientBreakdown = new Map();
-        wasteMovements.forEach((movement) => {
-            const wastedQuantity = Math.abs(Number(movement.quantityChange));
-            if (movement.ingredient) {
-                const existing = ingredientBreakdown.get(movement.ingredientId);
-                if (existing) {
-                    existing.totalQuantity += wastedQuantity;
-                    existing.entries += 1;
-                }
-                else {
-                    ingredientBreakdown.set(movement.ingredientId, {
-                        ingredientName: movement.ingredient.name,
-                        unit: movement.ingredient.unit,
-                        totalQuantity: wastedQuantity,
-                        entries: 1,
-                    });
-                }
-            }
-        });
-        const summary = Array.from(ingredientBreakdown.entries()).map(([ingredientId, data]) => ({
-            ingredientId,
-            ...data,
-            totalQuantity: parseFloat(data.totalQuantity.toFixed(3)),
-        }));
-        return {
-            reportPeriod: {
-                from: startDate || 'N/A',
-                to: endDate || 'N/A',
-            },
-            totalWasteEntries,
-            summary,
-            details: wasteMovements,
-        };
+    }
+    async getWasteReport(tenantId, locationId, queryDto) {
+        const { startDate, endDate } = queryDto;
+        const qb = this.movementRepository.createQueryBuilder('movement')
+            .innerJoinAndSelect('movement.ingredient', 'ingredient')
+            .where('movement.tenantId = :tenantId', { tenantId })
+            .andWhere('movement.locationId = :locationId', { locationId })
+            .andWhere('movement.type = :type', { type: inventory_movement_type_enum_1.InventoryMovementType.Waste });
+        if (startDate) {
+            qb.andWhere('movement.createdAt >= :startDate', { startDate });
+        }
+        if (endDate) {
+            const toDate = new Date(endDate);
+            toDate.setDate(toDate.getDate() + 1);
+            qb.andWhere('movement.createdAt < :toDate', { toDate });
+        }
+        const wasteMovements = await qb.getMany();
+        return {};
     }
 };
 exports.IngredientsService = IngredientsService;

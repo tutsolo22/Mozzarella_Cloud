@@ -6,26 +6,47 @@ export class TenantConfiguration {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
-  kdsNotificationSoundUrl?: string;
+  @Column({ type: 'uuid', unique: true })
+  tenantId: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  deliveryZone?: any; // GeoJSON Polygon
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    comment: 'API Key for OpenRouteService (Directions)',
+  })
+  directionsApiKey?: string;
 
-  @Column({ nullable: true })
-  directionsApiKey?: string; // For OpenRouteService
+  @Column({
+    type: 'double precision',
+    nullable: true,
+    comment: 'Latitud de la ubicación base del restaurante',
+  })
+  restaurantLatitude?: number;
 
-  @Column({ nullable: true })
-  apiKeyGeocoding?: string; // For OpenCage
+  @Column({
+    type: 'double precision',
+    nullable: true,
+    comment: 'Longitud de la ubicación base del restaurante',
+  })
+  restaurantLongitude?: number;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    comment: 'API Key for OpenCage (Geocoding)',
+  })
+  openCageApiKey?: string;
 
   @Column({ nullable: true })
   mercadoPagoAccessToken?: string;
 
   @Column({
-    type: 'enum',
-    enum: PaymentMethod,
-    array: true,
-    default: [PaymentMethod.Cash],
+    type: 'simple-array',
+    nullable: true,
+    comment: 'Payment methods enabled for this tenant (e.g., cash, mercado_pago)',
+    default: 'cash',
   })
-  enabledPaymentMethods: PaymentMethod[];
+  enabledPaymentMethods?: PaymentMethod[];
 }

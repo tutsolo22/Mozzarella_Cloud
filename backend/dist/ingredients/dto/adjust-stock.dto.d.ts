@@ -1,9 +1,8 @@
-declare class StockAdjustmentItemDto {
+export declare class AdjustStockItemDto {
     ingredientId: string;
     newQuantity: number;
     reason: string;
 }
 export declare class AdjustStockDto {
-    items: StockAdjustmentItemDto[];
+    items: AdjustStockItemDto[];
 }
-export {};

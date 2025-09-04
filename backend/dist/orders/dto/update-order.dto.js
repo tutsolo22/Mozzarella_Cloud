@@ -12,23 +12,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateOrderDto = void 0;
 const class_validator_1 = require("class-validator");
 const order_status_enum_1 = require("../enums/order-status.enum");
-const payment_status_enum_1 = require("../enums/payment-status.enum");
+const order_types_enum_1 = require("../enums/order-types.enum");
 class UpdateOrderDto {
 }
 exports.UpdateOrderDto = UpdateOrderDto;
 __decorate([
-    (0, class_validator_1.IsEnum)(order_status_enum_1.OrderStatus),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(order_status_enum_1.OrderStatus),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "status", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(payment_status_enum_1.PaymentStatus),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(order_types_enum_1.PaymentStatus),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "paymentStatus", void 0);
 __decorate([
-    (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "assignedDriverId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UpdateOrderDto.prototype, "paymentLink", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateOrderDto.prototype, "paymentGatewayId", void 0);
 //# sourceMappingURL=update-order.dto.js.map

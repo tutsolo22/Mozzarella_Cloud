@@ -26,7 +26,7 @@ export class License {
   @Column()
   expiresAt: Date;
 
-  @Column({ type: 'enum', enum: LicenseStatus, default: LicenseStatus.Activa })
+  @Column({ type: 'enum', enum: LicenseStatus, default: LicenseStatus.Active })
   status: LicenseStatus;
 
   @CreateDateColumn()

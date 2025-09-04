@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User, UserStatus } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -42,6 +42,28 @@ export class UsersService {
       where: { tenantId },
       relations: ['role', 'location'], // Eager load role and location
     });
+  }
+
+  async findOne(id: string, tenantId: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id, tenantId },
+      relations: ['role', 'location'],
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID "${id}" no encontrado.`);
+    }
+    return user;
+  }
+
+  async findByRoles(roleNames: string[], tenantId: string, locationId?: string): Promise<User[]> {
+    const where: any = {
+      tenantId,
+      role: { name: In(roleNames) },
+    };
+    if (locationId) {
+      where.locationId = locationId;
+    }
+    return this.userRepository.find({ where, relations: ['role'] });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, tenantId: string): Promise<User> {

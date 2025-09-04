@@ -26,12 +26,13 @@ import { FinancialsModule } from './financials/financials.module';
 import { ReportsModule } from './reports/reports.module';
 import { LocationsModule } from './locations/locations.module';
 import { KdsModule } from './kds/kds.module';
-import { PreparationZonesModule } from './preparation-zones/preparation-zones.module';
+// import { PreparationZonesModule } from './preparation-zones/preparation-zones.module';
 import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integration.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TasksModule } from './tasks/tasks.module';
 import { CsvModule } from './csv/csv.module';
+import { SeedingModule } from './seeding.module';
 
 @Module({
   imports: [
@@ -73,12 +74,13 @@ import { CsvModule } from './csv/csv.module';
     ReportsModule,
     LocationsModule,
     KdsModule,
-    PreparationZonesModule,
+    // PreparationZonesModule,
     WhatsappIntegrationModule,
     PromotionsModule,
     PaymentsModule,
     TasksModule,
     CsvModule,
+    SeedingModule, // Módulo para sembrar datos iniciales
   ],
   controllers: [AppController],
   providers: [AppService],

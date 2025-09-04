@@ -13,6 +13,7 @@ exports.User = exports.UserStatus = void 0;
 const typeorm_1 = require("typeorm");
 const role_entity_1 = require("../../roles/entities/role.entity");
 const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
+const location_entity_1 = require("../../locations/entities/location.entity");
 var UserStatus;
 (function (UserStatus) {
     UserStatus["PendingVerification"] = "pending_verification";
@@ -34,6 +35,14 @@ __decorate([
     (0, typeorm_1.Column)({ select: false }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, select: false }),
+    __metadata("design:type", String)
+], User.prototype, "passwordResetToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true, select: false }),
+    __metadata("design:type", Date)
+], User.prototype, "passwordResetExpires", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -68,6 +77,33 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true, comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)' }),
+    __metadata("design:type", String)
+], User.prototype, "locationId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => location_entity_1.Location, location => location.users, { nullable: true, eager: false }),
+    (0, typeorm_1.JoinColumn)({ name: 'locationId' }),
+    __metadata("design:type", location_entity_1.Location)
+], User.prototype, "location", void 0);
+__decorate([
+    (0, typeorm_1.Column)('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: true,
+        comment: 'Capacidad máxima de carga en kg para repartidores',
+    }),
+    __metadata("design:type", Number)
+], User.prototype, "maxWeightCapacityKg", void 0);
+__decorate([
+    (0, typeorm_1.Column)('decimal', {
+        precision: 10,
+        scale: 4,
+        nullable: true,
+        comment: 'Capacidad máxima de volumen en m³ para repartidores',
+    }),
+    __metadata("design:type", Number)
+], User.prototype, "maxVolumeCapacityM3", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

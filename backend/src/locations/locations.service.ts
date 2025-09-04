@@ -9,7 +9,7 @@ import { Location } from './entities/location.entity';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { Order } from '../orders/entities/order.entity';
-import { OrderStatus } from '../enums/order-status.enum';
+import { OrderStatus } from '../orders/enums/order-status.enum';
 
 @Injectable()
 export class LocationsService {

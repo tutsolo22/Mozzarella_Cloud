@@ -12,46 +12,42 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateOrderDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const order_type_enum_1 = require("../enums/order-type.enum");
-const payment_method_enum_1 = require("../enums/payment-method.enum");
+const order_types_enum_1 = require("../enums/order-types.enum");
 class OrderItemDto {
 }
 __decorate([
     (0, class_validator_1.IsUUID)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], OrderItemDto.prototype, "productId", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], OrderItemDto.prototype, "quantity", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], OrderItemDto.prototype, "notes", void 0);
 class CreateOrderDto {
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "customerId", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(order_type_enum_1.OrderType),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsEnum)(order_types_enum_1.OrderType),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "orderType", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(payment_method_enum_1.PaymentMethod),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsEnum)(order_types_enum_1.PaymentMethod),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "paymentMethod", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "deliveryAddress", void 0);
 __decorate([
@@ -60,4 +56,9 @@ __decorate([
     (0, class_transformer_1.Type)(() => OrderItemDto),
     __metadata("design:type", Array)
 ], CreateOrderDto.prototype, "items", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "deliveryFee", void 0);
 //# sourceMappingURL=create-order.dto.js.map

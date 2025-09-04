@@ -17,11 +17,7 @@ exports.CreateProductCategoryDto = CreateProductCategoryDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MinLength)(3),
     __metadata("design:type", String)
 ], CreateProductCategoryDto.prototype, "name", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateProductCategoryDto.prototype, "description", void 0);
 //# sourceMappingURL=create-product-category.dto.js.map

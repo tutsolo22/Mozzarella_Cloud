@@ -13,4 +13,5 @@ export declare class LicensingService {
     private readonly jwtService;
     constructor(licenseRepository: Repository<License>, jwtService: JwtService);
     generateLicense(tenant: Tenant, userLimit: number, branchLimit: number, expiresAt: Date): Promise<License>;
+    revokeLicenseByTenant(tenantId: string): Promise<License>;
 }

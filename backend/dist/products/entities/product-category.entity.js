@@ -20,23 +20,27 @@ __decorate([
     __metadata("design:type", String)
 ], ProductCategory.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], ProductCategory.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'integer', default: 0 }),
+    __metadata("design:type", Number)
+], ProductCategory.prototype, "position", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], ProductCategory.prototype, "description", void 0);
+], ProductCategory.prototype, "tenantId", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => product_entity_1.Product, (product) => product.category),
     __metadata("design:type", Array)
 ], ProductCategory.prototype, "products", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
+    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], ProductCategory.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({ name: 'updated_at' }),
+    (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], ProductCategory.prototype, "updatedAt", void 0);
 exports.ProductCategory = ProductCategory = __decorate([

@@ -16,11 +16,18 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const local_auth_guard_1 = require("./guards/local-auth.guard");
+const config_1 = require("@nestjs/config");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
+const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const roles_decorator_1 = require("./decorators/roles.decorator");
+const role_enum_1 = require("../roles/enums/role.enum");
+const user_decorator_1 = require("./decorators/user.decorator");
+const switch_location_dto_1 = require("./dto/switch-location.dto");
 let AuthController = class AuthController {
-    constructor(authService) {
+    constructor(authService, configService) {
         this.authService = authService;
+        this.configService = configService;
     }
     async login(req, _loginDto) {
         return this.authService.login(req.user);
@@ -28,9 +35,8 @@ let AuthController = class AuthController {
     async register(registerDto) {
         return this.authService.register(registerDto);
     }
-    async verifyEmail(token, res) {
-        await this.authService.verifyEmail(token);
-        return res.redirect('https://solid-train-qp5695jp7qvf5rq-5173.app.github.dev/login?verified=true');
+    async switchLocation(user, switchLocationDto) {
+        return this.authService.switchLocation(user.userId, switchLocationDto.locationId);
     }
 };
 exports.AuthController = AuthController;
@@ -51,15 +57,18 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
-    (0, common_1.Get)('verify-email'),
-    __param(0, (0, common_1.Query)('token')),
-    __param(1, (0, common_1.Res)()),
+    (0, common_1.Patch)('switch-location'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [Object, switch_location_dto_1.SwitchLocationDto]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "verifyEmail", null);
+], AuthController.prototype, "switchLocation", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [auth_service_1.AuthService,
+        config_1.ConfigService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

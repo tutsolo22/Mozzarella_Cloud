@@ -21,10 +21,15 @@ let InventoryMovementsService = class InventoryMovementsService {
     constructor(movementRepository) {
         this.movementRepository = movementRepository;
     }
-    async logMovement(params) {
-        const { queryRunner, ...movementData } = params;
-        const movement = this.movementRepository.create(movementData);
-        await queryRunner.manager.save(movement);
+    async logMovement(movementData, manager) {
+        const movement = manager.create(inventory_movement_entity_1.InventoryMovement, movementData);
+        return manager.save(movement);
+    }
+    findAllForIngredient(ingredientId, tenantId) {
+        return this.movementRepository.find({
+            where: { ingredientId, tenantId },
+            order: { createdAt: 'DESC' },
+        });
     }
 };
 exports.InventoryMovementsService = InventoryMovementsService;

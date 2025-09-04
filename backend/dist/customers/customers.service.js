@@ -18,37 +18,59 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const customer_entity_1 = require("./entities/customer.entity");
 let CustomersService = class CustomersService {
-    constructor(customerRepository) {
+    constructor(customerRepository, dataSource) {
         this.customerRepository = customerRepository;
+        this.dataSource = dataSource;
     }
-    create(createCustomerDto) {
-        const customer = this.customerRepository.create(createCustomerDto);
+    create(createCustomerDto, tenantId) {
+        const customer = this.customerRepository.create({ ...createCustomerDto, tenantId });
         return this.customerRepository.save(customer);
     }
-    findAll() {
-        return this.customerRepository.find();
+    findAll(tenantId) {
+        return this.customerRepository.find({ where: { tenantId } });
     }
-    async findOne(id) {
-        const customer = await this.customerRepository.findOneBy({ id });
+    async findOne(id, tenantId) {
+        const customer = await this.customerRepository.findOneBy({ id, tenantId });
         if (!customer) {
             throw new common_1.NotFoundException(`El cliente con ID "${id}" no fue encontrado.`);
         }
         return customer;
     }
-    async update(id, updateCustomerDto) {
+    async update(id, updateCustomerDto, tenantId) {
+        await this.findOne(id, tenantId);
         const customer = await this.customerRepository.preload({
             id,
             ...updateCustomerDto,
         });
-        if (!customer) {
-            throw new common_1.NotFoundException(`El cliente con ID "${id}" no fue encontrado.`);
-        }
         return this.customerRepository.save(customer);
     }
-    async remove(id) {
-        const result = await this.customerRepository.delete(id);
+    async remove(id, tenantId) {
+        const result = await this.customerRepository.delete({ id, tenantId });
         if (result.affected === 0) {
             throw new common_1.NotFoundException(`El cliente con ID "${id}" no fue encontrado.`);
+        }
+    }
+    async findOrCreateByPhone(details, tenantId) {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            let customer = await queryRunner.manager.findOne(customer_entity_1.Customer, {
+                where: { phoneNumber: details.phoneNumber, tenantId },
+            });
+            if (!customer) {
+                customer = queryRunner.manager.create(customer_entity_1.Customer, { ...details, tenantId });
+                await queryRunner.manager.save(customer);
+            }
+            await queryRunner.commitTransaction();
+            return customer;
+        }
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        }
+        finally {
+            await queryRunner.release();
         }
     }
 };
@@ -56,6 +78,6 @@ exports.CustomersService = CustomersService;
 exports.CustomersService = CustomersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(customer_entity_1.Customer)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository, typeorm_2.DataSource])
 ], CustomersService);
 //# sourceMappingURL=customers.service.js.map

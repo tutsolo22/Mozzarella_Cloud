@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ingredient = void 0;
 const typeorm_1 = require("typeorm");
-const inventory_movement_entity_1 = require("../../inventory-movements/entities/inventory-movement.entity");
-const product_ingredient_entity_1 = require("../../products/entities/product-ingredient.entity");
 let Ingredient = class Ingredient {
 };
 exports.Ingredient = Ingredient;
@@ -21,35 +19,40 @@ __decorate([
     __metadata("design:type", String)
 ], Ingredient.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', unique: true }),
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Ingredient.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Ingredient.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 3 }),
     __metadata("design:type", Number)
 ], Ingredient.prototype, "stockQuantity", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar' }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Ingredient.prototype, "unit", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 3 }),
     __metadata("design:type", Number)
 ], Ingredient.prototype, "lowStockThreshold", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => product_ingredient_entity_1.ProductIngredient, (pi) => pi.ingredient),
-    __metadata("design:type", Array)
-], Ingredient.prototype, "productConnections", void 0);
+    (0, typeorm_1.Column)('decimal', {
+        precision: 10,
+        scale: 2,
+        default: 0.0,
+        comment: 'Costo por unidad de medida (ej. costo por kg)',
+    }),
+    __metadata("design:type", Number)
+], Ingredient.prototype, "costPerUnit", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => inventory_movement_entity_1.InventoryMovement, (movement) => movement.ingredient),
-    __metadata("design:type", Array)
-], Ingredient.prototype, "movements", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' }),
+    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Ingredient.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' }),
+    (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Ingredient.prototype, "updatedAt", void 0);
 exports.Ingredient = Ingredient = __decorate([

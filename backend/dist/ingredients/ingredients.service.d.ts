@@ -1,41 +1,29 @@
 import { DataSource, Repository } from 'typeorm';
 import { Ingredient } from './entities/ingredient.entity';
-import { CreateIngredientDto } from './dto/create-ingredient.dto';
-import { UpdateIngredientDto } from './dto/update-ingredient.dto';
+import { InventoryMovementsService } from '../inventory-movements/inventory-movements.service';
+import { InventoryMovement } from '../inventory-movements/entities/inventory-movement.entity';
 import { PurchaseIngredientsDto } from './dto/purchase-ingredients.dto';
-import { InventoryMovementsService } from 'src/inventory-movements/inventory-movements.service';
 import { RegisterWasteDto } from './dto/register-waste.dto';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
-import { InventoryMovement } from 'src/inventory-movements/entities/inventory-movement.entity';
-import { WasteReportQueryDto } from './dto/waste-report-query.dto';
+import { CreateIngredientDto } from './dto/create-ingredient.dto';
+import { UpdateIngredientDto } from './dto/update-ingredient.dto';
 export declare class IngredientsService {
     private readonly ingredientRepository;
     private readonly movementRepository;
     private readonly inventoryMovementsService;
     private readonly dataSource;
     constructor(ingredientRepository: Repository<Ingredient>, movementRepository: Repository<InventoryMovement>, inventoryMovementsService: InventoryMovementsService, dataSource: DataSource);
-    create(createIngredientDto: CreateIngredientDto): Promise<Ingredient>;
-    findAll(): Promise<Ingredient[]>;
-    findOne(id: string): Promise<Ingredient>;
-    update(id: string, updateIngredientDto: UpdateIngredientDto): Promise<Ingredient>;
-    remove(id: string): Promise<void>;
-    purchase(purchaseDto: PurchaseIngredientsDto, userId: string): Promise<void>;
-    registerWaste(registerWasteDto: RegisterWasteDto, userId: string): Promise<void>;
-    getMovementHistory(ingredientId: string): Promise<InventoryMovement[]>;
-    adjustStock(adjustStockDto: AdjustStockDto, userId: string): Promise<void>;
-    getWasteReport(queryDto: WasteReportQueryDto): Promise<{
-        reportPeriod: {
-            from: string;
-            to: string;
-        };
-        totalWasteEntries: number;
-        summary: {
-            totalQuantity: number;
-            ingredientName: string;
-            unit: string;
-            entries: number;
-            ingredientId: string;
-        }[];
-        details: InventoryMovement[];
-    }>;
+    create(createIngredientDto: CreateIngredientDto, tenantId: string): Promise<Ingredient>;
+    findAll(tenantId: string): Promise<Ingredient[]>;
+    findOne(id: string, tenantId: string): Promise<Ingredient>;
+    update(id: string, updateIngredientDto: UpdateIngredientDto, tenantId: string): Promise<Ingredient>;
+    remove(id: string, tenantId: string): Promise<void>;
+    purchase(purchaseDto: PurchaseIngredientsDto, userId: string, tenantId: string): Promise<void>;
+    registerWaste(registerWasteDto: RegisterWasteDto, userId: string, tenantId: string): Promise<void>;
+    adjustStock(adjustStockDto: AdjustStockDto, userId: string, tenantId: string): Promise<void>;
+    getMovementHistory(ingredientId: string, tenantId: string): Promise<InventoryMovement[]>;
+    getWasteReport(tenantId: string, locationId: string, queryDto: {
+        startDate?: string;
+        endDate?: string;
+    }): Promise<{}>;
 }
