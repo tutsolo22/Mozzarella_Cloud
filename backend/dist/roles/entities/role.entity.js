@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Role = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
+const permission_entity_1 = require("../../permissions/entities/permission.entity");
 let Role = class Role {
 };
 exports.Role = Role;
@@ -31,6 +32,15 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => user_entity_1.User, user => user.role),
     __metadata("design:type", Array)
 ], Role.prototype, "users", void 0);
+__decorate([
+    (0, typeorm_1.ManyToMany)(() => permission_entity_1.Permission, { eager: true }),
+    (0, typeorm_1.JoinTable)({
+        name: 'role_permissions',
+        joinColumn: { name: 'role_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'permission_name', referencedColumnName: 'name' },
+    }),
+    __metadata("design:type", Array)
+], Role.prototype, "permissions", void 0);
 exports.Role = Role = __decorate([
     (0, typeorm_1.Entity)('roles')
 ], Role);

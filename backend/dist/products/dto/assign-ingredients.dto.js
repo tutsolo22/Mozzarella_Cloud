@@ -12,24 +12,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssignIngredientsDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-class IngredientInRecipeDto {
+class RecipeItemDto {
 }
 __decorate([
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], IngredientInRecipeDto.prototype, "ingredientId", void 0);
+], RecipeItemDto.prototype, "ingredientId", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], IngredientInRecipeDto.prototype, "quantityRequired", void 0);
+], RecipeItemDto.prototype, "quantityRequired", void 0);
 class AssignIngredientsDto {
 }
 exports.AssignIngredientsDto = AssignIngredientsDto;
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
-    (0, class_transformer_1.Type)(() => IngredientInRecipeDto),
+    (0, class_transformer_1.Type)(() => RecipeItemDto),
     __metadata("design:type", Array)
 ], AssignIngredientsDto.prototype, "ingredients", void 0);
 //# sourceMappingURL=assign-ingredients.dto.js.map

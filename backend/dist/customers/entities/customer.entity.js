@@ -19,12 +19,15 @@ __decorate([
     __metadata("design:type", String)
 ], Customer.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', unique: true }),
-    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Customer.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ unique: true }),
     __metadata("design:type", String)
 ], Customer.prototype, "phoneNumber", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Customer.prototype, "fullName", void 0);
 __decorate([
@@ -32,11 +35,11 @@ __decorate([
     __metadata("design:type", Object)
 ], Customer.prototype, "addresses", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' }),
+    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Customer.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' }),
+    (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Customer.prototype, "updatedAt", void 0);
 exports.Customer = Customer = __decorate([

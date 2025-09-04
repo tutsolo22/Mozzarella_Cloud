@@ -21,10 +21,9 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
             ignoreExpiration: false,
             secretOrKey: configService.get('JWT_SECRET'),
         });
-        this.configService = configService;
     }
     async validate(payload) {
-        return { userId: payload.sub, email: payload.email, role: payload.role };
+        return { userId: payload.sub, email: payload.email, role: payload.role, tenantId: payload.tenantId };
     }
 };
 exports.JwtStrategy = JwtStrategy;

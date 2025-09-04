@@ -18,6 +18,7 @@ const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const license_entity_1 = require("./entities/license.entity");
+const license_status_enum_1 = require("./enums/license-status.enum");
 let LicensingService = class LicensingService {
     constructor(licenseRepository, jwtService) {
         this.licenseRepository = licenseRepository;
@@ -40,6 +41,14 @@ let LicensingService = class LicensingService {
         });
         await this.licenseRepository.save(newLicense);
         return newLicense;
+    }
+    async revokeLicenseByTenant(tenantId) {
+        const license = await this.licenseRepository.findOne({ where: { tenantId } });
+        if (!license) {
+            throw new common_1.NotFoundException(`No se encontró una licencia para el tenant con ID "${tenantId}".`);
+        }
+        license.status = license_status_enum_1.LicenseStatus.Revoked;
+        return this.licenseRepository.save(license);
     }
 };
 exports.LicensingService = LicensingService;

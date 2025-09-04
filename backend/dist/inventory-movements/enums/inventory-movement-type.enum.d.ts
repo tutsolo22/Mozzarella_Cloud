@@ -1,6 +1,6 @@
-export declare enum TipoMovimientoInventario {
-    Compra = "purchase",
-    DeduccionPorVenta = "sale_deduction",
-    Merma = "waste",
-    Ajuste = "adjustment"
+export declare enum InventoryMovementType {
+    Purchase = "purchase",
+    Sale = "sale_deduction",
+    Waste = "waste",
+    Adjustment = "adjustment"
 }

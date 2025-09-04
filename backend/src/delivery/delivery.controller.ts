@@ -31,8 +31,8 @@ export class DeliveryController {
     const { maxOrdersPerDriver } = optimizeRoutesDto;
 
     const [pendingOrders, availableDrivers, tenantConfig] = await Promise.all([
-      this.ordersService.findByStatus([OrderStatus.ReadyForDelivery], tenantId),
-      this.usersService.findByRoles([RoleEnum.Delivery], tenantId),
+      this.ordersService.findByStatus([OrderStatus.ReadyForDelivery], tenantId, user.locationId),
+      this.usersService.findByRoles([RoleEnum.Delivery], tenantId, user.locationId),
       this.tenantsService.getConfiguration(tenantId),
     ]);
 

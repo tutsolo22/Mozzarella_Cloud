@@ -3,5 +3,6 @@ export declare class CreateProductDto {
     description?: string;
     price: number;
     categoryId: string;
-    imageUrl?: string;
+    weightKg?: number;
+    volumeM3?: number;
 }

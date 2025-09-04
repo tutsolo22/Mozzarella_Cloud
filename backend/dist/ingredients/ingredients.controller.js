@@ -14,57 +14,60 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IngredientsController = void 0;
 const common_1 = require("@nestjs/common");
-const user_decorator_1 = require("../auth/decorators/user.decorator");
 const ingredients_service_1 = require("./ingredients.service");
 const create_ingredient_dto_1 = require("./dto/create-ingredient.dto");
-const update_ingredient_dto_1 = require("./dto/update-ingredient.dto");
 const purchase_ingredients_dto_1 = require("./dto/purchase-ingredients.dto");
 const register_waste_dto_1 = require("./dto/register-waste.dto");
-const waste_report_query_dto_1 = require("./dto/waste-report-query.dto");
 const adjust_stock_dto_1 = require("./dto/adjust-stock.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const role_enum_1 = require("../auth/enums/role.enum");
+const role_enum_1 = require("../roles/enums/role.enum");
+const user_decorator_1 = require("../auth/decorators/user.decorator");
 let IngredientsController = class IngredientsController {
     constructor(ingredientsService) {
         this.ingredientsService = ingredientsService;
     }
-    purchase(purchaseIngredientsDto, user) {
-        return this.ingredientsService.purchase(purchaseIngredientsDto, user.userId);
+    create(createIngredientDto, user) {
+        return this.ingredientsService.create(createIngredientDto, user.tenantId);
     }
-    registerWaste(registerWasteDto, user) {
-        return this.ingredientsService.registerWaste(registerWasteDto, user.userId);
+    findAll(user) {
+        return this.ingredientsService.findAll(user.tenantId);
     }
-    adjustStock(adjustStockDto, user) {
-        return this.ingredientsService.adjustStock(adjustStockDto, user.userId);
+    purchase(purchaseDto, user) {
+        return this.ingredientsService.purchase(purchaseDto, user.userId, user.tenantId);
     }
-    getWasteReport(queryDto) {
-        return this.ingredientsService.getWasteReport(queryDto);
+    registerWaste(wasteDto, user) {
+        return this.ingredientsService.registerWaste(wasteDto, user.userId, user.tenantId);
     }
-    create(createIngredientDto) {
-        return this.ingredientsService.create(createIngredientDto);
+    adjustStock(adjustDto, user) {
+        return this.ingredientsService.adjustStock(adjustDto, user.userId, user.tenantId);
     }
-    findAll() {
-        return this.ingredientsService.findAll();
-    }
-    findOne(id) {
-        return this.ingredientsService.findOne(id);
-    }
-    update(id, updateIngredientDto) {
-        return this.ingredientsService.update(id, updateIngredientDto);
-    }
-    remove(id) {
-        return this.ingredientsService.remove(id);
-    }
-    getMovementHistory(id) {
-        return this.ingredientsService.getMovementHistory(id);
+    getMovementHistory(id, user) {
+        return this.ingredientsService.getMovementHistory(id, user.tenantId);
     }
 };
 exports.IngredientsController = IngredientsController;
 __decorate([
+    (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_ingredient_dto_1.CreateIngredientDto, Object]),
+    __metadata("design:returntype", void 0)
+], IngredientsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], IngredientsController.prototype, "findAll", null);
+__decorate([
     (0, common_1.Post)('purchase'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -73,7 +76,7 @@ __decorate([
 ], IngredientsController.prototype, "purchase", null);
 __decorate([
     (0, common_1.Post)('waste'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -82,7 +85,8 @@ __decorate([
 ], IngredientsController.prototype, "registerWaste", null);
 __decorate([
     (0, common_1.Post)('adjust-stock'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -90,64 +94,17 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], IngredientsController.prototype, "adjustStock", null);
 __decorate([
-    (0, common_1.Get)('reports/waste'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [waste_report_query_dto_1.WasteReportQueryDto]),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "getWasteReport", null);
-__decorate([
-    (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_ingredient_dto_1.CreateIngredientDto]),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "create", null);
-__decorate([
-    (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager, role_enum_1.Role.Kitchen),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "findAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager, role_enum_1.Role.Kitchen),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.Patch)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_ingredient_dto_1.UpdateIngredientDto]),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "update", null);
-__decorate([
-    (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], IngredientsController.prototype, "remove", null);
-__decorate([
     (0, common_1.Get)(':id/movements'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], IngredientsController.prototype, "getMovementHistory", null);
 exports.IngredientsController = IngredientsController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('ingredients'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [ingredients_service_1.IngredientsService])
 ], IngredientsController);
 //# sourceMappingURL=ingredients.controller.js.map

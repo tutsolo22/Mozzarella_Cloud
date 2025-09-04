@@ -9,32 +9,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdjustStockDto = void 0;
+exports.AdjustStockDto = exports.AdjustStockItemDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-class StockAdjustmentItemDto {
+class AdjustStockItemDto {
 }
+exports.AdjustStockItemDto = AdjustStockItemDto;
 __decorate([
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
-], StockAdjustmentItemDto.prototype, "ingredientId", void 0);
+], AdjustStockItemDto.prototype, "ingredientId", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
-], StockAdjustmentItemDto.prototype, "newQuantity", void 0);
+], AdjustStockItemDto.prototype, "newQuantity", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], StockAdjustmentItemDto.prototype, "reason", void 0);
+], AdjustStockItemDto.prototype, "reason", void 0);
 class AdjustStockDto {
 }
 exports.AdjustStockDto = AdjustStockDto;
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
-    (0, class_transformer_1.Type)(() => StockAdjustmentItemDto),
+    (0, class_transformer_1.Type)(() => AdjustStockItemDto),
     __metadata("design:type", Array)
 ], AdjustStockDto.prototype, "items", void 0);
 //# sourceMappingURL=adjust-stock.dto.js.map

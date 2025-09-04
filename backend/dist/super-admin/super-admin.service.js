@@ -15,44 +15,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuperAdminService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
 const tenant_entity_1 = require("../tenants/entities/tenant.entity");
-const licensing_service_1 = require("../licenses/licensing.service");
+const typeorm_2 = require("typeorm");
 let SuperAdminService = class SuperAdminService {
-    constructor(tenantRepository, licensingService) {
+    constructor(tenantRepository) {
         this.tenantRepository = tenantRepository;
-        this.licensingService = licensingService;
     }
-    async findAllTenants() {
+    findAllTenants() {
         return this.tenantRepository.find({
-            order: { createdAt: 'DESC' },
-            relations: ['license'],
+            select: ['id', 'name'],
+            order: { name: 'ASC' },
         });
-    }
-    async updateTenantStatus(id, status) {
-        const tenant = await this.tenantRepository.findOneBy({ id });
-        if (!tenant) {
-            throw new common_1.NotFoundException(`Tenant con ID "${id}" no encontrado`);
-        }
-        tenant.status = status;
-        return this.tenantRepository.save(tenant);
-    }
-    async createLicenseForTenant(tenantId, createLicenseDto) {
-        const tenant = await this.tenantRepository.findOneBy({ id: tenantId });
-        if (!tenant) {
-            throw new common_1.NotFoundException(`Tenant con ID "${tenantId}" no encontrado`);
-        }
-        const { userLimit, branchLimit, durationInDays } = createLicenseDto;
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + durationInDays);
-        return this.licensingService.generateLicense(tenant, userLimit, branchLimit, expiresAt);
     }
 };
 exports.SuperAdminService = SuperAdminService;
 exports.SuperAdminService = SuperAdminService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(tenant_entity_1.Tenant)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
-        licensing_service_1.LicensingService])
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], SuperAdminService);
 //# sourceMappingURL=super-admin.service.js.map

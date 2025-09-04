@@ -1,5 +1,6 @@
 import { Role } from '../../roles/entities/role.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Location } from '../../locations/entities/location.entity';
 export declare enum UserStatus {
     PendingVerification = "pending_verification",
     Active = "active",
@@ -9,6 +10,8 @@ export declare class User {
     id: string;
     email: string;
     password?: string;
+    passwordResetToken?: string | null;
+    passwordResetExpires?: Date | null;
     fullName: string;
     status: UserStatus;
     verificationToken?: string;
@@ -16,6 +19,10 @@ export declare class User {
     roleId: string;
     tenant: Tenant;
     tenantId: string;
+    locationId?: string;
+    location?: Location;
+    maxWeightCapacityKg?: number;
+    maxVolumeCapacityM3?: number;
     createdAt: Date;
     updatedAt: Date;
 }

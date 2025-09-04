@@ -32,7 +32,12 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
-    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateIngredientDto.prototype, "lowStockThreshold", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateIngredientDto.prototype, "costPerUnit", void 0);
 //# sourceMappingURL=create-ingredient.dto.js.map

@@ -23,7 +23,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { RoleEnum } from '../types/user';
-import Can from '../components/Can';
+import Can from '../components/Auth/Can';
 
 const { Header, Content, Sider } = Layout;
 const { Text } = Typography;

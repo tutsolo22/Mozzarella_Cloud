@@ -16,110 +16,99 @@ exports.OrdersController = void 0;
 const common_1 = require("@nestjs/common");
 const orders_service_1 = require("./orders.service");
 const create_order_dto_1 = require("./dto/create-order.dto");
-const update_order_dto_1 = require("./dto/update-order.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
-const sales_forecast_query_dto_1 = require("./dto/sales-forecast-query.dto");
-const sales_report_query_dto_1 = require("./dto/sales-report-query.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const role_enum_1 = require("../auth/enums/role.enum");
+const user_decorator_1 = require("../auth/decorators/user.decorator");
+const role_enum_1 = require("../roles/enums/role.enum");
+const update_order_dto_1 = require("./dto/update-order.dto");
 let OrdersController = class OrdersController {
     constructor(ordersService) {
         this.ordersService = ordersService;
     }
-    create(createOrderDto) {
-        return this.ordersService.create(createOrderDto);
+    create(createOrderDto, user) {
+        if (!user.locationId) {
+            throw new common_1.ForbiddenException('No tienes una sucursal asignada para crear pedidos.');
+        }
+        return this.ordersService.create(createOrderDto, user.tenantId, user.locationId);
     }
-    getSalesReport(queryDto) {
-        return this.ordersService.getSalesReport(queryDto);
+    findAll(user, locationId) {
+        if (user.role === role_enum_1.RoleEnum.Admin) {
+            return this.ordersService.findAll(user.tenantId, locationId);
+        }
+        if (!user.locationId) {
+            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+        }
+        return this.ordersService.findAll(user.tenantId, user.locationId);
     }
-    getIngredientConsumptionReport(queryDto) {
-        return this.ordersService.getIngredientConsumptionReport(queryDto);
+    findOne(id, user) {
+        const locationId = user.role !== role_enum_1.RoleEnum.Admin ? user.locationId : undefined;
+        return this.ordersService.findOne(id, user.tenantId, locationId);
     }
-    getSalesForecast(queryDto) {
-        return this.ordersService.getSalesForecast(queryDto);
+    update(id, updateOrderDto, user) {
+        const locationId = user.role === role_enum_1.RoleEnum.Manager ? user.locationId : undefined;
+        return this.ordersService.update(id, updateOrderDto, user.tenantId, locationId);
     }
-    findAll() {
-        return this.ordersService.findAll();
-    }
-    findOne(id) {
-        return this.ordersService.findOne(id);
-    }
-    update(id, updateOrderDto) {
-        return this.ordersService.update(id, updateOrderDto);
-    }
-    remove(id) {
-        return this.ordersService.remove(id);
+    updateStatus(id, { status }, user) {
+        const locationId = user.role !== role_enum_1.RoleEnum.Admin ? user.locationId : undefined;
+        if (user.role !== role_enum_1.RoleEnum.Admin && !locationId) {
+            throw new common_1.ForbiddenException('No tienes una sucursal asignada para actualizar pedidos.');
+        }
+        return this.ordersService.updateStatus(id, status, user.tenantId, locationId);
     }
 };
 exports.OrdersController = OrdersController;
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_order_dto_1.CreateOrderDto]),
+    __metadata("design:paramtypes", [create_order_dto_1.CreateOrderDto, Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "create", null);
 __decorate([
-    (0, common_1.Get)('reports/sales'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [sales_report_query_dto_1.SalesReportQueryDto]),
-    __metadata("design:returntype", void 0)
-], OrdersController.prototype, "getSalesReport", null);
-__decorate([
-    (0, common_1.Get)('reports/ingredient-consumption'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [sales_report_query_dto_1.SalesReportQueryDto]),
-    __metadata("design:returntype", void 0)
-], OrdersController.prototype, "getIngredientConsumptionReport", null);
-__decorate([
-    (0, common_1.Get)('reports/sales-forecast'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [sales_forecast_query_dto_1.SalesForecastQueryDto]),
-    __metadata("design:returntype", void 0)
-], OrdersController.prototype, "getSalesForecast", null);
-__decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager, role_enum_1.Role.Kitchen),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Query)('locationId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager, role_enum_1.Role.Kitchen, role_enum_1.Role.Delivery),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin, role_enum_1.Role.Manager, role_enum_1.Role.Kitchen),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_order_dto_1.UpdateOrderDto]),
+    __metadata("design:paramtypes", [String, update_order_dto_1.UpdateOrderDto, Object]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "update", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(role_enum_1.Role.Admin),
+    (0, common_1.Patch)(':id/status'),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
-], OrdersController.prototype, "remove", null);
+], OrdersController.prototype, "updateStatus", null);
 exports.OrdersController = OrdersController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('orders'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [orders_service_1.OrdersService])
 ], OrdersController);
 //# sourceMappingURL=orders.controller.js.map

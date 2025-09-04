@@ -50,7 +50,7 @@ export class LicensingService {
       throw new NotFoundException(`No se encontró una licencia para el tenant con ID "${tenantId}".`);
     }
 
-    license.status = LicenseStatus.Revocada;
+    license.status = LicenseStatus.Revoked;
     return this.licenseRepository.save(license);
   }
 }

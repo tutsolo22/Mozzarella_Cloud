@@ -7,7 +7,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { OrderStatus } from '../enums/order-status.enum';
+import { OrderStatus } from './enums/order-status.enum';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesGuard)

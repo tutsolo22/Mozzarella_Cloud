@@ -11,8 +11,7 @@ import {
   IsEnum,
   IsOptional, ValidateIf,
 } from 'class-validator';
-import { OrderType } from '../../enums/order-type.enum';
-import { PaymentMethod } from '../../orders/enums/order-types.enum';
+import { OrderType, PaymentMethod } from '../../orders/enums/order-types.enum';
 
 class WhatsappOrderItemDto {
   @IsUUID('4')

@@ -14,6 +14,8 @@ const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const tenant_status_enum_1 = require("../enums/tenant-status.enum");
 const license_entity_1 = require("../../licenses/entities/license.entity");
+const tenant_configuration_entity_1 = require("./tenant-configuration.entity");
+const location_entity_1 = require("../../locations/entities/location.entity");
 let Tenant = class Tenant {
 };
 exports.Tenant = Tenant;
@@ -35,12 +37,25 @@ __decorate([
 ], Tenant.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.OneToOne)(() => license_entity_1.License, (license) => license.tenant, { nullable: true, cascade: true }),
+    (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", license_entity_1.License)
 ], Tenant.prototype, "license", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', default: () => "'{}'" }),
+    __metadata("design:type", tenant_configuration_entity_1.TenantConfiguration)
+], Tenant.prototype, "configuration", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 128, unique: true, nullable: true }),
+    __metadata("design:type", String)
+], Tenant.prototype, "whatsappApiKey", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => user_entity_1.User, user => user.tenant),
     __metadata("design:type", Array)
 ], Tenant.prototype, "users", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => location_entity_1.Location, location => location.tenant),
+    __metadata("design:type", Array)
+], Tenant.prototype, "locations", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

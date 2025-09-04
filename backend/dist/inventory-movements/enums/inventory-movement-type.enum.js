@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TipoMovimientoInventario = void 0;
-var TipoMovimientoInventario;
-(function (TipoMovimientoInventario) {
-    TipoMovimientoInventario["Compra"] = "purchase";
-    TipoMovimientoInventario["DeduccionPorVenta"] = "sale_deduction";
-    TipoMovimientoInventario["Merma"] = "waste";
-    TipoMovimientoInventario["Ajuste"] = "adjustment";
-})(TipoMovimientoInventario || (exports.TipoMovimientoInventario = TipoMovimientoInventario = {}));
+exports.InventoryMovementType = void 0;
+var InventoryMovementType;
+(function (InventoryMovementType) {
+    InventoryMovementType["Purchase"] = "purchase";
+    InventoryMovementType["Sale"] = "sale_deduction";
+    InventoryMovementType["Waste"] = "waste";
+    InventoryMovementType["Adjustment"] = "adjustment";
+})(InventoryMovementType || (exports.InventoryMovementType = InventoryMovementType = {}));
 //# sourceMappingURL=inventory-movement-type.enum.js.map

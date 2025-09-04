@@ -22,45 +22,71 @@ let UsersService = class UsersService {
     constructor(userRepository) {
         this.userRepository = userRepository;
     }
-    async create(createUserDto) {
-        const { password, ...userData } = createUserDto;
+    async create(createUserDto, tenantId) {
+        const { email, password, locationId, ...rest } = createUserDto;
+        const existingUser = await this.userRepository.findOneBy({ email });
+        if (existingUser) {
+            throw new common_1.ConflictException('El email ya está en uso.');
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = this.userRepository.create({
-            ...userData,
+        const user = this.userRepository.create({
+            ...rest,
+            email,
             password: hashedPassword,
+            tenantId,
+            locationId: locationId || null,
+            status: user_entity_1.UserStatus.Active,
         });
-        const savedUser = await this.userRepository.save(newUser);
+        const savedUser = await this.userRepository.save(user);
         delete savedUser.password;
         return savedUser;
     }
-    findAll() {
-        return this.userRepository.find({ select: ['id', 'email', 'firstName', 'lastName', 'role', 'isActive'] });
+    findAll(tenantId) {
+        return this.userRepository.find({
+            where: { tenantId },
+            relations: ['role', 'location'],
+        });
     }
-    async findOne(id) {
-        const user = await this.userRepository.findOneBy({ id });
+    async findOne(id, tenantId) {
+        const user = await this.userRepository.findOne({
+            where: { id, tenantId },
+            relations: ['role', 'location'],
+        });
         if (!user) {
-            throw new common_1.NotFoundException(`User with ID "${id}" not found`);
+            throw new common_1.NotFoundException(`Usuario con ID "${id}" no encontrado.`);
         }
-        delete user.password;
         return user;
     }
-    async findByEmail(email) {
-        return this.userRepository.findOneBy({ email });
+    async findByRoles(roleNames, tenantId, locationId) {
+        const where = {
+            tenantId,
+            role: { name: (0, typeorm_2.In)(roleNames) },
+        };
+        if (locationId) {
+            where.locationId = locationId;
+        }
+        return this.userRepository.find({ where, relations: ['role'] });
     }
-    async update(id, updateUserDto) {
+    async update(id, updateUserDto, tenantId) {
+        if (updateUserDto.hasOwnProperty('locationId') && !updateUserDto.locationId) {
+            updateUserDto.locationId = null;
+        }
         const user = await this.userRepository.preload({
-            id: id,
+            id,
+            tenantId,
             ...updateUserDto,
         });
         if (!user) {
-            throw new common_1.NotFoundException(`User with ID "${id}" not found`);
+            throw new common_1.NotFoundException(`Usuario con ID "${id}" no encontrado.`);
         }
-        return this.userRepository.save(user);
+        const updatedUser = await this.userRepository.save(user);
+        delete updatedUser.password;
+        return updatedUser;
     }
-    async remove(id) {
-        const result = await this.userRepository.delete(id);
+    async remove(id, tenantId) {
+        const result = await this.userRepository.delete({ id, tenantId });
         if (result.affected === 0) {
-            throw new common_1.NotFoundException(`User with ID "${id}" not found`);
+            throw new common_1.NotFoundException(`Usuario con ID "${id}" no encontrado.`);
         }
     }
 };

@@ -9,19 +9,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IngredientsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const ingredient_entity_1 = require("./entities/ingredient.entity");
 const ingredients_service_1 = require("./ingredients.service");
 const ingredients_controller_1 = require("./ingredients.controller");
-const ingredient_entity_1 = require("./entities/ingredient.entity");
-const inventory_movement_entity_1 = require("../inventory-movements/entities/inventory-movement.entity");
 const inventory_movements_module_1 = require("../inventory-movements/inventory-movements.module");
+const inventory_movement_entity_1 = require("../inventory-movements/entities/inventory-movement.entity");
 let IngredientsModule = class IngredientsModule {
 };
 exports.IngredientsModule = IngredientsModule;
 exports.IngredientsModule = IngredientsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([ingredient_entity_1.Ingredient, inventory_movement_entity_1.InventoryMovement]), inventory_movements_module_1.InventoryMovementsModule],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([ingredient_entity_1.Ingredient, inventory_movement_entity_1.InventoryMovement]),
+            inventory_movements_module_1.InventoryMovementsModule,
+        ],
         controllers: [ingredients_controller_1.IngredientsController],
         providers: [ingredients_service_1.IngredientsService],
+        exports: [ingredients_service_1.IngredientsService],
     })
 ], IngredientsModule);
 //# sourceMappingURL=ingredients.module.js.map

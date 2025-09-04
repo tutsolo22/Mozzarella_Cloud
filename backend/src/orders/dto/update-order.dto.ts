@@ -1,17 +1,25 @@
-import { IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator';
 import { OrderStatus } from '../enums/order-status.enum';
-import { PaymentStatus } from '../enums/payment-status.enum';
+import { PaymentStatus } from '../enums/order-types.enum';
 
 export class UpdateOrderDto {
-  @IsEnum(OrderStatus)
   @IsOptional()
+  @IsEnum(OrderStatus)
   status?: OrderStatus;
 
-  @IsEnum(PaymentStatus)
   @IsOptional()
+  @IsEnum(PaymentStatus)
   paymentStatus?: PaymentStatus;
 
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   assignedDriverId?: string;
+
+  @IsOptional()
+  @IsUrl()
+  paymentLink?: string;
+
+  @IsOptional()
+  @IsString()
+  paymentGatewayId?: string;
 }

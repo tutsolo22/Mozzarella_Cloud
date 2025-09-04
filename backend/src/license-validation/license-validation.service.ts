@@ -34,7 +34,7 @@ export class LicenseValidationService {
     }
 
     // 3. Comprobar si la licencia ha sido revocada
-    if (license.status === LicenseStatus.Revocada) {
+    if (license.status === LicenseStatus.Revoked) {
       throw new UnauthorizedException('Esta licencia ha sido revocada.');
     }
 

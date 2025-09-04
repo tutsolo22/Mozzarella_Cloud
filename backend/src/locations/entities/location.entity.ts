@@ -4,13 +4,14 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
-  DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { Order } from '../../orders/entities/order.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('locations')
 export class Location {
@@ -23,21 +24,30 @@ export class Location {
   @Column()
   address: string;
 
-  @Column({ type: 'double precision', nullable: true })
-  latitude?: number;
-
-  @Column({ type: 'double precision', nullable: true })
-  longitude?: number;
+  @Column({ nullable: true })
+  phone?: string;
 
   @Column()
   tenantId: string;
 
-  @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.locations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
   @OneToMany(() => Order, (order) => order.location)
   orders: Order[];
+
+  @OneToMany(() => User, (user) => user.location)
+  users: User[];
+
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Polygon',
+    srid: 4326,
+    nullable: true,
+    comment: 'Área de entrega en formato GeoJSON Polygon',
+  })
+  deliveryArea?: any;
 
   @CreateDateColumn()
   createdAt: Date;
