@@ -5,34 +5,34 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
-import { ProductsModule } from './products/products.module';
-import { CustomersModule } from './customers/customers.module';
-import { IngredientsModule } from './ingredients/ingredients.module';
-import { OrdersModule } from './orders/orders.module';
-import { InventoryMovementsModule } from './inventory-movements/inventory-movements.module';
-import { LicenseValidationModule } from './license-validation/license-validation.module';
-import { SuperAdminModule } from './super-admin/super-admin.module';
-import { FilesModule } from './files/files.module';
 import { AppService } from './app.service';
-import { NotificationsModule } from './notifications/notifications.module';
-import { GeocodingModule } from './geocoding/geocoding.module';
-import { TenantsModule } from './tenants/tenants.module';
-import { GeofencingModule } from './geofencing/geofencing.module';
-import { DeliveryModule } from './delivery/delivery.module';
-import { HrModule } from './hr/hr.module';
-import { FinancialsModule } from './financials/financials.module';
-import { ReportsModule } from './reports/reports.module';
-import { LocationsModule } from './locations/locations.module';
-import { KdsModule } from './kds/kds.module';
-// import { PreparationZonesModule } from './preparation-zones/preparation-zones.module';
-import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integration.module';
-import { PromotionsModule } from './promotions/promotions.module';
-import { PaymentsModule } from './payments/payments.module';
-import { TasksModule } from './tasks/tasks.module';
 import { CsvModule } from './csv/csv.module';
-import { SeedingModule } from './seeding.module';
+import { CustomersModule } from './customers/customers.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { FinancialsModule } from './financials/financials.module';
+import { FilesModule } from './files/files.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
+import { GeofencingModule } from './geofencing/geofencing.module';
+import { HrModule } from './hr/hr.module';
+import { IngredientsModule } from './ingredients/ingredients.module';
+import { InventoryMovementsModule } from './inventory-movements/inventory-movements.module';
+import { KdsModule } from './kds/kds.module';
+import { LicenseValidationModule } from './license-validation/license-validation.module';
+import { LocationsModule } from './locations/locations.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PreparationZonesModule } from './preparation-zones/preparation-zones.module';
+import { ProductsModule } from './products/products.module';
+import { PromotionsModule } from './promotions/promotions.module';
+import { ReportsModule } from './reports/reports.module';
+import { SettingsModule } from './settings/settings.module';
+import { SuperAdminModule } from './super-admin/super-admin.module';
+import { TasksModule } from './tasks/tasks.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { UsersModule } from './users/users.module';
+import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integration.module';
 
 @Module({
   imports: [
@@ -55,32 +55,32 @@ import { SeedingModule } from './seeding.module';
     }),
     ScheduleModule.forRoot(),
     AuthModule,
-    UsersModule,
-    ProductsModule,
-    CustomersModule,
-    IngredientsModule,
-    OrdersModule,
-    InventoryMovementsModule,
-    LicenseValidationModule,
-    SuperAdminModule,
-    FilesModule,
-    NotificationsModule,
-    GeocodingModule,
-    TenantsModule,
-    GeofencingModule,
-    DeliveryModule,
-    HrModule,
-    FinancialsModule,
-    ReportsModule,
-    LocationsModule,
-    KdsModule,
-    // PreparationZonesModule,
-    WhatsappIntegrationModule,
-    PromotionsModule,
-    PaymentsModule,
-    TasksModule,
     CsvModule,
-    SeedingModule, // Módulo para sembrar datos iniciales
+    CustomersModule,
+    DeliveryModule,
+    FinancialsModule,
+    FilesModule,
+    GeocodingModule,
+    GeofencingModule,
+    HrModule,
+    IngredientsModule,
+    InventoryMovementsModule,
+    KdsModule,
+    LicenseValidationModule,
+    LocationsModule,
+    NotificationsModule,
+    OrdersModule,
+    PaymentsModule,
+    PreparationZonesModule,
+    ProductsModule,
+    PromotionsModule,
+    ReportsModule,
+    SettingsModule,
+    SuperAdminModule,
+    TasksModule,
+    TenantsModule,
+    UsersModule,
+    WhatsappIntegrationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

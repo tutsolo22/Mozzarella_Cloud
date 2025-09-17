@@ -15,8 +15,12 @@ export declare class ProductsController {
     remove(id: string, user: UserPayload): Promise<void>;
     restore(id: string, user: UserPayload): Promise<void>;
     uploadImage(id: string, file: Express.Multer.File, user: UserPayload): Promise<import("./entities/product.entity").Product>;
-    getIngredients(id: string, user: UserPayload): Promise<import("./entities/recipe-item.entity").RecipeItem[]>;
+    getIngredients(id: string, user: UserPayload): Promise<import("./entities/product-ingredient.entity").ProductIngredient[]>;
     assignIngredients(id: string, assignIngredientsDto: AssignIngredientsDto, user: UserPayload): Promise<void>;
     exportProducts(user: UserPayload, res: Response): Promise<Response<any, Record<string, any>>>;
-    importProducts(file: Express.Multer.File, user: UserPayload): Promise<any>;
+    importProducts(file: Express.Multer.File, user: UserPayload): Promise<{
+        created: number;
+        updated: number;
+        errors: string[];
+    }>;
 }

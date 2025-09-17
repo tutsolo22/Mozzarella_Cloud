@@ -1,26 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
+} from 'typeorm';
+import { Permission } from './permission.entity';
 import { User } from '../../users/entities/user.entity';
-import { Permission } from '../../permissions/entities/permission.entity';
+import { RoleEnum } from '../enums/role.enum';
 
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  name: string; // e.g., 'super-admin', 'admin', 'kitchen'
+  @Column({
+    type: 'enum',
+    enum: RoleEnum,
+    unique: true,
+  })
+  name: RoleEnum;
 
-  @Column({ nullable: true })
-  description: string;
-
-  @OneToMany(() => User, user => user.role)
+  @OneToMany(() => User, (user) => user.role)
   users: User[];
 
-  @ManyToMany(() => Permission, { eager: true })
+  @ManyToMany(() => Permission, (permission) => permission.roles, {
+    cascade: true,
+    eager: true, // Load permissions automatically when loading a role
+  })
   @JoinTable({
     name: 'role_permissions',
     joinColumn: { name: 'role_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'permission_name', referencedColumnName: 'name' },
+    inverseJoinColumn: { name: 'permission_id', referencedColumnName: 'id' },
   })
   permissions: Permission[];
 }

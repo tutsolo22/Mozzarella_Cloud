@@ -1,67 +1,85 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import { getMyLocations } from '../services/locations';
-import { switchLocation as switchLocationApi } from '../services/auth';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { Location } from '../types/location';
-import { User } from '../types/user';
+import { getMyLocations } from '../services/locations';
+import { useAuth } from './AuthContext';
+import { message } from 'antd';
 
 interface LocationContextType {
-  locations: Location[];
-  selectedLocation: Location | null;
+  availableLocations: Location[];
+  currentLocationId: string | null;
   switchLocation: (locationId: string) => Promise<void>;
   loading: boolean;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
-export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, setToken, isAuthenticated } = useAuth();
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+export const LocationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user, switchUserLocation } = useAuth();
+  const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
+  const [currentLocationId, setCurrentLocationId] = useState<string | null>(user?.locationId || null);
   const [loading, setLoading] = useState(true);
 
-  const fetchLocations = useCallback(async () => {
-    if (isAuthenticated && user) {
-      try {
-        setLoading(true);
-        const userLocations = await getMyLocations();
-        setLocations(userLocations);
-        
-        const currentLocation = userLocations.find(loc => loc.id === (user as User).locationId) || userLocations[0] || null;
-        setSelectedLocation(currentLocation);
-
-      } catch (error) {
-        console.error("Failed to fetch locations", error);
-      } finally {
-        setLoading(false);
-      }
+  const switchLocation = useCallback(async (locationId: string) => {
+    try {
+      await switchUserLocation(locationId);
+      message.success('Sucursal cambiada con éxito. La página se recargará.');
+      setTimeout(() => window.location.reload(), 800);
+    } catch (error) {
+      message.error('Error al cambiar de sucursal.');
+      console.error(error);
     }
-  }, [isAuthenticated, user]);
+  }, [switchUserLocation]);
 
   useEffect(() => {
-    fetchLocations();
-  }, [fetchLocations]);
+    let isMounted = true;
+    setCurrentLocationId(user?.locationId || null);
 
-  const switchLocation = async (locationId: string) => {
-    try {
-      const { access_token } = await switchLocationApi(locationId);
-      setToken(access_token, () => {
-        window.location.reload();
-      });
-    } catch (error) {
-      console.error("Failed to switch location", error);
+    if (user && (user.role.name === 'admin' || user.role.name === 'super_admin')) {
+      setLoading(true);
+      getMyLocations()
+        .then(locations => {
+          if (isMounted) {
+            setAvailableLocations(locations);
+            // Si un admin no tiene sucursal asignada, lo asignamos a la primera disponible.
+            if (!user.locationId && locations.length > 0) {
+              // Esto refrescará el token y recargará la página para aplicar el cambio.
+              switchLocation(locations[0].id);
+            } else {
+              setLoading(false);
+            }
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            message.error('No se pudieron cargar las sucursales.');
+            setLoading(false);
+          }
+        });
+    } else if (user) {
+      if (user.location) {
+        setAvailableLocations([user.location]);
+      }
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
-  };
 
-  const value = { locations, selectedLocation, switchLocation, loading };
+    return () => {
+      isMounted = false;
+    };
+  }, [user, switchLocation]);
 
-  return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;
+  return (
+    <LocationContext.Provider value={{ availableLocations, currentLocationId, switchLocation, loading }}>
+      {children}
+    </LocationContext.Provider>
+  );
 };
 
-export const useLocations = (): LocationContextType => {
+export const useLocationContext = () => {
   const context = useContext(LocationContext);
   if (context === undefined) {
-    throw new Error('useLocations must be used within a LocationProvider');
+    throw new Error('useLocationContext must be used within a LocationProvider');
   }
   return context;
 };

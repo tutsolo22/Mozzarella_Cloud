@@ -1,19 +1,18 @@
-import { IsArray, IsNotEmpty, IsNumber, IsUUID, ValidateNested } from 'class-validator';
+import { IsArray, IsNumber, IsUUID, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class RecipeItemDto {
+class IngredientAssignment {
   @IsUUID()
-  @IsNotEmpty()
   ingredientId: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @Min(0)
   quantityRequired: number;
 }
 
 export class AssignIngredientsDto {
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => RecipeItemDto)
-  ingredients: RecipeItemDto[];
+  @Type(() => IngredientAssignment)
+  ingredients: IngredientAssignment[];
 }

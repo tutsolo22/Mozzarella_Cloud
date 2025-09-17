@@ -8,12 +8,12 @@ import { InventoryMovementsModule } from '../inventory-movements/inventory-movem
 import { NotificationsModule } from '../notifications/notifications.module';
 import { IngredientsModule } from '../ingredients/ingredients.module';
 import { Product } from '../products/entities/product.entity';
-import { ProductIngredient } from '../products/entities/product-ingredient.entity';
 import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { User } from '../users/entities/user.entity';
 import { Location } from '../locations/entities/location.entity';
+import { Ingredient } from '../ingredients/entities/ingredient.entity';
 
 @Module({
   imports: [
@@ -21,16 +21,16 @@ import { Location } from '../locations/entities/location.entity';
       Order,
       OrderItem,
       Product,
-      ProductIngredient,
       TenantConfiguration,
       User,
       Location,
+      Ingredient, // <-- Esta es la corrección
     ]),
     InventoryMovementsModule,
     NotificationsModule,
-    IngredientsModule, // To get access to IngredientRepository
+    IngredientsModule,
     forwardRef(() => PaymentsModule),
-    GeocodingModule
+    GeocodingModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

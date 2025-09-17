@@ -1,13 +1,15 @@
-import { ProductCategory } from './product-category.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Location } from '../../locations/entities/location.entity';
+import { ProductCategory } from '../../products/entities/product-category.entity';
 import { PreparationZone } from '../../preparation-zones/entities/preparation-zone.entity';
+import { ProductIngredient } from './product-ingredient.entity';
 import { RecipeItem } from './recipe-item.entity';
 export declare class Product {
     id: string;
     name: string;
     description: string;
     price: number;
-    imageUrl?: string;
+    imageUrl: string;
     isAvailable: boolean;
     recipeIsSet: boolean;
     weightKg: number;
@@ -15,11 +17,13 @@ export declare class Product {
     tenantId: string;
     tenant: Tenant;
     locationId: string;
+    location: Location;
     categoryId: string;
     category: ProductCategory;
-    preparationZoneId: string | null;
+    preparationZoneId: string;
     preparationZone: PreparationZone;
-    ingredients: RecipeItem[];
+    ingredients: ProductIngredient[];
+    recipeItems: RecipeItem[];
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;

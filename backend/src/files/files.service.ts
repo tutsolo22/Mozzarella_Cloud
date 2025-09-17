@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuid } from 'uuid';
@@ -43,5 +43,22 @@ export class FilesService {
     const baseUrl = this.configService.get<string>('API_URL', 'http://localhost:3000');
     const url = `${baseUrl}/uploads/${tenantId}/${filename}`;
     return { url };
+  }
+
+  async deletePublicFile(filename: string, tenantId: string): Promise<void> {
+    const tenantUploadPath = join(this.baseUploadPath, tenantId);
+    const filePath = join(tenantUploadPath, filename);
+
+    try {
+      if (existsSync(filePath)) {
+        await unlink(filePath);
+        this.logger.log(`Deleted file: ${filePath}`);
+      } else {
+        this.logger.warn(`File not found for deletion: ${filePath}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to delete file: ${filePath}`, error.stack);
+      throw new InternalServerErrorException('Could not delete file');
+    }
   }
 }

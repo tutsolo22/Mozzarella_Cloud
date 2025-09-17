@@ -1,18 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 @Entity('positions')
+@Index(['tenantId'])
 export class Position {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  tenantId: string;
-
-  @Column({ length: 100, unique: true })
   name: string;
 
-  @Column('text', { nullable: true })
+  @Column({ type: 'text', nullable: true })
   description: string;
+
+  @Column()
+  tenantId: string;
+
+  @ManyToOne(() => Tenant)
+  @JoinColumn({ name: 'tenantId' })
+  tenant: Tenant;
 
   @CreateDateColumn()
   createdAt: Date;

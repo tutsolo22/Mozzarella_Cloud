@@ -15,18 +15,13 @@ class CreateCustomerDto {
 }
 exports.CreateCustomerDto = CreateCustomerDto;
 __decorate([
-    (0, class_validator_1.IsPhoneNumber)(null),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateCustomerDto.prototype, "phoneNumber", void 0);
-__decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateCustomerDto.prototype, "fullName", void 0);
 __decorate([
-    (0, class_validator_1.IsJSON)(),
-    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsPhoneNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateCustomerDto.prototype, "addresses", void 0);
+], CreateCustomerDto.prototype, "phoneNumber", void 0);
 //# sourceMappingURL=create-customer.dto.js.map

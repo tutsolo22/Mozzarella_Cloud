@@ -26,35 +26,32 @@ let PreparationZonesController = class PreparationZonesController {
     constructor(zonesService) {
         this.zonesService = zonesService;
     }
+    ensureLocationSelected(user) {
+        if (!user.locationId) {
+            throw new common_1.ForbiddenException('Debes tener una sucursal seleccionada para realizar esta acción.');
+        }
+    }
     create(createDto, user) {
-        if (!user.locationId)
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+        this.ensureLocationSelected(user);
         return this.zonesService.create(createDto, user.tenantId, user.locationId);
     }
     findAll(user) {
-        if (!user.locationId)
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+        this.ensureLocationSelected(user);
         return this.zonesService.findAll(user.tenantId, user.locationId);
     }
-    findOne(id, user) {
-        if (!user.locationId)
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
-        return this.zonesService.findOne(id, user.tenantId, user.locationId);
-    }
     update(id, updateDto, user) {
-        if (!user.locationId)
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+        this.ensureLocationSelected(user);
         return this.zonesService.update(id, updateDto, user.tenantId, user.locationId);
     }
-    remove(id, user) {
-        if (!user.locationId)
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
-        return this.zonesService.remove(id, user.tenantId, user.locationId);
+    async remove(id, user) {
+        this.ensureLocationSelected(user);
+        await this.zonesService.remove(id, user.tenantId, user.locationId);
     }
 };
 exports.PreparationZonesController = PreparationZonesController;
 __decorate([
     (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -63,21 +60,15 @@ __decorate([
 ], PreparationZonesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
     __param(0, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], PreparationZonesController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, user_decorator_1.User)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], PreparationZonesController.prototype, "findOne", null);
-__decorate([
     (0, common_1.Patch)(':id'),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, user_decorator_1.User)()),
@@ -87,17 +78,17 @@ __decorate([
 ], PreparationZonesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
+    (0, common_1.HttpCode)(204),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], PreparationZonesController.prototype, "remove", null);
 exports.PreparationZonesController = PreparationZonesController = __decorate([
     (0, common_1.Controller)('preparation-zones'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __metadata("design:paramtypes", [preparation_zones_service_1.PreparationZonesService])
 ], PreparationZonesController);
 //# sourceMappingURL=preparation-zones.controller.js.map

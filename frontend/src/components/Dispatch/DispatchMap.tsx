@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import L, { LatLngExpression } from 'leaflet';
+import L, { LatLngExpression, LatLngBounds } from 'leaflet';
 import { Order } from '../../types/order';
-import { ActiveDriver } from '../../pages/Delivery/DispatchPage';
+import { ActiveDriver } from '../../pages/dispatch/DispatchPage';
 
 
 // Icono para los pedidos
@@ -30,7 +30,8 @@ const MapUpdater: React.FC<{ path: LatLngExpression[] }> = ({ path }) => {
   const map = useMap();
   useEffect(() => {
     if (path && path.length > 0) {
-      map.fitBounds(path, { padding: [50, 50] });
+      const bounds = new LatLngBounds(path);
+      map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [path, map]);
   return null;

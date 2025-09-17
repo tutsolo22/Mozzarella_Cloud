@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, Repository } from 'typeorm';
 import { Employee, PaymentFrequency } from './entities/employee.entity';
 import { Position } from './entities/position.entity';
+import { CreatePositionDto } from './dto/create-position.dto';
+import { UpdatePositionDto } from './dto/update-position.dto';
+import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @Injectable()
 export class HrService {
@@ -14,13 +18,44 @@ export class HrService {
   ) {}
 
   // --- Positions ---
-  createPosition(dto: any, tenantId: string) { /* ... implementation ... */ }
-  findAllPositions(tenantId: string) { /* ... implementation ... */ }
-  updatePosition(id: string, dto: any, tenantId: string) { /* ... implementation ... */ }
-  removePosition(id: string, tenantId: string) { /* ... implementation ... */ }
+  async createPosition(dto: CreatePositionDto, tenantId: string): Promise<Position> {
+    const position = this.positionRepository.create({ ...dto, tenantId });
+    return this.positionRepository.save(position);
+  }
+
+  findAllPositions(tenantId: string): Promise<Position[]> {
+    return this.positionRepository.find({ where: { tenantId }, order: { name: 'ASC' } });
+  }
+
+  async updatePosition(id: string, dto: UpdatePositionDto, tenantId: string): Promise<Position> {
+    const position = await this.positionRepository.preload({ id, tenantId, ...dto });
+    if (!position) {
+      throw new NotFoundException(`Puesto con ID #${id} no encontrado.`);
+    }
+    return this.positionRepository.save(position);
+  }
+
+  async removePosition(id: string, tenantId: string): Promise<void> {
+    const positionInUse = await this.employeeRepository.count({ where: { positionId: id, tenantId } });
+    if (positionInUse > 0) {
+      throw new ConflictException(`No se puede eliminar el puesto porque está asignado a ${positionInUse} empleado(s).`);
+    }
+    const result = await this.positionRepository.delete({ id, tenantId });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Puesto con ID #${id} no encontrado.`);
+    }
+  }
 
   // --- Employees ---
-  createEmployee(dto: any, tenantId: string) { /* ... implementation ... */ }
+  async createEmployee(dto: CreateEmployeeDto, tenantId: string): Promise<Employee> {
+    const userAlreadyEmployee = await this.employeeRepository.findOneBy({ userId: dto.userId, tenantId });
+    if (userAlreadyEmployee) {
+      throw new ConflictException('Este usuario ya está registrado como empleado.');
+    }
+    const employee = this.employeeRepository.create({ ...dto, tenantId });
+    return this.employeeRepository.save(employee);
+  }
+
   findAllEmployees(tenantId: string, locationId?: string) {
     const whereClause: FindOptionsWhere<Employee> = { tenantId };
     if (locationId) {
@@ -29,7 +64,21 @@ export class HrService {
     }
     return this.employeeRepository.find({ where: whereClause, relations: ['user', 'position'] });
   }
-  updateEmployee(id: string, dto: any, tenantId: string) { /* ... implementation ... */ }
+
+  async updateEmployee(id: string, dto: UpdateEmployeeDto, tenantId: string): Promise<Employee> {
+    const employee = await this.employeeRepository.preload({ id, tenantId, ...dto });
+    if (!employee) {
+      throw new NotFoundException(`Empleado con ID #${id} no encontrado.`);
+    }
+    return this.employeeRepository.save(employee);
+  }
+
+  async removeEmployee(id: string, tenantId: string): Promise<void> {
+    const result = await this.employeeRepository.delete({ id, tenantId });
+    if (result.affected === 0) {
+      throw new NotFoundException(`Empleado con ID #${id} no encontrado.`);
+    }
+  }
 
   /**
    * Calculates the total labor cost for a given period.

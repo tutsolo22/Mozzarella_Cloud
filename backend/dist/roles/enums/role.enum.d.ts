@@ -1,7 +1,8 @@
 export declare enum RoleEnum {
-    SuperAdmin = "super-admin",
+    SuperAdmin = "super_admin",
     Admin = "admin",
     Manager = "manager",
     Kitchen = "kitchen",
-    Delivery = "delivery"
+    Delivery = "delivery",
+    Customer = "customer"
 }

@@ -8,33 +8,46 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KdsService = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
+const order_entity_1 = require("../orders/entities/order.entity");
 const order_status_enum_1 = require("../orders/enums/order-status.enum");
-const orders_service_1 = require("../orders/orders.service");
 let KdsService = class KdsService {
-    constructor(ordersService) {
-        this.ordersService = ordersService;
+    constructor(orderRepository) {
+        this.orderRepository = orderRepository;
     }
-    async getActiveOrdersForZone(tenantId, locationId, zoneId) {
-        const activeStatuses = [
-            order_status_enum_1.OrderStatus.Confirmed,
+    async findOrders(tenantId, locationId, zoneId) {
+        const statuses = [
+            order_status_enum_1.OrderStatus.PendingConfirmation,
             order_status_enum_1.OrderStatus.InPreparation,
             order_status_enum_1.OrderStatus.ReadyForExternalPickup,
         ];
-        const orders = await this.ordersService.findByStatus(activeStatuses, tenantId, locationId);
-        return orders
-            .map((order) => {
-            order.items = order.items.filter((item) => item.product?.preparationZoneId === zoneId);
-            return order;
-        })
-            .filter((order) => order.items.length > 0);
+        const query = this.orderRepository
+            .createQueryBuilder('order')
+            .leftJoinAndSelect('order.items', 'item')
+            .leftJoinAndSelect('item.product', 'product')
+            .leftJoinAndSelect('product.preparationZone', 'preparationZone')
+            .leftJoinAndSelect('order.customer', 'customer')
+            .where('order.tenantId = :tenantId', { tenantId })
+            .andWhere('order.locationId = :locationId', { locationId })
+            .andWhere('order.status IN (:...statuses)', { statuses })
+            .orderBy('order.createdAt', 'ASC');
+        if (zoneId) {
+            query.andWhere('product.preparationZoneId = :zoneId', { zoneId });
+        }
+        return query.getMany();
     }
 };
 exports.KdsService = KdsService;
 exports.KdsService = KdsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [orders_service_1.OrdersService])
+    __param(0, (0, typeorm_1.InjectRepository)(order_entity_1.Order)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], KdsService);
 //# sourceMappingURL=kds.service.js.map

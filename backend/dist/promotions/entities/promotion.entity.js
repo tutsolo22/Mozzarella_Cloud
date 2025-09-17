@@ -28,6 +28,14 @@ __decorate([
     __metadata("design:type", String)
 ], Promotion.prototype, "description", void 0);
 __decorate([
+    (0, typeorm_1.Column)('decimal', { precision: 5, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Promotion.prototype, "discountPercentage", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Promotion.prototype, "isActive", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Promotion.prototype, "imageUrl", void 0);

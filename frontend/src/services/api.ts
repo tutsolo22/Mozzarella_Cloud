@@ -1,16 +1,78 @@
 import axiosClient from '../api/axiosClient';
-import { LoginCredentials, User, CreateUserDto, UpdateUserDto } from '../types/user';
-import { Order, OrderStatus } from '../types/order';
-import { Product, Ingredient, ProductCategory, RecipeItem } from '../types/product';
+import { LoginCredentials, User, CreateUserDto, UpdateUserDto, ChangePasswordDto, UpdateProfileDto } from '../types/user';
+import { Order, OrderStatus, CreateOrderItem } from '../types/order';
+import { Product, Ingredient, RecipeItem, CreateProductDto, UpdateProductDto, CreateIngredientDto, UpdateIngredientDto } from '../types/product';
+import { CreateTenantDto, Tenant, TenantConfiguration, TenantStatus, UpdateTenantDto } from '../types/tenant';
 import { OptimizedRoute } from '../types/delivery';
-import { CashierSession } from '../types/reports';
-import { TenantConfiguration } from '../types/tenant';
 import { OverheadCost } from '../types/financials';
+import { Location } from '../types/location';
+import { CashierSession, ProfitAndLossReport } from '../types/reports';
+import { Position, Employee, CreatePositionDto, UpdatePositionDto, CreateEmployeeDto, UpdateEmployeeDto } from '../types/hr';
+import { GenerateLicenseDto, License } from '../types/license';
+import { ProductCategory } from '../types/product-category';
+import { SmtpSettings, TestSmtpDto } from '../types/smtp';
+import { PreparationZone, CreatePreparationZoneDto, UpdatePreparationZoneDto } from '../types/preparation-zone';
+
+export interface SuperAdminStats {
+  tenants: {
+    total: number;
+    active: number;
+    trial: number;
+    suspended: number;
+  };
+  licenses: {
+    total: number;
+    active: number;
+    expired: number;
+    revoked: number;
+  };
+  soonToExpire: {
+    tenantId: string;
+    tenantName: string;
+    expiresAt: string;
+  }[];
+}
 
 // --- Auth ---
 export const login = async (credentials: LoginCredentials): Promise<{ access_token: string; user: User }> => {
   const response = await axiosClient.post('/auth/login', credentials);
   // El backend devuelve un objeto con { access_token, user }
+  return response.data;
+};
+
+export const switchLocation = async (locationId: string): Promise<{ access_token: string; user: User }> => {
+  const response = await axiosClient.patch('/auth/switch-location', { locationId });
+  // NOTA: Esto requiere que el backend devuelva el objeto de usuario actualizado junto con el token.
+  return response.data;
+};
+
+export const requestPasswordReset = async (email: string): Promise<{ message: string }> => {
+  const response = await axiosClient.post('/auth/request-password-reset', { email });
+  return response.data;
+};
+
+export const resetPassword = async (token: string, password: string): Promise<{ message: string }> => {
+  const response = await axiosClient.post('/auth/reset-password', { token, password });
+  return response.data;
+};
+
+export const setupAccount = async (token: string, password: string): Promise<{ access_token: string; user: User }> => {
+  const response = await axiosClient.post('/auth/setup-account', { token, password });
+  return response.data;
+};
+
+export const changePassword = async (data: ChangePasswordDto): Promise<void> => {
+  const response = await axiosClient.patch('/users/me/password', data);
+  return response.data;
+};
+
+export const updateMyProfile = async (data: UpdateProfileDto): Promise<User> => {
+  const response = await axiosClient.patch('/users/me', data);
+  return response.data;
+};
+
+export const getProfile = async (): Promise<User> => {
+  const response = await axiosClient.get('/auth/profile');
   return response.data;
 };
 
@@ -59,6 +121,70 @@ export const getMyDeliveries = async (): Promise<Order[]> => {
   return response.data;
 };
 
+// --- KDS ---
+export const getKdsOrders = async (zoneId?: string): Promise<Order[]> => {
+  const url = zoneId ? `/kds/orders/zone/${zoneId}` : '/kds/orders';
+  const response = await axiosClient.get(url);
+  return response.data;
+};
+
+// --- Products ---
+export const getProducts = async (): Promise<Product[]> => {
+  const response = await axiosClient.get('/products');
+  return response.data;
+};
+
+export const createProduct = async (data: CreateProductDto): Promise<Product> => {
+  const response = await axiosClient.post('/products', data);
+  return response.data;
+};
+
+export const updateProduct = async (id: string, data: UpdateProductDto): Promise<Product> => {
+  const response = await axiosClient.patch(`/products/${id}`, data);
+  return response.data;
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/products/${id}`);
+};
+
+// --- Product Categories ---
+export const getProductCategories = async (): Promise<ProductCategory[]> => {
+  const response = await axiosClient.get('/product-categories');
+  return response.data;
+};
+
+// --- Recipe ---
+export const getRecipe = async (productId: string): Promise<RecipeItem[]> => {
+  const response = await axiosClient.get(`/products/${productId}/ingredients`);
+  return response.data;
+};
+
+export const updateRecipe = async (productId: string, items: { ingredientId: string; quantityRequired: number }[]): Promise<RecipeItem[]> => {
+  const response = await axiosClient.post(`/products/${productId}/ingredients`, { ingredients: items });
+  return response.data;
+};
+
+// --- Ingredients ---
+export const getIngredients = async (): Promise<Ingredient[]> => {
+  const response = await axiosClient.get('/ingredients');
+  return response.data;
+};
+
+export const createIngredient = async (data: CreateIngredientDto): Promise<Ingredient> => {
+  const response = await axiosClient.post('/ingredients', data);
+  return response.data;
+};
+
+export const updateIngredient = async (id: string, data: UpdateIngredientDto): Promise<Ingredient> => {
+  const response = await axiosClient.patch(`/ingredients/${id}`, data);
+  return response.data;
+};
+
+export const deleteIngredient = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/ingredients/${id}`);
+};
+
 // --- Delivery ---
 export const optimizeRoutes = async (maxOrdersPerDriver: number): Promise<OptimizedRoute[]> => {
   const response = await axiosClient.post('/delivery/optimize-routes', { maxOrdersPerDriver });
@@ -90,6 +216,45 @@ export const deleteUser = async (userId: string): Promise<void> => {
   await axiosClient.delete(`/users/${userId}`);
 };
 
+// --- HR ---
+export const getPositions = async (): Promise<Position[]> => {
+  const response = await axiosClient.get('/hr/positions');
+  return response.data;
+};
+
+export const createPosition = async (data: CreatePositionDto): Promise<Position> => {
+  const response = await axiosClient.post('/hr/positions', data);
+  return response.data;
+};
+
+export const updatePosition = async (id: string, data: UpdatePositionDto): Promise<Position> => {
+  const response = await axiosClient.patch(`/hr/positions/${id}`, data);
+  return response.data;
+};
+
+export const deletePosition = async (positionId: string): Promise<void> => {
+  await axiosClient.delete(`/hr/positions/${positionId}`);
+};
+
+export const getEmployees = async (): Promise<Employee[]> => {
+  const response = await axiosClient.get('/hr/employees');
+  return response.data;
+};
+
+export const createEmployee = async (data: CreateEmployeeDto): Promise<Employee> => {
+  const response = await axiosClient.post('/hr/employees', data);
+  return response.data;
+};
+
+export const updateEmployee = async (id: string, data: UpdateEmployeeDto): Promise<Employee> => {
+  const response = await axiosClient.patch(`/hr/employees/${id}`, data);
+  return response.data;
+};
+
+export const deleteEmployee = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/hr/employees/${id}`);
+};
+
 // --- Financials ---
 export const getOverheadCosts = async (startDate?: string, endDate?: string): Promise<OverheadCost[]> => {
   const response = await axiosClient.get('/financials/overhead-costs', { params: { startDate, endDate } });
@@ -110,6 +275,12 @@ export const deleteOverheadCost = async (id: string): Promise<void> => {
   await axiosClient.delete(`/financials/overhead-costs/${id}`);
 };
 
+// --- Reports ---
+export const getProfitAndLossReport = async (startDate: string, endDate: string): Promise<ProfitAndLossReport> => {
+  const response = await axiosClient.get('/reports/pnl', { params: { startDate, endDate } });
+  return response.data;
+};
+
 // --- Tenant Configuration ---
 export const getTenantConfiguration = async (): Promise<TenantConfiguration> => {
   const response = await axiosClient.get('/tenants/configuration');
@@ -119,4 +290,111 @@ export const getTenantConfiguration = async (): Promise<TenantConfiguration> => 
 export const updateTenantConfiguration = async (data: Partial<TenantConfiguration>): Promise<TenantConfiguration> => {
   const response = await axiosClient.patch('/tenants/configuration', data);
   return response.data;
+};
+
+export const uploadKdsSound = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/kds-sound', formData);
+  return response.data;
+};
+
+export const deleteKdsSound = async (): Promise<void> => {
+  await axiosClient.delete('/tenants/configuration/kds-sound');
+};
+
+// --- Super Admin ---
+export const getTenants = async (): Promise<Tenant[]> => {
+  const response = await axiosClient.get('/super-admin/tenants');
+  return response.data;
+};
+
+export const createTenant = async (data: CreateTenantDto): Promise<Tenant> => {
+  const response = await axiosClient.post('/super-admin/tenants', data);
+  return response.data;
+};
+
+export const updateTenant = async (tenantId: string, data: UpdateTenantDto): Promise<Tenant> => {
+  const response = await axiosClient.patch(`/super-admin/tenants/${tenantId}`, data);
+  return response.data;
+};
+
+export const updateTenantStatus = async (tenantId: string, status: TenantStatus): Promise<Tenant> => {
+  const response = await axiosClient.patch(`/super-admin/tenants/${tenantId}/status`, { status });
+  return response.data;
+};
+
+export const resendInvitation = async (userId: string): Promise<{ message: string }> => {
+  const response = await axiosClient.post(`/super-admin/users/${userId}/resend-invitation`);
+  return response.data;
+};
+
+export const getSuperAdminDashboardStats = async (): Promise<SuperAdminStats> => {
+  const response = await axiosClient.get('/super-admin/dashboard/stats');
+  return response.data;
+};
+
+export const testSmtpConnection = async (data: TestSmtpDto): Promise<{ success: boolean; message: string }> => {
+  const response = await axiosClient.post('/settings/smtp/test-connection', data);
+  return response.data;
+};
+
+export const getSmtpSettings = async (): Promise<SmtpSettings> => {
+  const response = await axiosClient.get('/settings/smtp');
+  return response.data;
+};
+
+export const saveSmtpSettings = async (data: SmtpSettings): Promise<void> => {
+  await axiosClient.put('/settings/smtp', data);
+};
+
+export const generateLicense = async (tenantId: string, data: GenerateLicenseDto): Promise<License> => {
+  const response = await axiosClient.post(`/super-admin/tenants/${tenantId}/license`, data);
+  return response.data;
+};
+
+export const revokeLicense = async (tenantId: string): Promise<{ message: string }> => {
+  const response = await axiosClient.delete(`/super-admin/tenants/${tenantId}/license`);
+  return response.data;
+};
+
+export const deleteTenant = async (tenantId: string): Promise<void> => {
+  await axiosClient.delete(`/super-admin/tenants/${tenantId}`);
+};
+
+export const sendConfiguredTestEmail = async (email: string): Promise<{ message: string }> => {
+  const response = await axiosClient.post('/settings/smtp/send-test-email', { email });
+  return response.data;
+};
+
+// --- Locations (for user management) ---
+export const getLocations = async (): Promise<Location[]> => {
+  const response = await axiosClient.get('/locations?includeInactive=true');
+  return response.data;
+};
+
+// --- Cashier Sessions History ---
+export const getHistoricalSessions = async (): Promise<CashierSession[]> => {
+  const response = await axiosClient.get('/cashier-sessions/history');
+  return response.data;
+};
+// --- Zonas de Preparación ---
+
+export const getPreparationZones = async (): Promise<PreparationZone[]> => {
+  const response = await axiosClient.get('/preparation-zones');
+  return response.data;
+};
+
+export const createPreparationZone = async (data: CreatePreparationZoneDto): Promise<PreparationZone> => {
+  const response = await axiosClient.post('/preparation-zones', data);
+  return response.data;
+};
+
+export const updatePreparationZone = async (id: string, data: UpdatePreparationZoneDto): Promise<PreparationZone> => {
+  const response = await axiosClient.patch(`/preparation-zones/${id}`, data);
+  return response.data;
+};
+
+export const deletePreparationZone = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/preparation-zones/${id}`);
 };

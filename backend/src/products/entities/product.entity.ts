@@ -2,19 +2,23 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
-import { ProductCategory } from './product-category.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Location } from '../../locations/entities/location.entity';
+import { ProductCategory } from '../../products/entities/product-category.entity';
 import { PreparationZone } from '../../preparation-zones/entities/preparation-zone.entity';
+import { ProductIngredient } from './product-ingredient.entity';
 import { RecipeItem } from './recipe-item.entity';
 
 @Entity('products')
+@Index(['tenantId', 'locationId', 'name'], { unique: true, where: '"deletedAt" IS NULL' })
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,14 +26,14 @@ export class Product {
   @Column()
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column('text', { nullable: true }) // Corrected: Removed duplicate @Column('text')
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
   @Column({ nullable: true })
-  imageUrl?: string;
+  imageUrl: string;
 
   @Column({ default: true })
   isAvailable: boolean;
@@ -37,44 +41,47 @@ export class Product {
   @Column({ default: false })
   recipeIsSet: boolean;
 
-  @Column({ type: 'decimal', precision: 10, scale: 3, default: 0, comment: 'Peso del producto en kg' })
+  @Column({ type: 'decimal', precision: 10, scale: 3, default: 0 })
   weightKg: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 6, default: 0, comment: 'Volumen del producto en m³' })
+  @Column({ type: 'decimal', precision: 10, scale: 6, default: 0 })
   volumeM3: number;
 
   @Column()
   tenantId: string;
 
-  @ManyToOne(() => Tenant)
+  @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
   @Column()
   locationId: string;
 
-  @Column()
+  @ManyToOne(() => Location, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'locationId' })
+  location: Location;
+  @Column({ nullable: true })
   categoryId: string;
 
-  @ManyToOne(() => ProductCategory, (category) => category.products, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
+  @ManyToOne(() => ProductCategory, { onDelete: 'SET NULL', nullable: true }) // Corrected: Removed duplicate @ManyToOne
   @JoinColumn({ name: 'categoryId' })
   category: ProductCategory;
 
-  @Column({ type: 'uuid', nullable: true })
-  preparationZoneId: string | null;
+  @Column({ nullable: true })
+  preparationZoneId: string;
 
-  @ManyToOne(() => PreparationZone, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => PreparationZone, { onDelete: 'SET NULL', nullable: true }) // Corrected: Removed duplicate @ManyToOne
   @JoinColumn({ name: 'preparationZoneId' })
   preparationZone: PreparationZone;
 
+  @OneToMany(() => ProductIngredient, (pi) => pi.product, {
+    cascade: true,
+    eager: true,
+  })
+  ingredients: ProductIngredient[];
+
   @OneToMany(() => RecipeItem, (item) => item.product)
-  ingredients: RecipeItem[];
+  recipeItems: RecipeItem[];
 
   @CreateDateColumn()
   createdAt: Date;

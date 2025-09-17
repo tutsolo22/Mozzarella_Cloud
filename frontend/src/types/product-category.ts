@@ -1,12 +1,13 @@
 export interface ProductCategory {
   id: string;
   name: string;
-  position: number;
+  description?: string | null;
+  displayOrder: number;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
 }
 
-export type CreateProductCategoryDto = Pick<ProductCategory, 'name'>;
+export type CreateProductCategoryDto = Pick<ProductCategory, 'name' | 'description'>;
 
 export type UpdateProductCategoryDto = Partial<CreateProductCategoryDto>;

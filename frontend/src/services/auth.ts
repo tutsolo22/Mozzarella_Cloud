@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../api/axiosClient';
 import { LoginCredentials, User } from '../types/user';
 
 export const login = (credentials: LoginCredentials): Promise<{ access_token: string; user: User }> => {

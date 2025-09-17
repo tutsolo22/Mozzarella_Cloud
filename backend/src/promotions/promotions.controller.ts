@@ -25,6 +25,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
+import { Promotion } from './entities/promotion.entity';
 import { FilesService } from '../files/files.service';
 import * as path from 'path';
 
@@ -76,9 +77,23 @@ export class PromotionsController {
       }),
     ) file: Express.Multer.File,
     @User() user: UserPayload,
-  ) {
-    const filename = `promotion-${id}${path.extname(file.originalname)}`;
-    const imageUrl = await this.filesService.uploadPublicFile(file.buffer, filename, `promotions/${user.tenantId}`);
+  ): Promise<Promotion> {
+    const promotion = await this.promotionsService.findOne(id, user.tenantId);
+
+    // Delete old image if it exists
+    if (promotion.imageUrl) {
+      try {
+        const oldFileKey = path.basename(promotion.imageUrl);
+        await this.filesService.deletePublicFile(oldFileKey, user.tenantId);
+      } catch (error: any) {
+        console.error(`Could not delete old promotion image: ${error.message}`);
+      }
+    }
+
+    const { url: imageUrl } = await this.filesService.uploadPublicFile(
+      file,
+      user.tenantId,
+    );
     return this.promotionsService.update(id, { imageUrl }, user.tenantId);
   }
 }

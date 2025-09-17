@@ -14,12 +14,13 @@ const tenants_module_1 = require("../tenants/tenants.module");
 const customers_module_1 = require("../customers/customers.module");
 const orders_module_1 = require("../orders/orders.module");
 const products_module_1 = require("../products/products.module");
+const payments_module_1 = require("../payments/payments.module");
 let WhatsappIntegrationModule = class WhatsappIntegrationModule {
 };
 exports.WhatsappIntegrationModule = WhatsappIntegrationModule;
 exports.WhatsappIntegrationModule = WhatsappIntegrationModule = __decorate([
     (0, common_1.Module)({
-        imports: [tenants_module_1.TenantsModule, customers_module_1.CustomersModule, orders_module_1.OrdersModule, products_module_1.ProductsModule],
+        imports: [tenants_module_1.TenantsModule, customers_module_1.CustomersModule, orders_module_1.OrdersModule, products_module_1.ProductsModule, payments_module_1.PaymentsModule],
         providers: [whatsapp_integration_service_1.WhatsappIntegrationService],
         controllers: [whatsapp_integration_controller_1.WhatsappIntegrationController],
     })

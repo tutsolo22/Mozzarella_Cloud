@@ -21,19 +21,19 @@ __decorate([
     __metadata("design:type", String)
 ], RecipeItem.prototype, "id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'uuid' }),
+    __metadata("design:type", String)
+], RecipeItem.prototype, "productId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid' }),
+    __metadata("design:type", String)
+], RecipeItem.prototype, "ingredientId", void 0);
+__decorate([
     (0, typeorm_1.Column)('decimal', { precision: 10, scale: 3 }),
     __metadata("design:type", Number)
 ], RecipeItem.prototype, "quantityRequired", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], RecipeItem.prototype, "productId", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], RecipeItem.prototype, "ingredientId", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => product_entity_1.Product, (product) => product.ingredients, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => product_entity_1.Product, (product) => product.recipeItems, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'productId' }),
     __metadata("design:type", product_entity_1.Product)
 ], RecipeItem.prototype, "product", void 0);
@@ -43,6 +43,7 @@ __decorate([
     __metadata("design:type", ingredient_entity_1.Ingredient)
 ], RecipeItem.prototype, "ingredient", void 0);
 exports.RecipeItem = RecipeItem = __decorate([
-    (0, typeorm_1.Entity)('recipe_items')
+    (0, typeorm_1.Entity)('recipe_items'),
+    (0, typeorm_1.Index)(['productId', 'ingredientId'], { unique: true })
 ], RecipeItem);
 //# sourceMappingURL=recipe-item.entity.js.map

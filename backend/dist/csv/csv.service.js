@@ -10,24 +10,20 @@ exports.CsvService = void 0;
 const common_1 = require("@nestjs/common");
 const Papa = require("papaparse");
 let CsvService = class CsvService {
-    async parse(file) {
-        const csvString = file.buffer.toString('utf-8');
-        return new Promise((resolve, reject) => {
-            Papa.parse(csvString, {
-                header: true,
-                skipEmptyLines: true,
-                dynamicTyping: true,
-                complete: (results) => {
-                    resolve(results.data);
-                },
-                error: (error) => {
-                    reject(error);
-                },
-            });
+    parse(buffer) {
+        const csvString = buffer.toString('utf-8');
+        const result = Papa.parse(csvString, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
         });
+        if (result.errors.length > 0) {
+            console.error('CSV parsing errors:', result.errors);
+        }
+        return result.data;
     }
-    serialize(data) {
-        return Papa.unparse(data);
+    stringify(data, options) {
+        return Papa.unparse(data, options);
     }
 };
 exports.CsvService = CsvService;

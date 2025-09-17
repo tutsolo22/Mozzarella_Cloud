@@ -1,212 +1,174 @@
-import React, { Suspense, FC } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Spin, ConfigProvider, theme as antdTheme } from 'antd';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { ConfigProvider, Spin, Layout, theme as antdTheme } from 'antd';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LocationProvider } from './contexts/LocationContext';
-// --- Placeholder for Role-Based Access Control ---
-// In a real app, this would check the user's role and permissions
-const Can: React.FC<{ perform: string; children: React.ReactElement }> = ({ children }) => {
-  return children;
+import MainLayout from './layouts/MainLayout';
+
+// Lazy load pages for better performance
+const LandingPage = lazy(() => import('./pages/public/LandingPage'));
+const LoginPage = lazy(() => import('./pages/login/LoginPage'));
+const SetupAccountPage = lazy(() => import('./pages/auth/SetupAccountPage'));
+const RequestPasswordResetPage = lazy(() => import('./pages/auth/RequestPasswordResetPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+// const RegisterPage = lazy(() => import('./pages/RegisterPage')); // This page is obsolete
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
+const KdsPage = lazy(() => import('./pages/kds/KdsPage'));
+const DispatchPage = lazy(() => import('./pages/dispatch/DispatchPage'));
+const ProductManagementPage = lazy(() => import('./pages/products/ProductManagementPage'));
+const ProductCategoryManagementPage = lazy(() => import('./pages/products/ProductCategoryManagementPage'));
+const PromotionsManagementPage = lazy(() => import('./pages/management/PromotionsManagementPage'));
+const PreparationZonesPage = lazy(() => import('./pages/configuration/PreparationZonesPage'));
+const UserManagementPage = lazy(() => import('./pages/users/UserManagementPage'));
+const LocationManagementPage = lazy(() => import('./pages/management/LocationsManagementPage'));
+const HrManagementPage = lazy(() => import('./pages/hr/HrManagementPage'));
+const OverheadCostsPage = lazy(() => import('./pages/financials/OverheadCostsPage'));
+const ConsolidatedSalesReportPage = lazy(() => import('./pages/reports/ConsolidatedSalesReportPage'));
+const SalesReportPage = lazy(() => import('./pages/reports/SalesReportPage'));
+const ProductProfitabilityReportPage = lazy(() => import('./pages/reports/ProductProfitabilityReportPage'));
+const IngredientConsumptionReportPage = lazy(() => import('./pages/reports/IngredientConsumptionReportPage'));
+const WasteReportPage = lazy(() => import('./pages/reports/WasteReportPage'));
+const DriverPerformanceReportPage = lazy(() => import('./pages/reports/DriverPerformanceReportPage'));
+const CashierSessionPage = lazy(() => import('./pages/reports/CashierSessionPage'));
+const CashierHistoryPage = lazy(() => import('./pages/reports/CashierHistoryPage'));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
+const ProfitAndLossReportPage = lazy(() => import('./pages/reports/ProfitAndLossReportPage'));
+
+// Super Admin Pages
+const SuperAdminDashboardPage = lazy(() => import('./pages/superadmin/SuperAdminDashboardPage'));
+const TenantManagementPage = lazy(() => import('./pages/superadmin/TenantManagementPage'));
+const LicenseManagementPage = lazy(() => import('./pages/superadmin/LicenseManagementPage'));
+const SmtpSettingsPage = lazy(() => import('./pages/superadmin/SmtpSettingsPage'));
+
+const CenteredSpinner: React.FC = () => (
+  <Layout style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+    <Spin size="large" />
+  </Layout>
+);
+
+const PrivateRoute: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return <CenteredSpinner />;
+  }
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
-// --- Private Route Wrapper ---
-import { useAuth } from './contexts/AuthContext';
-import MainLayout from './layouts/MainLayout';
-import LoginPage from './pages/Login/LoginPage';
+const ProtectedLayout: React.FC = () => {
+  const { user } = useAuth();
 
-const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />;
+  // Super Admin has its own layout logic within MainLayout and doesn't need LocationProvider
+  if (user?.role.name === 'super_admin') {
+    return <MainLayout />;
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  // Tenant users need the LocationProvider context
+  return (
+    <LocationProvider>
+      <MainLayout />
+    </LocationProvider>
+  );
 };
 
-// --- Lazy Loaded Pages ---
-const DashboardPage = React.lazy(() => import('./pages/Dashboard/DashboardPage'));
-const KDSPage = React.lazy(() => import('./pages/KDS/KDSPage'));
-const KDSSelectorPage = React.lazy(() => import('./pages/KDS/KDSSelectorPage'));
-const ProductManagementPage = React.lazy(() => import('./pages/Products/ProductManagementPage'));
-const ProductCategoryManagementPage = React.lazy(() => import('./pages/Products/ProductCategoryManagementPage'));
-const IngredientManagementPage = React.lazy(() => import('./pages/Inventory/IngredientManagementPage'));
-const DispatchPage = React.lazy(() => import('./pages/Delivery/DispatchPage'));
-const UserManagementPage = React.lazy(() => import('./pages/Users/UserManagementPage'));
-const LocationsManagementPage = React.lazy(() => import('./pages/Management/LocationsManagementPage'));
-const TenantSettingsPage = React.lazy(() => import('./pages/Settings/TenantSettingsPage'));
-const HRManagementPage = React.lazy(() => import('./pages/HR/HRManagementPage'));
-const PromotionsManagementPage = React.lazy(() => import('./pages/Management/PromotionsManagementPage'));
-const PreparationZoneManagementPage = React.lazy(() => import('./pages/Management/PreparationZoneManagementPage'));
-const DriverPerformanceReportPage = React.lazy(() => import('./pages/Reports/DriverPerformanceReportPage'));
-const CashierSessionPage = React.lazy(() => import('./pages/Reports/CashierSessionPage'));
-const CashierHistoryPage = React.lazy(() => import('./pages/Reports/CashierHistoryPage'));
-const ProductProfitabilityReportPage = React.lazy(() => import('./pages/Reports/ProductProfitabilityReportPage'));
-const DriverSettlementReportPage = React.lazy(() => import('./pages/Reports/DriverSettlementReportPage'));
-const OverheadCostsPage = React.lazy(() => import('./pages/Financials/OverheadCostsPage'));
-const WasteReportPage = React.lazy(() => import('./pages/Reports/WasteReportPage'));
-const SalesReportPage = React.lazy(() => import('./pages/Reports/SalesReportPage'));
-const IngredientConsumptionReportPage = React.lazy(() => import('./pages/Reports/IngredientConsumptionReportPage'));
-const ConsolidatedSalesReportPage = React.lazy(() => import('./pages/Reports/ConsolidatedSalesReportPage'));
+const AppRoutes: React.FC = () => (
+  <Suspense fallback={<CenteredSpinner />}>
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/setup-account" element={<SetupAccountPage />} />
+      <Route path="/request-password-reset" element={<RequestPasswordResetPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-const ThemedApp: FC = () => {
+      {/* Protected routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<ProtectedLayout />}>
+          {/* Tenant User Routes */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/kds" element={<KdsPage />} />
+          <Route path="/dispatch" element={<DispatchPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/management/products" element={<ProductManagementPage />} />
+          <Route path="/management/product-categories" element={<ProductCategoryManagementPage />} />
+          <Route path="/management/promotions" element={<PromotionsManagementPage />} />
+          <Route path="/management/preparation-zones" element={<PreparationZonesPage />} />
+          <Route path="/management/users" element={<UserManagementPage />} />
+          <Route path="/management/locations" element={<LocationManagementPage />} />
+          <Route path="/management/hr" element={<HrManagementPage />} />
+          <Route path="/financials/overhead-costs" element={<OverheadCostsPage />} />
+          <Route path="/reports/pnl" element={<ProfitAndLossReportPage />} />
+          <Route path="/reports/consolidated-sales" element={<ConsolidatedSalesReportPage />} />
+          <Route path="/reports/sales" element={<SalesReportPage />} />
+          <Route path="/reports/product-profitability" element={<ProductProfitabilityReportPage />} />
+          <Route path="/reports/ingredient-consumption" element={<IngredientConsumptionReportPage />} />
+          <Route path="/reports/waste" element={<WasteReportPage />} />
+          <Route path="/reports/driver-performance" element={<DriverPerformanceReportPage />} />
+          <Route path="/reports/cashier-session" element={<CashierSessionPage />} />
+          <Route path="/reports/cashier-history" element={<CashierHistoryPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Super Admin Routes */}
+          <Route path="super-admin">
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<SuperAdminDashboardPage />} />
+            <Route path="tenants" element={<TenantManagementPage />} />
+            <Route path="licenses" element={<LicenseManagementPage />} />
+            <Route path="smtp-settings" element={<SmtpSettingsPage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* Fallback for any other route */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  </Suspense>
+);
+
+const ThemedApp: React.FC = () => {
   const { theme } = useTheme();
   return (
     <ConfigProvider
       theme={{
         algorithm: theme === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+        token: {
+          // Brand Colors
+          colorPrimary: '#DAA520', // Gold
+          colorInfo: '#DAA520',
+          colorSuccess: '#8B8000', // Olive,
+          colorWarning: '#800020', // Bordeaux
+          colorError: '#800020',
+
+          // Apply to backgrounds
+          colorBgLayout: theme === 'dark' ? '#333333' : '#F5F5DC', // Dark Gray for dark layout, Cream for light
+          colorBgContainer: theme === 'dark' ? '#262626' : '#FFFFFF', // Lighter gray for dark, white for light
+        },
+        components: {
+          Layout: {
+            siderBg: '#000000', // Sider always black
+            headerBg: theme === 'dark' ? '#333333' : '#F5F5DC',
+          },
+          Menu: {
+            darkItemSelectedBg: '#333333',
+            darkItemHoverColor: '#DAA520',
+          }
+        }
       }}
     >
-      <Router>
-        <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />}>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/*"
-              element={
-                <PrivateRoute>
-                  <LocationProvider>
-                    <MainLayout />
-                  </LocationProvider>
-                </PrivateRoute>
-              }
-            >
-              {/* Main Routes */}
-              <Route index element={<Navigate to="/dashboard" />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="kds" element={
-                <Can perform="view:kds">
-                  <KDSSelectorPage />
-                </Can>
-              } />
-              <Route path="kds/:zoneId" element={
-                <Can perform="view:kds">
-                  <KDSPage />
-                </Can>
-              } />
-              <Route path="dispatch" element={
-                <Can perform="manage:dispatch">
-                  <DispatchPage />
-                </Can>
-              } />
-
-              {/* Management Routes */}
-              <Route path="management/products" element={
-                <Can perform="manage:products">
-                  <ProductManagementPage />
-                </Can>
-              } />
-              <Route path="management/product-categories" element={
-                <Can perform="manage:products">
-                  <ProductCategoryManagementPage />
-                </Can>
-              } />
-              <Route path="management/ingredients" element={
-                <Can perform="manage:inventory">
-                  <IngredientManagementPage />
-                </Can>
-              } />
-              <Route path="management/promotions" element={
-                <Can perform="manage:products">
-                  <PromotionsManagementPage />
-                </Can>
-              } />
-              <Route path="management/users" element={
-                <Can perform="manage:users">
-                  <UserManagementPage />
-                </Can>
-              } />
-              <Route path="management/locations" element={
-                <Can perform="manage:locations">
-                  <LocationsManagementPage />
-                </Can>
-              } />
-              <Route path="management/hr" element={
-                <Can perform="manage:hr">
-                  <HRManagementPage />
-                </Can>
-              } />
-              <Route path="management/preparation-zones" element={
-                <Can perform="manage:products">
-                  <PreparationZoneManagementPage />
-                </Can>
-              } />
-              <Route path="financials/overhead-costs" element={
-                <Can perform="manage:financials">
-                  <OverheadCostsPage />
-                </Can>
-              } />
-
-              {/* Reports Routes */}
-              <Route path="reports/consolidated-sales" element={
-                <Can perform="view:consolidated_reports">
-                  <ConsolidatedSalesReportPage />
-                </Can>
-              } />
-              <Route path="reports/sales" element={
-                <Can perform="view:reports">
-                  <SalesReportPage />
-                </Can>
-              } />
-              <Route path="reports/driver-performance" element={
-                <Can perform="view:reports">
-                  <DriverPerformanceReportPage />
-                </Can>
-              } />
-              <Route path="reports/cashier-session" element={
-                <Can perform="manage:cashier_session">
-                  <CashierSessionPage />
-                </Can>
-              } />
-              <Route path="reports/cashier-history" element={
-                <Can perform="view:reports">
-                  <CashierHistoryPage />
-                </Can>
-              } />
-              <Route path="reports/driver-settlement/:sessionId" element={
-                <Can perform="view:reports">
-                  <DriverSettlementReportPage />
-                </Can>
-              } />
-               <Route path="reports/product-profitability" element={
-                <Can perform="view:reports">
-                  <ProductProfitabilityReportPage />
-                </Can>
-              } />
-              <Route path="reports/ingredient-consumption" element={
-                <Can perform="view:reports">
-                  <IngredientConsumptionReportPage />
-                </Can>
-              } />
-              <Route path="reports/waste" element={
-                <Can perform="view:reports">
-                  <WasteReportPage />
-                </Can>
-              } />
-
-              {/* Settings */}
-              <Route path="settings" element={
-                <Can perform="manage:settings">
-                  <TenantSettingsPage />
-                </Can>
-              } />
-
-              {/* Fallback Redirect */}
-              <Route path="*" element={<Navigate to="/dashboard" />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </Router>
+      <AppRoutes />
     </ConfigProvider>
   );
 };
 
-const App: React.FC = () => {
-  return (
+const App: React.FC = () => (
+  <Router>
     <ThemeProvider>
-      <ThemedApp />
+      <AuthProvider>
+        <ThemedApp />
+      </AuthProvider>
     </ThemeProvider>
-  );
-};
+  </Router>
+);
 
 export default App;

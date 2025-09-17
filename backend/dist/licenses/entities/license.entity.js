@@ -9,10 +9,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.License = void 0;
+exports.License = exports.LicenseStatus = void 0;
 const typeorm_1 = require("typeorm");
 const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
-const license_status_enum_1 = require("../enums/license-status.enum");
+var LicenseStatus;
+(function (LicenseStatus) {
+    LicenseStatus["Active"] = "active";
+    LicenseStatus["Expired"] = "expired";
+    LicenseStatus["Revoked"] = "revoked";
+})(LicenseStatus || (exports.LicenseStatus = LicenseStatus = {}));
 let License = class License {
 };
 exports.License = License;
@@ -31,10 +36,6 @@ __decorate([
 ], License.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], License.prototype, "tenantId", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], License.prototype, "userLimit", void 0);
 __decorate([
@@ -46,7 +47,7 @@ __decorate([
     __metadata("design:type", Date)
 ], License.prototype, "expiresAt", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: license_status_enum_1.LicenseStatus, default: license_status_enum_1.LicenseStatus.Active }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: LicenseStatus, default: LicenseStatus.Active }),
     __metadata("design:type", String)
 ], License.prototype, "status", void 0);
 __decorate([

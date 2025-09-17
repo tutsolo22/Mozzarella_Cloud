@@ -23,7 +23,7 @@ let TenantConfigurationService = class TenantConfigurationService {
     }
     async getConfiguration(tenantId) {
         const config = await this.configRepository.findOne({
-            where: { tenant: { id: tenantId } },
+            where: { tenantId: tenantId },
         });
         if (!config) {
             throw new common_1.NotFoundException('Configuración del tenant no encontrada.');

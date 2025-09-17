@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Button, Space } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { Outlet } from 'react-router-dom';
 import AppMenu from './AppMenu';
 import ThemeSwitcher from './ThemeSwitcher';
 import UserProfile from './UserProfile';
@@ -8,11 +9,7 @@ import LocationSelector from './LocationSelector';
 
 const { Sider, Content, Header } = Layout;
 
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
-
-const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+const AppLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -50,7 +47,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </Header>
         <Content style={{ margin: '24px 16px 0' }}>
           <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: '#fff', borderRadius: '8px' }}>
-            {children}
+            <Outlet />
           </div>
         </Content>
       </Layout>

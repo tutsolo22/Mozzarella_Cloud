@@ -12,15 +12,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const super_admin_controller_1 = require("./super-admin.controller");
 const super_admin_service_1 = require("./super-admin.service");
 const tenant_entity_1 = require("../tenants/entities/tenant.entity");
+const role_entity_1 = require("../roles/entities/role.entity");
+const users_module_1 = require("../users/users.module");
+const auth_module_1 = require("../auth/auth.module");
 const licenses_module_1 = require("../licenses/licenses.module");
-const license_entity_1 = require("../licenses/entities/license.entity");
 let SuperAdminModule = class SuperAdminModule {
 };
 exports.SuperAdminModule = SuperAdminModule;
 exports.SuperAdminModule = SuperAdminModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([tenant_entity_1.Tenant, license_entity_1.License]),
+            typeorm_1.TypeOrmModule.forFeature([tenant_entity_1.Tenant, role_entity_1.Role]),
+            users_module_1.UsersModule,
+            auth_module_1.AuthModule,
             licenses_module_1.LicensingModule,
         ],
         controllers: [super_admin_controller_1.SuperAdminController],

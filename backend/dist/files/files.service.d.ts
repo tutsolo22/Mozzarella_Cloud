@@ -9,4 +9,5 @@ export declare class FilesService {
     uploadPublicFile(file: Express.Multer.File, tenantId: string): Promise<{
         url: string;
     }>;
+    deletePublicFile(filename: string, tenantId: string): Promise<void>;
 }

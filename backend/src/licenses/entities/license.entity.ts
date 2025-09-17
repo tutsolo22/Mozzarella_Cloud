@@ -1,6 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
-import { LicenseStatus } from '../enums/license-status.enum';
+
+export enum LicenseStatus {
+  Active = 'active',
+  Expired = 'expired',
+  Revoked = 'revoked',
+}
 
 @Entity('licenses')
 export class License {
@@ -8,14 +13,11 @@ export class License {
   id: string;
 
   @Column({ type: 'text', unique: true })
-  key: string; // El JWT que funciona como clave de licencia
+  key: string;
 
   @OneToOne(() => Tenant, tenant => tenant.license)
   @JoinColumn()
   tenant: Tenant;
-
-  @Column()
-  tenantId: string;
 
   @Column()
   userLimit: number;

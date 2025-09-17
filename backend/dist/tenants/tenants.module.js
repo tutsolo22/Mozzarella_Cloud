@@ -12,10 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const tenants_service_1 = require("./tenants.service");
 const tenants_controller_1 = require("./tenants.controller");
 const tenant_entity_1 = require("./entities/tenant.entity");
-const users_module_1 = require("../users/users.module");
-const licenses_module_1 = require("../licenses/licenses.module");
 const tenant_configuration_entity_1 = require("./entities/tenant-configuration.entity");
-const role_entity_1 = require("../roles/entities/role.entity");
 const files_module_1 = require("../files/files.module");
 let TenantsModule = class TenantsModule {
 };
@@ -23,9 +20,7 @@ exports.TenantsModule = TenantsModule;
 exports.TenantsModule = TenantsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([tenant_entity_1.Tenant, tenant_configuration_entity_1.TenantConfiguration, role_entity_1.Role]),
-            (0, common_1.forwardRef)(() => users_module_1.UsersModule),
-            licenses_module_1.LicensingModule,
+            typeorm_1.TypeOrmModule.forFeature([tenant_entity_1.Tenant, tenant_configuration_entity_1.TenantConfiguration]),
             files_module_1.FilesModule,
         ],
         controllers: [tenants_controller_1.TenantsController],

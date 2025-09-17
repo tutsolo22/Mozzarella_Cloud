@@ -7,21 +7,20 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { OrderStatus } from '../orders/enums/order-status.enum';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { Order } from '../orders/entities/order.entity';
-import { JwtService } from '@nestjs/jwt';
+import { OrderStatus } from '../orders/enums/order-status.enum';
 
 @WebSocketGateway({
   cors: {
     origin: '*', // En producción, deberías restringir esto a tu dominio del frontend
   },
+  namespace: 'notifications',
 })
-export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -34,43 +33,46 @@ export class NotificationsGateway
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token?.split(' ')[1];
+      const token = (client.handshake.auth.token as string)?.split(' ')[1];
       if (!token) throw new Error('Token de autenticación no encontrado');
 
       const payload = await this.jwtService.verifyAsync(token);
-      if (!payload || !payload.sub) throw new Error('Payload de token inválido');
+      if (!payload || !payload.userId) throw new Error('Payload de token inválido');
 
       // Guardamos datos útiles en el objeto del socket para usarlos más tarde
       client.data.userId = payload.userId;
       client.data.tenantId = payload.tenantId;
       client.data.role = payload.role;
       client.data.fullName = payload.fullName;
-
-      client.join(`user-${payload.sub}`);
-      this.logger.log(`Cliente conectado y unido a la sala: user-${payload.sub}`);
+      
+      // Unir a sala personal del usuario
+      client.join(`user-${payload.userId}`);
+      this.logger.log(`Cliente conectado y unido a la sala: user-${payload.userId}`);
 
       // Unir a salas específicas del tenant según el rol del usuario
       const userRole = payload.role as RoleEnum;
       const tenantId = payload.tenantId;
 
-      if ([RoleEnum.Admin, RoleEnum.Manager].includes(userRole)) {
-        client.join(`tenant-${payload.tenantId}-management`);
-        this.logger.log(`Usuario ${payload.sub} unido a la sala de management del tenant ${payload.tenantId}`);
+      if (tenantId) {
+        if ([RoleEnum.Admin, RoleEnum.Manager].includes(userRole)) {
+          client.join(`tenant-${tenantId}-management`);
+          this.logger.log(`Usuario ${payload.userId} unido a la sala de management del tenant ${tenantId}`);
+        }
+
+        if ([RoleEnum.Admin, RoleEnum.Manager, RoleEnum.Kitchen].includes(userRole)) {
+          client.join(`tenant-${tenantId}-kitchen`);
+          this.logger.log(`Usuario ${payload.userId} unido a la sala de cocina del tenant ${tenantId}`);
+        }
+
+        if (userRole === RoleEnum.Delivery) {
+          this.activeDrivers.set(payload.userId, { name: payload.fullName, tenantId });
+          this.sendActiveDriversList(tenantId);
+        }
       }
 
       if (userRole === RoleEnum.SuperAdmin) {
         client.join('super-admin-room');
-        this.logger.log(`SuperAdmin ${payload.sub} unido a la sala de super-admin.`);
-      }
-
-      if ([RoleEnum.Admin, RoleEnum.Manager, RoleEnum.Kitchen].includes(userRole)) {
-        client.join(`tenant-${payload.tenantId}-kitchen`);
-        this.logger.log(`Usuario ${payload.sub} unido a la sala de cocina del tenant ${payload.tenantId}`);
-      }
-
-      if (userRole === RoleEnum.Delivery) {
-        this.activeDrivers.set(payload.userId, { name: payload.fullName, tenantId });
-        this.sendActiveDriversList(tenantId);
+        this.logger.log(`SuperAdmin ${payload.userId} unido a la sala de super-admin.`);
       }
     } catch (error) {
       this.logger.error(`Fallo de autenticación de WebSocket: ${error.message}`);
@@ -103,6 +105,18 @@ export class NotificationsGateway
     this.server.to(`tenant-${tenantId}-management`).emit('driver_location_update', {
       driverId: userId, name: fullName, location: data,
     });
+  }
+
+  /**
+   * Envía un evento a las salas relevantes de un tenant.
+   * Usado por servicios externos como Geofencing.
+   */
+  sendToTenant(tenantId: string, event: string, data: any) {
+    const kitchenRoom = `tenant-${tenantId}-kitchen`;
+    this.server.to(kitchenRoom).emit(event, data);
+    this.logger.log(`Evento '${event}' enviado a la sala de cocina '${kitchenRoom}'`);
+
+    this.server.to(`tenant-${tenantId}-management`).emit(event, data);
   }
 
   sendNewDeliveryToDriver(driverId: string, order: Order) {

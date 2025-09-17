@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Between, Repository, In } from 'typeorm';
 import { Order } from '../orders/entities/order.entity';
-import { Repository } from 'typeorm';
-import { OrderStatus } from '../enums/order-status.enum';
+import { OrderStatus } from '../orders/enums/order-status.enum';
+import { InventoryMovement } from '../inventory-movements/entities/inventory-movement.entity';
+import { InventoryMovementType } from '../inventory-movements/enums/inventory-movement-type.enum';
+import { Employee, PaymentFrequency } from '../hr/entities/employee.entity';
+import { OverheadCost } from '../financials/entities/overhead-cost.entity';
+import { ProfitAndLossReport } from './interfaces/pnl-report.interface';
 import * as dayjs from 'dayjs';
 
 @Injectable()
@@ -10,69 +15,109 @@ export class ReportsService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    @InjectRepository(InventoryMovement)
+    private readonly movementRepository: Repository<InventoryMovement>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(OverheadCost)
+    private readonly overheadCostRepository: Repository<OverheadCost>,
   ) {}
 
-  async getManagerDashboardMetrics(tenantId: string, locationId: string) {
-    const today = new Date();
-    const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
-    const endOfToday = new Date(new Date().setHours(23, 59, 59, 999));
+  async getProfitAndLossReport(
+    tenantId: string,
+    locationId: string,
+    startDateStr: string,
+    endDateStr: string,
+  ): Promise<ProfitAndLossReport> {
+    const startDate = dayjs(startDateStr).startOf('day').toDate();
+    const endDate = dayjs(endDateStr).endOf('day').toDate();
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-
-    // 1. Today's Sales and Order Count
-    const todayStats = await this.orderRepository
+    // 1. Calculate Total Revenue
+    const revenueResult = await this.orderRepository
       .createQueryBuilder('order')
-      .select('SUM(order.totalAmount)', 'totalSales')
-      .addSelect('COUNT(order.id)', 'orderCount')
-      .where('order.tenantId = :tenantId', { tenantId })
-      .andWhere('order.locationId = :locationId', { locationId })
-      .andWhere('order.createdAt BETWEEN :start AND :end', { start: startOfToday, end: endOfToday })
-      .andWhere('order.status != :cancelled', { cancelled: OrderStatus.Cancelled })
+      .select('SUM(order.totalAmount)', 'totalRevenue')
+      .where({
+        tenantId,
+        locationId,
+        createdAt: Between(startDate, endDate),
+        status: In([OrderStatus.Confirmed, OrderStatus.Delivered]),
+      })
       .getRawOne();
+    const totalRevenue = parseFloat(revenueResult.totalRevenue) || 0;
 
-    // 2. Order Status Counts for Today
-    const statusCountsRaw = await this.orderRepository
-      .createQueryBuilder('order')
-      .select('order.status', 'status')
-      .addSelect('COUNT(order.id)::int', 'count')
-      .where('order.tenantId = :tenantId', { tenantId })
-      .andWhere('order.locationId = :locationId', { locationId })
-      .andWhere('order.createdAt BETWEEN :start AND :end', { start: startOfToday, end: endOfToday })
-      .groupBy('order.status')
-      .getRawMany();
+    // 2. Calculate Cost of Goods Sold (COGS)
+    // Assumes inventory movements of type 'Sale' have a negative 'cost' value representing the cost of goods.
+    const cogsResult = await this.movementRepository
+      .createQueryBuilder('movement')
+      .select('SUM(movement.cost)', 'totalCogs')
+      .where({
+        tenantId,
+        locationId,
+        createdAt: Between(startDate, endDate),
+        type: InventoryMovementType.Sale,
+      })
+      .getRawOne();
+    // COGS is negative in movements, so we make it positive for the report
+    const costOfGoodsSold = Math.abs(parseFloat(cogsResult.totalCogs)) || 0;
 
-    const statusCounts = {
-      confirmed: 0, in_preparation: 0, in_delivery: 0, delivered: 0,
-      ...Object.fromEntries(statusCountsRaw.map(item => [item.status, item.count])),
-    };
-
-    // 3. Weekly Sales Trend
-    const weeklySalesRaw = await this.orderRepository
-      .createQueryBuilder('order')
-      .select(`DATE(order.createdAt AT TIME ZONE 'UTC')`, 'date')
-      .addSelect('SUM(order.totalAmount)', 'sales')
-      .where('order.tenantId = :tenantId', { tenantId })
-      .andWhere('order.locationId = :locationId', { locationId })
-      .andWhere('order.createdAt >= :sevenDaysAgo', { sevenDaysAgo })
-      .andWhere('order.status != :cancelled', { cancelled: OrderStatus.Cancelled })
-      .groupBy(`DATE(order.createdAt AT TIME ZONE 'UTC')`)
-      .orderBy('date', 'ASC')
-      .getRawMany();
-
-    const weeklySalesMap = new Map(weeklySalesRaw.map(item => [dayjs(item.date).format('YYYY-MM-DD'), parseFloat(item.sales)]));
-    const weeklySales = Array.from({ length: 7 }).map((_, i) => {
-      const date = dayjs().subtract(6 - i, 'day');
-      const formattedDate = date.format('YYYY-MM-DD');
-      return { date: formattedDate, sales: weeklySalesMap.get(formattedDate) || 0 };
+    // 3. Calculate Labor Cost
+    const employees = await this.employeeRepository.find({
+      where: {
+        tenantId,
+        user: { locationId }, // Correctly filter through the user relation
+      },
     });
+    const daysInPeriod = dayjs(endDate).diff(dayjs(startDate), 'day') + 1;
+    let totalLaborCost = 0;
+    for (const employee of employees) {
+      let dailySalary = 0;
+      switch (employee.paymentFrequency) {
+        case PaymentFrequency.Daily:
+          dailySalary = employee.salary;
+          break;
+        case PaymentFrequency.Weekly:
+          dailySalary = employee.salary / 7;
+          break;
+        case PaymentFrequency.BiWeekly:
+          dailySalary = employee.salary / 14;
+          break;
+        case PaymentFrequency.Monthly:
+          dailySalary = employee.salary / 30; // Approximation
+          break;
+      }
+      totalLaborCost += dailySalary * daysInPeriod;
+    }
+    const laborCost = totalLaborCost;
+
+    // 4. Calculate Overhead Costs
+    const overheadResult = await this.overheadCostRepository
+      .createQueryBuilder('cost')
+      .select('SUM(cost.amount)', 'totalOverhead')
+      .where({
+        tenantId,
+        locationId,
+        date: Between(startDate, endDate),
+      })
+      .getRawOne();
+    const overheadCosts = parseFloat(overheadResult.totalOverhead) || 0;
+
+    // 5. Calculate Profits
+    const grossProfit = totalRevenue - costOfGoodsSold;
+    const totalExpenses = laborCost + overheadCosts;
+    const netProfit = grossProfit - totalExpenses;
 
     return {
-      todaySales: parseFloat(todayStats.totalSales) || 0,
-      todayOrders: parseInt(todayStats.orderCount, 10) || 0,
-      statusCounts,
-      weeklySales,
+      totalRevenue,
+      costOfGoodsSold,
+      grossProfit,
+      laborCost,
+      overheadCosts,
+      totalExpenses,
+      netProfit,
+      period: {
+        from: startDateStr,
+        to: endDateStr,
+      },
     };
   }
 }

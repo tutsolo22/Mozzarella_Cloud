@@ -4,25 +4,27 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Product } from './product.entity';
 import { Ingredient } from '../../ingredients/entities/ingredient.entity';
 
 @Entity('recipe_items')
+@Index(['productId', 'ingredientId'], { unique: true })
 export class RecipeItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'uuid' })
+  productId: string;
+
+  @Column({ type: 'uuid' })
+  ingredientId: string;
+
   @Column('decimal', { precision: 10, scale: 3 })
   quantityRequired: number;
 
-  @Column()
-  productId: string;
-
-  @Column()
-  ingredientId: string;
-
-  @ManyToOne(() => Product, (product) => product.ingredients, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, (product) => product.recipeItems, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productId' })
   product: Product;
 

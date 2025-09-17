@@ -1,35 +1,42 @@
-import api from '../api/axiosClient';
-import { ProductCategory, ProductCategoryDto } from '../types/product';
+import axiosClient from '../api/axiosClient';
+import {
+  ProductCategory,
+  CreateProductCategoryDto,
+  UpdateProductCategoryDto,
+} from '../types/product-category';
 
-export const getAllProductCategories = (
+export const getAllProductCategories = async (
   includeDeleted = false,
 ): Promise<ProductCategory[]> => {
-  return api.get('/product-categories', {
+  const response = await axiosClient.get('/product-categories', {
     params: { includeDeleted },
   });
+  return response.data;
 };
 
-export const createProductCategory = (
-  data: ProductCategoryDto,
+export const createProductCategory = async (
+  data: CreateProductCategoryDto,
 ): Promise<ProductCategory> => {
-  return api.post('/product-categories', data);
+  const response = await axiosClient.post('/product-categories', data);
+  return response.data;
 };
 
-export const updateProductCategory = (
+export const updateProductCategory = async (
   id: string,
-  data: Partial<ProductCategoryDto>,
+  data: UpdateProductCategoryDto,
 ): Promise<ProductCategory> => {
-  return api.patch(`/product-categories/${id}`, data);
+  const response = await axiosClient.patch(`/product-categories/${id}`, data);
+  return response.data;
 };
 
-export const deleteProductCategory = (id: string): Promise<void> => {
-  return api.delete(`/product-categories/${id}`);
+export const deleteProductCategory = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/product-categories/${id}`);
 };
 
-export const restoreProductCategory = (id: string): Promise<void> => {
-  return api.patch(`/product-categories/${id}/restore`);
+export const restoreProductCategory = async (id: string): Promise<void> => {
+  await axiosClient.patch(`/product-categories/${id}/restore`);
 };
 
-export const reorderProductCategories = (orderedIds: string[]): Promise<void> => {
-  return api.patch('/product-categories/reorder', { orderedIds });
+export const reorderProductCategories = async (orderedIds: string[]): Promise<void> => {
+  await axiosClient.patch('/product-categories/reorder', { orderedIds });
 };

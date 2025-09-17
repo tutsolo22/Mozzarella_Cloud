@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Position = void 0;
 const typeorm_1 = require("typeorm");
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
 let Position = class Position {
 };
 exports.Position = Position;
@@ -21,15 +22,20 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Position.prototype, "tenantId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ length: 100, unique: true }),
-    __metadata("design:type", String)
 ], Position.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text', { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], Position.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Position.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant),
+    (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
+    __metadata("design:type", tenant_entity_1.Tenant)
+], Position.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -39,6 +45,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Position.prototype, "updatedAt", void 0);
 exports.Position = Position = __decorate([
-    (0, typeorm_1.Entity)('positions')
+    (0, typeorm_1.Entity)('positions'),
+    (0, typeorm_1.Index)(['tenantId'])
 ], Position);
 //# sourceMappingURL=position.entity.js.map

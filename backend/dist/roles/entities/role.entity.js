@@ -11,8 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Role = void 0;
 const typeorm_1 = require("typeorm");
+const permission_entity_1 = require("./permission.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
-const permission_entity_1 = require("../../permissions/entities/permission.entity");
+const role_enum_1 = require("../enums/role.enum");
 let Role = class Role {
 };
 exports.Role = Role;
@@ -21,23 +22,26 @@ __decorate([
     __metadata("design:type", String)
 ], Role.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: role_enum_1.RoleEnum,
+        unique: true,
+    }),
     __metadata("design:type", String)
 ], Role.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Role.prototype, "description", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => user_entity_1.User, user => user.role),
+    (0, typeorm_1.OneToMany)(() => user_entity_1.User, (user) => user.role),
     __metadata("design:type", Array)
 ], Role.prototype, "users", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => permission_entity_1.Permission, { eager: true }),
+    (0, typeorm_1.ManyToMany)(() => permission_entity_1.Permission, (permission) => permission.roles, {
+        cascade: true,
+        eager: true,
+    }),
     (0, typeorm_1.JoinTable)({
         name: 'role_permissions',
         joinColumn: { name: 'role_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'permission_name', referencedColumnName: 'name' },
+        inverseJoinColumn: { name: 'permission_id', referencedColumnName: 'id' },
     }),
     __metadata("design:type", Array)
 ], Role.prototype, "permissions", void 0);

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Customer = void 0;
 const typeorm_1 = require("typeorm");
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
 let Customer = class Customer {
 };
 exports.Customer = Customer;
@@ -23,17 +24,17 @@ __decorate([
     __metadata("design:type", String)
 ], Customer.prototype, "tenantId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
-    __metadata("design:type", String)
-], Customer.prototype, "phoneNumber", void 0);
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant),
+    __metadata("design:type", tenant_entity_1.Tenant)
+], Customer.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Customer.prototype, "fullName", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
-    __metadata("design:type", Object)
-], Customer.prototype, "addresses", void 0);
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Customer.prototype, "phoneNumber", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -43,6 +44,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Customer.prototype, "updatedAt", void 0);
 exports.Customer = Customer = __decorate([
-    (0, typeorm_1.Entity)('customers')
+    (0, typeorm_1.Entity)('customers'),
+    (0, typeorm_1.Index)(['tenantId', 'phoneNumber'], { unique: true })
 ], Customer);
 //# sourceMappingURL=customer.entity.js.map

@@ -33,16 +33,19 @@ let FinancialsController = class FinancialsController {
         return this.financialsService.create(createDto, user.tenantId, user.locationId);
     }
     findAll(user, startDate, endDate, locationId) {
+        let effectiveLocationId = locationId;
         if (user.role === role_enum_1.RoleEnum.Admin) {
-            return this.financialsService.findAll(user.tenantId, startDate, endDate, locationId);
         }
-        if (!user.locationId) {
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+        else {
+            if (!user.locationId) {
+                throw new common_1.ForbiddenException('No tienes una sucursal asignada.');
+            }
+            if (locationId && locationId !== user.locationId) {
+                throw new common_1.ForbiddenException('No tienes permiso para ver los costos de otra sucursal.');
+            }
+            effectiveLocationId = user.locationId;
         }
-        if (locationId && locationId !== user.locationId) {
-            throw new common_1.ForbiddenException('No tienes permiso para ver los costos de otra sucursal.');
-        }
-        return this.financialsService.findAll(user.tenantId, startDate, endDate, user.locationId);
+        return this.financialsService.findAll(user.tenantId, startDate, endDate, effectiveLocationId);
     }
     update(id, updateDto, user) {
         const locationId = user.role === role_enum_1.RoleEnum.Manager ? user.locationId : undefined;

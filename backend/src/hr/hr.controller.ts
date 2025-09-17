@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, ForbiddenException, HttpCode, HttpStatus } from '@nestjs/common';
 import { HrService } from './hr.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
+import { CreatePositionDto } from './dto/create-position.dto';
+import { UpdatePositionDto } from './dto/update-position.dto';
+import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @Controller('hr')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,7 +18,7 @@ export class HrController {
 
   // --- Positions ---
   @Post('positions')
-  createPosition(@Body() createPositionDto: any, @User() user: UserPayload) {
+  createPosition(@Body() createPositionDto: CreatePositionDto, @User() user: UserPayload) {
     return this.hrService.createPosition(createPositionDto, user.tenantId);
   }
 
@@ -24,18 +28,19 @@ export class HrController {
   }
 
   @Patch('positions/:id')
-  updatePosition(@Param('id', ParseUUIDPipe) id: string, @Body() updatePositionDto: any, @User() user: UserPayload) {
+  updatePosition(@Param('id', ParseUUIDPipe) id: string, @Body() updatePositionDto: UpdatePositionDto, @User() user: UserPayload) {
     return this.hrService.updatePosition(id, updatePositionDto, user.tenantId);
   }
 
   @Delete('positions/:id')
-  removePosition(@Param('id', ParseUUIDPipe) id: string, @User() user: UserPayload) {
-    return this.hrService.removePosition(id, user.tenantId);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removePosition(@Param('id', ParseUUIDPipe) id: string, @User() user: UserPayload) {
+    await this.hrService.removePosition(id, user.tenantId);
   }
 
   // --- Employees ---
   @Post('employees')
-  createEmployee(@Body() createEmployeeDto: any, @User() user: UserPayload) {
+  createEmployee(@Body() createEmployeeDto: CreateEmployeeDto, @User() user: UserPayload) {
     return this.hrService.createEmployee(createEmployeeDto, user.tenantId);
   }
 
@@ -53,7 +58,13 @@ export class HrController {
   }
 
   @Patch('employees/:id')
-  updateEmployee(@Param('id', ParseUUIDPipe) id: string, @Body() updateEmployeeDto: any, @User() user: UserPayload) {
+  updateEmployee(@Param('id', ParseUUIDPipe) id: string, @Body() updateEmployeeDto: UpdateEmployeeDto, @User() user: UserPayload) {
     return this.hrService.updateEmployee(id, updateEmployeeDto, user.tenantId);
+  }
+
+  @Delete('employees/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeEmployee(@Param('id', ParseUUIDPipe) id: string, @User() user: UserPayload) {
+    await this.hrService.removeEmployee(id, user.tenantId);
   }
 }

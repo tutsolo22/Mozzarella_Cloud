@@ -50,8 +50,17 @@ Es crucial configurar las variables de entorno para el entorno de producción. N
     # URL pública de la API (la que usará el frontend)
     API_URL="https://api.tudominio.com"
 
+    # URL pública del Frontend (la que usará el backend para generar enlaces en correos)
+    FRONTEND_URL="https://app.tudominio.com"
+
     # Configuración de CORS (permite el acceso desde tu dominio de frontend)
     CORS_ORIGIN="https://app.tudominio.com"
+
+    # Configuración SMTP (Opcional, como respaldo)
+    # A partir de la versión 0.6.0, esta configuración se puede gestionar desde el panel de Super-Admin.
+    # Estos valores se usarán solo si no hay nada configurado en la base de datos.
+    SMTP_HOST=smtp.example.com
+    SMTP_PASS=tu-password-secreto
     ```
 
 #### Frontend
@@ -235,7 +244,7 @@ Google Cloud Run es una plataforma sin servidor que ejecuta tus contenedores. Es
       --region=us-central1 \
       --allow-unauthenticated \
       --add-cloudsql-instances=TU_CONNECTION_NAME_DE_CLOUDSQL \
-      --set-env-vars="JWT_SECRET=USA_UN_SECRETO_MUY_LARGO_Y_SEGURO,DATABASE_URL=postgresql://user:tu-password-seguro@/mozzarella?host=/cloudsql/TU_CONNECTION_NAME_DE_CLOUDSQL"
+      --set-env-vars="JWT_SECRET=USA_UN_SECRETO_MUY_LARGO_Y_SEGURO,DATABASE_URL=postgresql://user:tu-password-seguro@/mozzarella?host=/cloudsql/TU_CONNECTION_NAME_DE_CLOUDSQL,FRONTEND_URL=https://LA_URL_DE_TU_FRONTEND"
     ```
     *   `--allow-unauthenticated`: Permite que el servicio sea accesible públicamente.
     *   Anota la URL que te devuelve el comando al finalizar. Será la URL de tu API.

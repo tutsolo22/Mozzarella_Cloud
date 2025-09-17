@@ -18,13 +18,13 @@ const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const license_entity_1 = require("./entities/license.entity");
-const license_status_enum_1 = require("./enums/license-status.enum");
 let LicensingService = class LicensingService {
     constructor(licenseRepository, jwtService) {
         this.licenseRepository = licenseRepository;
         this.jwtService = jwtService;
     }
-    async generateLicense(tenant, userLimit, branchLimit, expiresAt) {
+    async generateLicense(tenant, userLimit, branchLimit, expiresAt, queryRunner) {
+        const manager = queryRunner ? queryRunner.manager : this.licenseRepository.manager;
         const payload = {
             tenantId: tenant.id,
             userLimit,
@@ -32,22 +32,23 @@ let LicensingService = class LicensingService {
             exp: Math.floor(expiresAt.getTime() / 1000),
         };
         const licenseKey = this.jwtService.sign(payload);
-        const newLicense = this.licenseRepository.create({
+        const newLicense = manager.create(license_entity_1.License, {
             key: licenseKey,
             tenant,
             userLimit,
             branchLimit,
             expiresAt,
+            status: license_entity_1.LicenseStatus.Active,
         });
-        await this.licenseRepository.save(newLicense);
+        await manager.save(newLicense);
         return newLicense;
     }
-    async revokeLicenseByTenant(tenantId) {
-        const license = await this.licenseRepository.findOne({ where: { tenantId } });
+    async revokeLicense(tenantId) {
+        const license = await this.licenseRepository.findOne({ where: { tenant: { id: tenantId } } });
         if (!license) {
             throw new common_1.NotFoundException(`No se encontró una licencia para el tenant con ID "${tenantId}".`);
         }
-        license.status = license_status_enum_1.LicenseStatus.Revoked;
+        license.status = license_entity_1.LicenseStatus.Revoked;
         return this.licenseRepository.save(license);
     }
 };

@@ -63,6 +63,12 @@ Este documento describe las principales características y capacidades del siste
 - **Notificaciones de Stock Bajo**: El sistema genera alertas automáticas cuando el nivel de un ingrediente cae por debajo de su umbral mínimo.
 - **Historial de Movimientos**: Trazabilidad completa de cada ingrediente, mostrando todas las compras, ventas, mermas y ajustes.
 
+### 4.3. Zonas de Preparación
+
+- **Gestión de Zonas por Sucursal**: Permite crear, editar y eliminar zonas de preparación (ej. "Hornos", "Barra Fría", "Bebidas") específicas para cada sucursal.
+- **Optimización del KDS**: Al asignar productos a una zona, se facilita la organización del trabajo en el Kitchen Display System.
+- **Protección de Datos**: Impide la eliminación de una zona si hay productos que dependen de ella, manteniendo la integridad de los datos.
+
 ## 5. Administración y Reportes
 
 ### 5.1. Gestión de Usuarios y Roles
@@ -78,6 +84,11 @@ Este documento describe las principales características y capacidades del siste
   - **Sonido Personalizado**: Permite al manager subir su propio archivo de audio (`.mp3`) para las notificaciones del KDS.
   - **Gestión de APIs**: Interfaz para que el manager configure sus propias claves de API para servicios externos (geocodificación, cálculo de rutas como OpenRouteService).
 
+### 5.3. Configuración del Sistema (para Super-Admins)
+
+- **Gestión de Configuración Centralizada**: Permite a los Super-Admins modificar ajustes críticos del sistema, como la configuración del servidor de correo (SMTP), directamente desde una interfaz web.
+- **Sin Reinicios**: Los cambios se aplican en tiempo real sin necesidad de reiniciar el servidor.
+- **Flexibilidad**: El sistema prioriza la configuración guardada en la base de datos, pero puede usar las variables de entorno como un método de respaldo (fallback).
 ### 5.3. Reportes (Por Sucursal)
 
 - **Reporte de Ventas**: Filtra por período de tiempo y muestra ingresos totales y un desglose de ventas por producto.

@@ -12,6 +12,8 @@ Mozzarella Cloud está diseñado para ser una solución todo-en-uno, cubriendo d
 -   **Gestión de Inventario**: Control de ingredientes en tiempo real, recetas, compras, mermas y notificaciones de stock bajo.
 -   **Módulo de Reparto (Delivery)**: Dashboard con mapa interactivo, actualizaciones en tiempo real, geocodificación y optimizador de rutas.
 -   **Finanzas y Reportes**: Gestión de sesiones de caja, reporte de corte, costos operativos y análisis de rentabilidad.
+-   **Gestión de Zonas de Preparación**: Organiza los productos en zonas (ej. Hornos, Barra Fría) para optimizar el flujo de trabajo en el KDS.
+-   **Configuración Dinámica del Sistema**: Panel de Super-Admin para gestionar ajustes críticos (como la configuración de correo SMTP) sin necesidad de reiniciar el servidor.
 -   **Gestión Multi-Sucursal y Multi-Tenant**: Soporte completo para cadenas de restaurantes, con datos aislados por sucursal y por negocio.
 -   **Integraciones Externas**: Preparado para integrarse con plataformas de pago como Mercado Pago y sistemas de pedidos externos como chatbots de WhatsApp.
 -   **Personalización**: Modo oscuro, selector de sucursal, y configuración de áreas de entrega.
@@ -47,11 +49,42 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en Keep a Changelog,
 y este proyecto se adhiere a Semantic Versioning.
 
-## [Unreleased]
+## [0.7.0] - 2024-05-22
 ### Added
+- **Gestión de Zonas de Preparación**:
+  - Se añadió un módulo completo (Backend y Frontend) para crear, leer, actualizar y eliminar zonas de preparación por sucursal.
+  - Se añadió una validación que impide eliminar una zona si está en uso por algún producto.
+- **Configuración del Sistema desde la UI**:
+  - Se creó un nuevo módulo de `Settings` que permite almacenar configuraciones (como SMTP) en la base de datos.
+  - Se implementó una página en el panel de Super-Administrador para gestionar la configuración SMTP dinámicamente.
+  - El sistema ahora prioriza la configuración de la base de datos sobre las variables de entorno para el envío de correos.
 
 ### Changed
+- **Proceso de Creación de Tenants**: Se refactorizó para ser transaccional y más robusto, validando la existencia previa de tenants o usuarios con el mismo nombre/email y devolviendo errores claros.
+- **Generación de Enlaces en Correos**: Se robusteció el sistema para que utilice una variable de entorno `FRONTEND_URL`, asegurando que los enlaces de activación y reseteo de contraseña sean siempre correctos.
 
+### Fixed
+- **Eliminación de Tenants**: Se corrigió un error crítico que impedía la eliminación completa de un tenant debido a restricciones de clave foránea. El proceso ahora elimina correctamente todas las entidades dependientes (Licencias, Configuraciones, Usuarios, Productos, etc.) en el orden correcto y dentro de una transacción segura.
+
+## [0.6.0] - 2024-05-22
+### Added
+- **Backend**: Se implementó la lógica completa del `ProductsService`, añadiendo funcionalidades para:
+  - Subida y gestión de imágenes de productos.
+  - Asignación de recetas (ingredientes) a los productos.
+  - Importación y exportación masiva de productos mediante archivos CSV.
+- **Frontend**: Se implementaron los servicios de frontend para conectar con la API en las siguientes áreas:
+  - Gestión de Sucursales (CRUD completo).
+  - Reportes del Dashboard, Rentabilidad y Sesiones de Caja.
+  - Historial de sesiones de caja.
+
+### Fixed
+- **Backend**: Se resolvieron todos los errores de compilación de TypeScript, incluyendo:
+  - Inconsistencias en las relaciones de entidades (`RecipeItem`, `Product`, `Ingredient`).
+  - Propiedades faltantes en DTOs (`UpdateProductDto`).
+  - Tipado incorrecto en el procesamiento de archivos CSV.
+- **Frontend**: Se resolvieron todos los errores de compilación de React, eliminando los fallos por importaciones de funciones no existentes en los servicios de `api`, `locations` y `reports`. Se estabilizaron las páginas de reportes que usaban nombres de funciones conflictivos.
+
+## [Unreleased]
 ## [0.5.0] - 2024-05-21
 ### Added
 - **Integración de Pagos con Mercado Pago**:

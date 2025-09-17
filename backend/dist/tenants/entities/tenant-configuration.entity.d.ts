@@ -1,11 +1,14 @@
-import { PaymentMethod } from '../../orders/enums/order-types.enum';
+import { Tenant } from './tenant.entity';
 export declare class TenantConfiguration {
     id: string;
     tenantId: string;
-    directionsApiKey?: string;
-    restaurantLatitude?: number;
-    restaurantLongitude?: number;
-    openCageApiKey?: string;
-    mercadoPagoAccessToken?: string;
-    enabledPaymentMethods?: PaymentMethod[];
+    tenant: Tenant;
+    deliveryArea: any;
+    kdsNotificationSoundUrl: string;
+    restaurantLatitude: number;
+    restaurantLongitude: number;
+    directionsApiKey: string;
+    openCageApiKey: string;
+    mercadoPagoAccessToken: string;
+    enabledPaymentMethods: string[];
 }

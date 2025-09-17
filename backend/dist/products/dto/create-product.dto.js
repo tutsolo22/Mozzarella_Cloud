@@ -17,16 +17,18 @@ exports.CreateProductDto = CreateProductDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.MaxLength)(500),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.IsNumber)({ maxDecimalPlaces: 2 }),
+    (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "price", void 0);
 __decorate([
@@ -34,15 +36,18 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "categoryId", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.Min)(0),
-    __metadata("design:type", Number)
-], CreateProductDto.prototype, "weightKg", void 0);
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "preparationZoneId", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.Min)(0),
-    __metadata("design:type", Number)
-], CreateProductDto.prototype, "volumeM3", void 0);
+    __metadata("design:type", Boolean)
+], CreateProductDto.prototype, "isAvailable", void 0);
+__decorate([
+    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "imageUrl", void 0);
 //# sourceMappingURL=create-product.dto.js.map

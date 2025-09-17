@@ -17,8 +17,8 @@ exports.NotificationsGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const common_1 = require("@nestjs/common");
-const role_enum_1 = require("../roles/enums/role.enum");
 const jwt_1 = require("@nestjs/jwt");
+const role_enum_1 = require("../roles/enums/role.enum");
 let NotificationsGateway = NotificationsGateway_1 = class NotificationsGateway {
     constructor(jwtService) {
         this.jwtService = jwtService;
@@ -31,31 +31,33 @@ let NotificationsGateway = NotificationsGateway_1 = class NotificationsGateway {
             if (!token)
                 throw new Error('Token de autenticación no encontrado');
             const payload = await this.jwtService.verifyAsync(token);
-            if (!payload || !payload.sub)
+            if (!payload || !payload.userId)
                 throw new Error('Payload de token inválido');
             client.data.userId = payload.userId;
             client.data.tenantId = payload.tenantId;
             client.data.role = payload.role;
             client.data.fullName = payload.fullName;
-            client.join(`user-${payload.sub}`);
-            this.logger.log(`Cliente conectado y unido a la sala: user-${payload.sub}`);
+            client.join(`user-${payload.userId}`);
+            this.logger.log(`Cliente conectado y unido a la sala: user-${payload.userId}`);
             const userRole = payload.role;
             const tenantId = payload.tenantId;
-            if ([role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager].includes(userRole)) {
-                client.join(`tenant-${payload.tenantId}-management`);
-                this.logger.log(`Usuario ${payload.sub} unido a la sala de management del tenant ${payload.tenantId}`);
+            if (tenantId) {
+                if ([role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager].includes(userRole)) {
+                    client.join(`tenant-${tenantId}-management`);
+                    this.logger.log(`Usuario ${payload.userId} unido a la sala de management del tenant ${tenantId}`);
+                }
+                if ([role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen].includes(userRole)) {
+                    client.join(`tenant-${tenantId}-kitchen`);
+                    this.logger.log(`Usuario ${payload.userId} unido a la sala de cocina del tenant ${tenantId}`);
+                }
+                if (userRole === role_enum_1.RoleEnum.Delivery) {
+                    this.activeDrivers.set(payload.userId, { name: payload.fullName, tenantId });
+                    this.sendActiveDriversList(tenantId);
+                }
             }
             if (userRole === role_enum_1.RoleEnum.SuperAdmin) {
                 client.join('super-admin-room');
-                this.logger.log(`SuperAdmin ${payload.sub} unido a la sala de super-admin.`);
-            }
-            if ([role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen].includes(userRole)) {
-                client.join(`tenant-${payload.tenantId}-kitchen`);
-                this.logger.log(`Usuario ${payload.sub} unido a la sala de cocina del tenant ${payload.tenantId}`);
-            }
-            if (userRole === role_enum_1.RoleEnum.Delivery) {
-                this.activeDrivers.set(payload.userId, { name: payload.fullName, tenantId });
-                this.sendActiveDriversList(tenantId);
+                this.logger.log(`SuperAdmin ${payload.userId} unido a la sala de super-admin.`);
             }
         }
         catch (error) {
@@ -82,6 +84,12 @@ let NotificationsGateway = NotificationsGateway_1 = class NotificationsGateway {
         this.server.to(`tenant-${tenantId}-management`).emit('driver_location_update', {
             driverId: userId, name: fullName, location: data,
         });
+    }
+    sendToTenant(tenantId, event, data) {
+        const kitchenRoom = `tenant-${tenantId}-kitchen`;
+        this.server.to(kitchenRoom).emit(event, data);
+        this.logger.log(`Evento '${event}' enviado a la sala de cocina '${kitchenRoom}'`);
+        this.server.to(`tenant-${tenantId}-management`).emit(event, data);
     }
     sendNewDeliveryToDriver(driverId, order) {
         this.logger.log(`Enviando nuevo pedido #${order.shortId} al repartidor ${driverId}`);
@@ -141,6 +149,7 @@ exports.NotificationsGateway = NotificationsGateway = NotificationsGateway_1 = _
         cors: {
             origin: '*',
         },
+        namespace: 'notifications',
     }),
     __metadata("design:paramtypes", [jwt_1.JwtService])
 ], NotificationsGateway);

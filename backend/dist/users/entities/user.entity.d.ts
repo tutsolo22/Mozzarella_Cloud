@@ -12,6 +12,8 @@ export declare class User {
     password?: string;
     passwordResetToken?: string | null;
     passwordResetExpires?: Date | null;
+    accountSetupToken?: string | null;
+    accountSetupTokenExpires?: Date | null;
     fullName: string;
     status: UserStatus;
     verificationToken?: string;

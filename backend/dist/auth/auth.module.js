@@ -15,11 +15,12 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const local_strategy_1 = require("./strategies/local.strategy");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
-const mailer_1 = require("@nestjs-modules/mailer");
 const typeorm_1 = require("@nestjs/typeorm");
 const user_entity_1 = require("../users/entities/user.entity");
 const tenant_entity_1 = require("../tenants/entities/tenant.entity");
 const role_entity_1 = require("../roles/entities/role.entity");
+const permission_entity_1 = require("../roles/entities/permission.entity");
+const settings_module_1 = require("../settings/settings.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -27,23 +28,9 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule,
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, tenant_entity_1.Tenant, role_entity_1.Role]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, tenant_entity_1.Tenant, role_entity_1.Role, permission_entity_1.Permission]),
             passport_1.PassportModule,
-            mailer_1.MailerModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                useFactory: async (configService) => ({
-                    transport: {
-                        host: configService.get('SMTP_HOST'),
-                        port: configService.get('SMTP_PORT'),
-                        secure: false,
-                        auth: {
-                            user: configService.get('SMTP_USER'),
-                            pass: configService.get('SMTP_PASS'),
-                        },
-                    },
-                }),
-                inject: [config_1.ConfigService],
-            }),
+            settings_module_1.SettingsModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: async (configService) => ({
@@ -55,6 +42,7 @@ exports.AuthModule = AuthModule = __decorate([
         ],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
+        exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

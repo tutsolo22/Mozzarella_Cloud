@@ -1,8 +1,8 @@
 import { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { OrderStatus } from '../orders/enums/order-status.enum';
 import { Server, Socket } from 'socket.io';
-import { Order } from '../orders/entities/order.entity';
 import { JwtService } from '@nestjs/jwt';
+import { Order } from '../orders/entities/order.entity';
+import { OrderStatus } from '../orders/enums/order-status.enum';
 export declare class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly jwtService;
     server: Server;
@@ -15,6 +15,7 @@ export declare class NotificationsGateway implements OnGatewayConnection, OnGate
         lat: number;
         lng: number;
     }, client: Socket): void;
+    sendToTenant(tenantId: string, event: string, data: any): void;
     sendNewDeliveryToDriver(driverId: string, order: Order): void;
     sendLocationUpdateToDriver(driverId: string, order: Order): void;
     sendNewOrderToKitchen(tenantId: string, order: Order): void;

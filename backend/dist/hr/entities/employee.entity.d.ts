@@ -1,3 +1,4 @@
+import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 import { Position } from './position.entity';
 export declare enum PaymentFrequency {
@@ -9,13 +10,14 @@ export declare enum PaymentFrequency {
 export declare class Employee {
     id: string;
     tenantId: string;
-    user: User;
+    tenant: Tenant;
     userId: string;
-    position: Position;
+    user: User;
     positionId: string;
+    position: Position;
     salary: number;
     paymentFrequency: PaymentFrequency;
-    hireDate: Date;
+    hireDate: string;
     createdAt: Date;
     updatedAt: Date;
 }

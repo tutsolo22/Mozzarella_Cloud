@@ -3,12 +3,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SuperAdminController } from './super-admin.controller';
 import { SuperAdminService } from './super-admin.service';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { Role } from '../roles/entities/role.entity';
+import { UsersModule } from '../users/users.module';
+import { AuthModule } from '../auth/auth.module';
 import { LicensingModule } from '../licenses/licenses.module';
-import { License } from '../licenses/entities/license.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tenant, License]),
+    TypeOrmModule.forFeature([Tenant, Role]),
+    UsersModule,
+    AuthModule,
     LicensingModule,
   ],
   controllers: [SuperAdminController],

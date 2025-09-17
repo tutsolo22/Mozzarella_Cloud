@@ -18,17 +18,17 @@ interface OrderCardProps {
 }
 
 const statusActions: Partial<Record<OrderStatus, { nextStatus: OrderStatus; buttonText: string; icon: React.ReactNode }>> = {
-  confirmed: {
-    nextStatus: 'in_preparation',
+  [OrderStatus.Confirmed]: {
+    nextStatus: OrderStatus.InPreparation,
     buttonText: 'Empezar Preparación',
     icon: <ArrowRightOutlined />,
   },
-  in_preparation: {
+  [OrderStatus.InPreparation]: {
     nextStatus: OrderStatus.ReadyForDelivery, // Se ajustará dinámicamente abajo
     buttonText: 'Marcar como Listo',
     icon: <CheckOutlined />,
   },
-  ready_for_external_pickup: {
+  [OrderStatus.ReadyForExternalPickup]: {
     nextStatus: OrderStatus.Delivered,
     buttonText: 'Entregar a Repartidor Externo',
     icon: <CheckOutlined />,

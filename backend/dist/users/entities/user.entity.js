@@ -44,6 +44,14 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "passwordResetExpires", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, select: false }),
+    __metadata("design:type", String)
+], User.prototype, "accountSetupToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true, select: false }),
+    __metadata("design:type", Date)
+], User.prototype, "accountSetupTokenExpires", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "fullName", void 0);

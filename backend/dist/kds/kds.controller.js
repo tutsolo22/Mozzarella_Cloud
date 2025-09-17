@@ -14,36 +14,43 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KdsController = void 0;
 const common_1 = require("@nestjs/common");
-const kds_service_1 = require("./kds.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
 const user_decorator_1 = require("../auth/decorators/user.decorator");
+const kds_service_1 = require("./kds.service");
 let KdsController = class KdsController {
     constructor(kdsService) {
         this.kdsService = kdsService;
     }
-    getActiveOrdersForZone(user, zoneId) {
-        if (!user.locationId) {
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada para ver el KDS.');
-        }
-        return this.kdsService.getActiveOrdersForZone(user.tenantId, user.locationId, zoneId);
+    findAll(user) {
+        return this.kdsService.findOrders(user.tenantId, user.locationId);
+    }
+    findByZone(zoneId, user) {
+        return this.kdsService.findOrders(user.tenantId, user.locationId, zoneId);
     }
 };
 exports.KdsController = KdsController;
 __decorate([
-    (0, common_1.Get)('orders/:zoneId'),
-    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
+    (0, common_1.Get)('orders'),
     __param(0, (0, user_decorator_1.User)()),
-    __param(1, (0, common_1.Param)('zoneId', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], KdsController.prototype, "getActiveOrdersForZone", null);
+], KdsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('orders/zone/:zoneId'),
+    __param(0, (0, common_1.Param)('zoneId', common_1.ParseUUIDPipe)),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], KdsController.prototype, "findByZone", null);
 exports.KdsController = KdsController = __decorate([
     (0, common_1.Controller)('kds'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager, role_enum_1.RoleEnum.Kitchen),
     __metadata("design:paramtypes", [kds_service_1.KdsService])
 ], KdsController);
 //# sourceMappingURL=kds.controller.js.map

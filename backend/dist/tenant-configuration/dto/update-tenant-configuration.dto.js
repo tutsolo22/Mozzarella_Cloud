@@ -23,6 +23,28 @@ __decorate([
 ], UpdateTenantConfigurationDto.prototype, "openCageApiKey", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "directionsApiKey", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsLatitude)(),
+    __metadata("design:type", Number)
+], UpdateTenantConfigurationDto.prototype, "restaurantLatitude", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsLongitude)(),
+    __metadata("design:type", Number)
+], UpdateTenantConfigurationDto.prototype, "restaurantLongitude", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "kdsNotificationSoundUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsObject)(),
     (0, class_validator_1.ValidateIf)((_object, value) => value !== null),
     __metadata("design:type", Object)

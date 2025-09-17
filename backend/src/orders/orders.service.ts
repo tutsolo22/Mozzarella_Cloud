@@ -20,7 +20,7 @@ import { User } from '../users/entities/user.entity';
 import { PaymentMethod, PaymentStatus } from './enums/order-types.enum';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { PaymentsService } from '../payments/payments.service';
-import { DeliveryProviderType } from './enums/delivery-provider-type.enum';
+import { DeliveryProviderType } from '../delivery/enums/delivery-provider-type.enum';
 
 @Injectable()
 export class OrdersService {

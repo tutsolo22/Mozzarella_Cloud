@@ -22,6 +22,7 @@ export enum PaymentMethod {
   Transfer = 'transfer',
   DebitCard = 'debit_card',
   CreditCard = 'credit_card',
+  MercadoPago = 'mercado_pago',
 }
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 

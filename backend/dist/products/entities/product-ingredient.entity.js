@@ -17,29 +17,32 @@ let ProductIngredient = class ProductIngredient {
 };
 exports.ProductIngredient = ProductIngredient;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
-    __metadata("design:type", String)
-], ProductIngredient.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
-    __metadata("design:type", Number)
-], ProductIngredient.prototype, "quantityRequired", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => product_entity_1.Product, (product) => product.ingredients, { onDelete: 'CASCADE' }),
-    __metadata("design:type", product_entity_1.Product)
-], ProductIngredient.prototype, "product", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.PrimaryColumn)(),
     __metadata("design:type", String)
 ], ProductIngredient.prototype, "productId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => ingredient_entity_1.Ingredient, (ingredient) => ingredient.productConnections),
+    (0, typeorm_1.PrimaryColumn)(),
+    __metadata("design:type", String)
+], ProductIngredient.prototype, "ingredientId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => product_entity_1.Product, (product) => product.ingredients, {
+        onDelete: 'CASCADE',
+    }),
+    (0, typeorm_1.JoinColumn)({ name: 'productId' }),
+    __metadata("design:type", product_entity_1.Product)
+], ProductIngredient.prototype, "product", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => ingredient_entity_1.Ingredient, (ingredient) => ingredient.productIngredients, {
+        eager: true,
+        onDelete: 'CASCADE',
+    }),
+    (0, typeorm_1.JoinColumn)({ name: 'ingredientId' }),
     __metadata("design:type", ingredient_entity_1.Ingredient)
 ], ProductIngredient.prototype, "ingredient", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], ProductIngredient.prototype, "ingredientId", void 0);
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 3 }),
+    __metadata("design:type", Number)
+], ProductIngredient.prototype, "quantityRequired", void 0);
 exports.ProductIngredient = ProductIngredient = __decorate([
     (0, typeorm_1.Entity)('product_ingredients')
 ], ProductIngredient);

@@ -23,11 +23,38 @@ let HrService = class HrService {
         this.employeeRepository = employeeRepository;
         this.positionRepository = positionRepository;
     }
-    createPosition(dto, tenantId) { }
-    findAllPositions(tenantId) { }
-    updatePosition(id, dto, tenantId) { }
-    removePosition(id, tenantId) { }
-    createEmployee(dto, tenantId) { }
+    async createPosition(dto, tenantId) {
+        const position = this.positionRepository.create({ ...dto, tenantId });
+        return this.positionRepository.save(position);
+    }
+    findAllPositions(tenantId) {
+        return this.positionRepository.find({ where: { tenantId }, order: { name: 'ASC' } });
+    }
+    async updatePosition(id, dto, tenantId) {
+        const position = await this.positionRepository.preload({ id, tenantId, ...dto });
+        if (!position) {
+            throw new common_1.NotFoundException(`Puesto con ID #${id} no encontrado.`);
+        }
+        return this.positionRepository.save(position);
+    }
+    async removePosition(id, tenantId) {
+        const positionInUse = await this.employeeRepository.count({ where: { positionId: id, tenantId } });
+        if (positionInUse > 0) {
+            throw new common_1.ConflictException(`No se puede eliminar el puesto porque está asignado a ${positionInUse} empleado(s).`);
+        }
+        const result = await this.positionRepository.delete({ id, tenantId });
+        if (result.affected === 0) {
+            throw new common_1.NotFoundException(`Puesto con ID #${id} no encontrado.`);
+        }
+    }
+    async createEmployee(dto, tenantId) {
+        const userAlreadyEmployee = await this.employeeRepository.findOneBy({ userId: dto.userId, tenantId });
+        if (userAlreadyEmployee) {
+            throw new common_1.ConflictException('Este usuario ya está registrado como empleado.');
+        }
+        const employee = this.employeeRepository.create({ ...dto, tenantId });
+        return this.employeeRepository.save(employee);
+    }
     findAllEmployees(tenantId, locationId) {
         const whereClause = { tenantId };
         if (locationId) {
@@ -35,7 +62,19 @@ let HrService = class HrService {
         }
         return this.employeeRepository.find({ where: whereClause, relations: ['user', 'position'] });
     }
-    updateEmployee(id, dto, tenantId) { }
+    async updateEmployee(id, dto, tenantId) {
+        const employee = await this.employeeRepository.preload({ id, tenantId, ...dto });
+        if (!employee) {
+            throw new common_1.NotFoundException(`Empleado con ID #${id} no encontrado.`);
+        }
+        return this.employeeRepository.save(employee);
+    }
+    async removeEmployee(id, tenantId) {
+        const result = await this.employeeRepository.delete({ id, tenantId });
+        if (result.affected === 0) {
+            throw new common_1.NotFoundException(`Empleado con ID #${id} no encontrado.`);
+        }
+    }
     async calculateLaborCost(tenantId, startDate, endDate, locationId) {
         const whereClause = { tenantId };
         if (locationId) {

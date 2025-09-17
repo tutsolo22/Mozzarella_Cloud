@@ -1,9 +1,10 @@
+import { Tenant } from '../../tenants/entities/tenant.entity';
 export declare class Customer {
     id: string;
     tenantId: string;
-    phoneNumber: string;
+    tenant: Tenant;
     fullName: string;
-    addresses: any;
+    phoneNumber: string;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -3,6 +3,8 @@ export declare class Promotion {
     id: string;
     name: string;
     description: string;
+    discountPercentage: number;
+    isActive: boolean;
     imageUrl: string;
     startDate: Date;
     endDate: Date;

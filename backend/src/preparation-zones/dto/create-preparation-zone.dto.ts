@@ -1,9 +1,8 @@
-import { IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 
 export class CreatePreparationZoneDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
+  @MaxLength(100)
   name: string;
 }
-

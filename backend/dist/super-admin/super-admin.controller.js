@@ -8,20 +8,48 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuperAdminController = void 0;
 const common_1 = require("@nestjs/common");
 const super_admin_service_1 = require("./super-admin.service");
+const create_tenant_dto_1 = require("../tenants/dto/create-tenant.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
+const generate_license_dto_1 = require("../licenses/dto/generate-license.dto");
+const update_tenant_dto_1 = require("../tenants/dto/update-tenant.dto");
+const update_tenant_status_dto_1 = require("../tenants/dto/update-tenant-status.dto");
 let SuperAdminController = class SuperAdminController {
     constructor(superAdminService) {
         this.superAdminService = superAdminService;
     }
-    findAllTenants() {
+    findAll() {
         return this.superAdminService.findAllTenants();
+    }
+    create(createTenantDto) {
+        return this.superAdminService.create(createTenantDto);
+    }
+    resendInvitation(userId) {
+        return this.superAdminService.resendInvitation(userId);
+    }
+    update(id, updateTenantDto) {
+        return this.superAdminService.updateTenant(id, updateTenantDto);
+    }
+    updateStatus(id, updateTenantStatusDto) {
+        return this.superAdminService.updateTenantStatus(id, updateTenantStatusDto.status);
+    }
+    deleteTenant(id) {
+        return this.superAdminService.deleteTenant(id);
+    }
+    generateLicense(tenantId, generateLicenseDto) {
+        return this.superAdminService.generateTenantLicense(tenantId, generateLicenseDto);
+    }
+    revokeLicense(tenantId) {
+        return this.superAdminService.revokeTenantLicense(tenantId);
     }
 };
 exports.SuperAdminController = SuperAdminController;
@@ -30,7 +58,60 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], SuperAdminController.prototype, "findAllTenants", null);
+], SuperAdminController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Post)('tenants'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_tenant_dto_1.CreateTenantDto]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('users/:userId/resend-invitation'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "resendInvitation", null);
+__decorate([
+    (0, common_1.Patch)('tenants/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_tenant_dto_1.UpdateTenantDto]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)('tenants/:id/status'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_tenant_status_dto_1.UpdateTenantStatusDto]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.Delete)('tenants/:id'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "deleteTenant", null);
+__decorate([
+    (0, common_1.Post)('tenants/:tenantId/license'),
+    __param(0, (0, common_1.Param)('tenantId', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, generate_license_dto_1.GenerateLicenseDto]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "generateLicense", null);
+__decorate([
+    (0, common_1.Delete)('tenants/:tenantId/license'),
+    __param(0, (0, common_1.Param)('tenantId', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SuperAdminController.prototype, "revokeLicense", null);
 exports.SuperAdminController = SuperAdminController = __decorate([
     (0, common_1.Controller)('super-admin'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

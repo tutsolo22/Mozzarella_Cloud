@@ -24,6 +24,7 @@ const roles_decorator_1 = require("./decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
 const user_decorator_1 = require("./decorators/user.decorator");
 const switch_location_dto_1 = require("./dto/switch-location.dto");
+const setup_account_dto_1 = require("./dto/setup-account.dto");
 let AuthController = class AuthController {
     constructor(authService, configService) {
         this.authService = authService;
@@ -34,6 +35,22 @@ let AuthController = class AuthController {
     }
     async register(registerDto) {
         return this.authService.register(registerDto);
+    }
+    async requestPasswordReset(body) {
+        await this.authService.requestPasswordReset(body.email);
+        return {
+            message: 'Si tu correo está registrado, recibirás un enlace para resetear tu contraseña en unos minutos.',
+        };
+    }
+    async resetPassword(body) {
+        await this.authService.resetPassword(body.token, body.password);
+        return { message: 'Contraseña actualizada con éxito.' };
+    }
+    async setupAccount(setupAccountDto) {
+        return this.authService.setupAccount(setupAccountDto);
+    }
+    getProfile(user) {
+        return this.authService.getProfile(user.userId);
     }
     async switchLocation(user, switchLocationDto) {
         return this.authService.switchLocation(user.userId, switchLocationDto.locationId);
@@ -56,6 +73,38 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('request-password-reset'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "requestPasswordReset", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
+__decorate([
+    (0, common_1.Post)('setup-account'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [setup_account_dto_1.SetupAccountDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "setupAccount", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('profile'),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.Patch)('switch-location'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

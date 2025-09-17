@@ -48,6 +48,23 @@ let FilesService = FilesService_1 = class FilesService {
         const url = `${baseUrl}/uploads/${tenantId}/${filename}`;
         return { url };
     }
+    async deletePublicFile(filename, tenantId) {
+        const tenantUploadPath = (0, path_1.join)(this.baseUploadPath, tenantId);
+        const filePath = (0, path_1.join)(tenantUploadPath, filename);
+        try {
+            if ((0, fs_1.existsSync)(filePath)) {
+                await (0, promises_1.unlink)(filePath);
+                this.logger.log(`Deleted file: ${filePath}`);
+            }
+            else {
+                this.logger.warn(`File not found for deletion: ${filePath}`);
+            }
+        }
+        catch (error) {
+            this.logger.error(`Failed to delete file: ${filePath}`, error.stack);
+            throw new common_1.InternalServerErrorException('Could not delete file');
+        }
+    }
 };
 exports.FilesService = FilesService;
 exports.FilesService = FilesService = FilesService_1 = __decorate([

@@ -1,23 +1,55 @@
 import { Location } from './location';
 
+export enum UserStatus {
+  PendingVerification = 'pending_verification',
+  Active = 'active',
+  Suspended = 'suspended',
+}
+
 export interface User {
   id: string;
   email: string;
   fullName: string;
+  status: UserStatus;
   role: {
-    id?: string; // Made optional to accommodate JWT payload
+    id: string;
     name: string;
   };
-  roleId?: string; // Made optional to accommodate JWT payload
+  permissions: string[];
+  locationId: string | null;
   location?: Location;
-  locationId?: string | null;
-  permissions?: string[];
+  tenant?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface LoginCredentials {
   email: string;
   password?: string;
+  remember?: boolean;
 }
 
-export type CreateUserDto = Omit<User, 'id' | 'role' | 'location'> & { password?: string };
-export type UpdateUserDto = Partial<CreateUserDto>;
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface UpdateProfileDto {
+  fullName?: string;
+}
+
+export interface CreateUserDto {
+  email: string;
+  password?: string;
+  fullName: string;
+  roleId: string;
+  locationId?: string | null;
+}
+
+export interface UpdateUserDto {
+  email?: string;
+  fullName?: string;
+  roleId?: string;
+  locationId?: string | null;
+}

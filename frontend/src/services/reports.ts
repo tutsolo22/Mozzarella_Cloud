@@ -1,40 +1,57 @@
-import api from '../api/axiosClient';
-import { CashierSession } from '../types/reports';
-import { DashboardStats, ManagerDashboardMetrics } from '../types/dashboard';
+import axiosClient from '../api/axiosClient';
+import { CashierSession, DashboardStats, ProductProfitability, SalesReport } from '../types/reports';
 
-export const getDashboardStats = (): Promise<DashboardStats> => {
-  return api.get('/reports/dashboard-stats');
-};
-
-export const getManagerDashboardMetrics = async (): Promise<ManagerDashboardMetrics> => {
-  const response = await api.get('/reports/manager-dashboard');
+// --- Reports ---
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await axiosClient.get('/reports/dashboard-stats');
   return response.data;
 };
 
 export const getActiveSession = async (): Promise<CashierSession | null> => {
-  const response = await api.get('/reports/sessions/active');
-  if (response.data === '') {
-    return null;
-  }
+  const response = await axiosClient.get('/cashier-sessions/active');
   return response.data;
 };
 
-export const openSession = (openingBalance: number): Promise<CashierSession> => {
-  return api.post('/reports/sessions/open', { openingBalance });
+export const openSession = async (openingBalance: number): Promise<CashierSession> => {
+  const response = await axiosClient.post('/cashier-sessions/open', { openingBalance });
+  return response.data;
 };
 
-export const closeSession = (data: { closingBalance: number; notes?: string }): Promise<CashierSession> => {
-  return api.post('/reports/sessions/close', data);
+export const closeSession = async (closingBalance: number): Promise<CashierSession> => {
+  const response = await axiosClient.patch('/cashier-sessions/close', { closingBalance });
+  return response.data;
 };
 
-export const getSessionReport = (sessionId: string): Promise<CashierSession> => {
-  return api.get(`/reports/sessions/${sessionId}`);
+const getSalesData = async (params: { startDate?: string; endDate?: string }): Promise<SalesReport> => {
+  const response = await axiosClient.get('/orders/reports/sales', { params });
+  return response.data;
 };
 
-export const getHistoricalSessions = (startDate?: string, endDate?: string): Promise<CashierSession[]> => {
-  return api.get('/reports/sessions', { params: { startDate, endDate } });
+export const getSalesReport = getSalesData;
+export const getConsolidatedSalesReport = getSalesData;
+
+export const getProductProfitabilityReport = async (): Promise<ProductProfitability[]> => {
+  const response = await axiosClient.get('/orders/reports/profitability');
+  return response.data;
 };
 
-export const getDriverSettlementReport = (sessionId: string): Promise<any> => {
-  return api.get(`/reports/sessions/${sessionId}/driver-settlement`);
+export const getIngredientConsumptionReport = async (startDate: string, endDate: string): Promise<{ consumedIngredients: any[] }> => {
+  const response = await axiosClient.get('/orders/reports/ingredient-consumption', {
+    params: { startDate, endDate },
+  });
+  return response.data;
+};
+
+export const getWasteReport = async (startDate?: string, endDate?: string) => {
+  const response = await axiosClient.get('/ingredients/reports/waste', {
+    params: { startDate, endDate },
+  });
+  return response.data;
+};
+
+export const getDriverPerformanceReport = async (startDate?: string, endDate?: string) => {
+  const response = await axiosClient.get('/orders/reports/driver-performance', {
+    params: { startDate, endDate },
+  });
+  return response.data;
 };

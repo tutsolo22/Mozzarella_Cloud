@@ -1,9 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { TenantStatus } from '../enums/tenant-status.enum';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  OneToMany,
+} from 'typeorm';
 import { License } from '../../licenses/entities/license.entity';
 import { TenantConfiguration } from './tenant-configuration.entity';
+import { User } from '../../users/entities/user.entity';
 import { Location } from '../../locations/entities/location.entity';
+
+export enum TenantStatus {
+  Active = 'active',
+  Suspended = 'suspended',
+  Trial = 'trial',
+}
+
+export enum TenantPlan {
+  Basic = 'basic',
+  Advanced = 'advanced',
+  Enterprise = 'enterprise',
+}
 
 @Entity('tenants')
 export class Tenant {
@@ -11,30 +30,36 @@ export class Tenant {
   id: string;
 
   @Column({ unique: true })
-  name: string; // e.g., "Pizzeria Bella Napoli"
+  name: string;
 
   @Column({
     type: 'enum',
     enum: TenantStatus,
-    default: TenantStatus.Activo,
+    default: TenantStatus.Trial,
   })
   status: TenantStatus;
 
-  @OneToOne(() => License, (license) => license.tenant, { nullable: true, cascade: true })
-  @JoinColumn()
+  @Column({
+    type: 'enum',
+    enum: TenantPlan,
+    default: TenantPlan.Basic,
+  })
+  plan: TenantPlan;
+
+  @OneToOne(() => License, (license) => license.tenant)
   license: License;
 
-  @Column({ type: 'jsonb', default: () => "'{}'" })
+  @OneToOne(() => TenantConfiguration, (config) => config.tenant, { cascade: true, eager: true })
   configuration: TenantConfiguration;
 
-  @Column({ type: 'varchar', length: 128, unique: true, nullable: true })
-  whatsappApiKey: string | null;
-
-  @OneToMany(() => User, user => user.tenant)
+  @OneToMany(() => User, (user) => user.tenant)
   users: User[];
 
-  @OneToMany(() => Location, location => location.tenant)
+  @OneToMany(() => Location, (location) => location.tenant)
   locations: Location[];
+
+  @Column({ type: 'varchar', length: 255, nullable: true, select: false })
+  whatsappApiKey?: string;
 
   @CreateDateColumn()
   createdAt: Date;

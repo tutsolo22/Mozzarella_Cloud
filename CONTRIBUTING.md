@@ -82,7 +82,16 @@ El proyecto utiliza Docker para gestionar la base de datos PostgreSQL con PostGI
     ```bash
     cp .env.example .env
     ```
-    *No necesitas modificar el archivo `.env` si estás usando la configuración por defecto de Docker.*
+    Abre el archivo `.env` y asegúrate de que las variables estén configuradas correctamente para tu entorno. La más importante para que los correos electrónicos funcionen es `FRONTEND_URL`:
+
+    ```dotenv
+    # ... otras variables
+    # URL pública del Frontend (la que usará el backend para generar enlaces en correos)
+    FRONTEND_URL=http://localhost:5173
+    # ...
+    ```
+    *Si estás desarrollando en un entorno como GitHub Codespaces, asegúrate de usar la URL pública que te proporciona el entorno para el frontend.*
+
 3.  Instala todas las dependencias del proyecto:
     ```bash
     npm install

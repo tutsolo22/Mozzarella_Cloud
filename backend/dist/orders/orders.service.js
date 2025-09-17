@@ -33,7 +33,7 @@ const user_entity_1 = require("../users/entities/user.entity");
 const order_types_enum_1 = require("./enums/order-types.enum");
 const role_enum_1 = require("../roles/enums/role.enum");
 const payments_service_1 = require("../payments/payments.service");
-const delivery_provider_type_enum_1 = require("./enums/delivery-provider-type.enum");
+const delivery_provider_type_enum_1 = require("../delivery/enums/delivery-provider-type.enum");
 let OrdersService = OrdersService_1 = class OrdersService {
     constructor(orderRepository, ingredientRepository, productRepository, userRepository, locationRepository, inventoryMovementsService, notificationsGateway, notificationsService, geocodingService, dataSource, paymentsService) {
         this.orderRepository = orderRepository;

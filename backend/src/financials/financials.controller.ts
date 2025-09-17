@@ -29,18 +29,22 @@ export class FinancialsController {
     @Query('endDate') endDate?: string,
     @Query('locationId') locationId?: string,
   ) {
+    let effectiveLocationId = locationId;
+
     if (user.role === RoleEnum.Admin) {
-      // TenantAdmin can see all or filter by a specific location
-      return this.financialsService.findAll(user.tenantId, startDate, endDate, locationId);
+      // El Admin del tenant puede ver todo o filtrar por sucursal.
+      // effectiveLocationId ya tiene el valor de locationId (o es undefined).
+    } else { // RoleEnum.Manager
+      if (!user.locationId) {
+        throw new ForbiddenException('No tienes una sucursal asignada.');
+      }
+      if (locationId && locationId !== user.locationId) {
+        throw new ForbiddenException('No tienes permiso para ver los costos de otra sucursal.');
+      }
+      // Un Manager solo puede ver los costos de su propia sucursal.
+      effectiveLocationId = user.locationId;
     }
-    // Manager can only see their own location's costs
-    if (!user.locationId) {
-      throw new ForbiddenException('No tienes una sucursal asignada.');
-    }
-    if (locationId && locationId !== user.locationId) {
-      throw new ForbiddenException('No tienes permiso para ver los costos de otra sucursal.');
-    }
-    return this.financialsService.findAll(user.tenantId, startDate, endDate, user.locationId);
+    return this.financialsService.findAll(user.tenantId, startDate, endDate, effectiveLocationId);
   }
 
   @Patch('overhead-costs/:id')

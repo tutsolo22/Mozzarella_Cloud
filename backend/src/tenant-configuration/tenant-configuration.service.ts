@@ -14,7 +14,7 @@ export class TenantConfigurationService {
   async getConfiguration(tenantId: string): Promise<TenantConfiguration> {
     // Cada tenant debe tener una configuración creada al momento de su creación.
     const config = await this.configRepository.findOne({
-      where: { tenant: { id: tenantId } },
+      where: { tenantId: tenantId },
     });
 
     if (!config) {

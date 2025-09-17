@@ -2,8 +2,7 @@ import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { License } from '../licenses/entities/license.entity';
-import { LicenseStatus } from '../licenses/enums/license-status.enum';
+import { License, LicenseStatus } from '../licenses/entities/license.entity';
 import { LicensePayload } from '../licenses/licensing.service';
 
 @Injectable()
@@ -27,6 +26,7 @@ export class LicenseValidationService {
     // 2. Encontrar la licencia en la base de datos
     const license = await this.licenseRepository.findOne({
       where: { key: licenseKey },
+      relations: ['tenant'],
     });
 
     if (!license) {
@@ -38,11 +38,15 @@ export class LicenseValidationService {
       throw new UnauthorizedException('Esta licencia ha sido revocada.');
     }
 
+    if (!license.tenant) {
+      throw new UnauthorizedException('La licencia no está asociada a ningún tenant. Contacte a soporte.');
+    }
+
     // 4. Comprobar que la licencia pertenece al tenant correcto
-    if (localTenantId && license.tenantId !== localTenantId) {
+    if (localTenantId && license.tenant.id !== localTenantId) {
       throw new UnauthorizedException('Esta licencia no pertenece a este tenant.');
     }
-    if (license.tenantId !== payload.tenantId) {
+    if (license.tenant.id !== payload.tenantId) {
       throw new UnauthorizedException('Inconsistencia en la licencia. Contacte a soporte.');
     }
 
@@ -50,7 +54,7 @@ export class LicenseValidationService {
     return {
       isValid: true,
       status: license.status,
-      tenantId: license.tenantId,
+      tenantId: license.tenant.id,
       userLimit: license.userLimit,
       branchLimit: license.branchLimit,
       expiresAt: license.expiresAt,

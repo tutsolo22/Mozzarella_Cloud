@@ -20,6 +20,10 @@ const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
 const user_decorator_1 = require("../auth/decorators/user.decorator");
+const create_position_dto_1 = require("./dto/create-position.dto");
+const update_position_dto_1 = require("./dto/update-position.dto");
+const create_employee_dto_1 = require("./dto/create-employee.dto");
+const update_employee_dto_1 = require("./dto/update-employee.dto");
 let HrController = class HrController {
     constructor(hrService) {
         this.hrService = hrService;
@@ -33,8 +37,8 @@ let HrController = class HrController {
     updatePosition(id, updatePositionDto, user) {
         return this.hrService.updatePosition(id, updatePositionDto, user.tenantId);
     }
-    removePosition(id, user) {
-        return this.hrService.removePosition(id, user.tenantId);
+    async removePosition(id, user) {
+        await this.hrService.removePosition(id, user.tenantId);
     }
     createEmployee(createEmployeeDto, user) {
         return this.hrService.createEmployee(createEmployeeDto, user.tenantId);
@@ -51,6 +55,9 @@ let HrController = class HrController {
     updateEmployee(id, updateEmployeeDto, user) {
         return this.hrService.updateEmployee(id, updateEmployeeDto, user.tenantId);
     }
+    async removeEmployee(id, user) {
+        await this.hrService.removeEmployee(id, user.tenantId);
+    }
 };
 exports.HrController = HrController;
 __decorate([
@@ -58,7 +65,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [create_position_dto_1.CreatePositionDto, Object]),
     __metadata("design:returntype", void 0)
 ], HrController.prototype, "createPosition", null);
 __decorate([
@@ -74,23 +81,24 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __param(2, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:paramtypes", [String, update_position_dto_1.UpdatePositionDto, Object]),
     __metadata("design:returntype", void 0)
 ], HrController.prototype, "updatePosition", null);
 __decorate([
     (0, common_1.Delete)('positions/:id'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], HrController.prototype, "removePosition", null);
 __decorate([
     (0, common_1.Post)('employees'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [create_employee_dto_1.CreateEmployeeDto, Object]),
     __metadata("design:returntype", void 0)
 ], HrController.prototype, "createEmployee", null);
 __decorate([
@@ -106,9 +114,18 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __param(2, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:paramtypes", [String, update_employee_dto_1.UpdateEmployeeDto, Object]),
     __metadata("design:returntype", void 0)
 ], HrController.prototype, "updateEmployee", null);
+__decorate([
+    (0, common_1.Delete)('employees/:id'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], HrController.prototype, "removeEmployee", null);
 exports.HrController = HrController = __decorate([
     (0, common_1.Controller)('hr'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

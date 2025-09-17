@@ -21,6 +21,7 @@ exports.PreparationZonesModule = PreparationZonesModule = __decorate([
         imports: [typeorm_1.TypeOrmModule.forFeature([preparation_zone_entity_1.PreparationZone, product_entity_1.Product])],
         controllers: [preparation_zones_controller_1.PreparationZonesController],
         providers: [preparation_zones_service_1.PreparationZonesService],
+        exports: [preparation_zones_service_1.PreparationZonesService],
     })
 ], PreparationZonesModule);
 //# sourceMappingURL=preparation-zones.module.js.map

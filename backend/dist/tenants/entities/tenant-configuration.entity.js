@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantConfiguration = void 0;
 const typeorm_1 = require("typeorm");
+const tenant_entity_1 = require("./tenant.entity");
 let TenantConfiguration = class TenantConfiguration {
 };
 exports.TenantConfiguration = TenantConfiguration;
@@ -19,53 +20,48 @@ __decorate([
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'uuid', unique: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "tenantId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'varchar',
-        length: 255,
-        nullable: true,
-        comment: 'API Key for OpenRouteService (Directions)',
+    (0, typeorm_1.OneToOne)(() => tenant_entity_1.Tenant, (tenant) => tenant.configuration, {
+        onDelete: 'CASCADE',
     }),
-    __metadata("design:type", String)
-], TenantConfiguration.prototype, "directionsApiKey", void 0);
+    (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
+    __metadata("design:type", tenant_entity_1.Tenant)
+], TenantConfiguration.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'double precision',
-        nullable: true,
-        comment: 'Latitud de la ubicación base del restaurante',
-    }),
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], TenantConfiguration.prototype, "deliveryArea", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "kdsNotificationSoundUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
     __metadata("design:type", Number)
 ], TenantConfiguration.prototype, "restaurantLatitude", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'double precision',
-        nullable: true,
-        comment: 'Longitud de la ubicación base del restaurante',
-    }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
     __metadata("design:type", Number)
 ], TenantConfiguration.prototype, "restaurantLongitude", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'varchar',
-        length: 255,
-        nullable: true,
-        comment: 'API Key for OpenCage (Geocoding)',
-    }),
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "directionsApiKey", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "openCageApiKey", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: true, select: false }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "mercadoPagoAccessToken", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'simple-array',
         nullable: true,
-        comment: 'Payment methods enabled for this tenant (e.g., cash, mercado_pago)',
-        default: 'cash',
     }),
     __metadata("design:type", Array)
 ], TenantConfiguration.prototype, "enabledPaymentMethods", void 0);

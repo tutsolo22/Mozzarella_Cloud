@@ -24,25 +24,24 @@ let ReportsController = class ReportsController {
     constructor(reportsService) {
         this.reportsService = reportsService;
     }
-    getManagerDashboardMetrics(user) {
-        if (!user.locationId) {
-            throw new common_1.ForbiddenException('No tienes una sucursal asignada o seleccionada para ver este dashboard.');
-        }
-        return this.reportsService.getManagerDashboardMetrics(user.tenantId, user.locationId);
+    getProfitAndLossReport(user, startDate, endDate) {
+        return this.reportsService.getProfitAndLossReport(user.tenantId, user.locationId, startDate, endDate);
     }
 };
 exports.ReportsController = ReportsController;
 __decorate([
-    (0, common_1.Get)('manager-dashboard'),
-    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
+    (0, common_1.Get)('pnl'),
     __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Query)('startDate')),
+    __param(2, (0, common_1.Query)('endDate')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ReportsController.prototype, "getManagerDashboardMetrics", null);
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getProfitAndLossReport", null);
 exports.ReportsController = ReportsController = __decorate([
     (0, common_1.Controller)('reports'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin, role_enum_1.RoleEnum.Manager),
     __metadata("design:paramtypes", [reports_service_1.ReportsService])
 ], ReportsController);
 //# sourceMappingURL=reports.controller.js.map

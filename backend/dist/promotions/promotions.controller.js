@@ -46,8 +46,17 @@ let PromotionsController = class PromotionsController {
         return this.promotionsService.remove(id, user.tenantId);
     }
     async uploadImage(id, file, user) {
-        const filename = `promotion-${id}${path.extname(file.originalname)}`;
-        const imageUrl = await this.filesService.uploadPublicFile(file.buffer, filename, `promotions/${user.tenantId}`);
+        const promotion = await this.promotionsService.findOne(id, user.tenantId);
+        if (promotion.imageUrl) {
+            try {
+                const oldFileKey = path.basename(promotion.imageUrl);
+                await this.filesService.deletePublicFile(oldFileKey, user.tenantId);
+            }
+            catch (error) {
+                console.error(`Could not delete old promotion image: ${error.message}`);
+            }
+        }
+        const { url: imageUrl } = await this.filesService.uploadPublicFile(file, user.tenantId);
         return this.promotionsService.update(id, { imageUrl }, user.tenantId);
     }
 };

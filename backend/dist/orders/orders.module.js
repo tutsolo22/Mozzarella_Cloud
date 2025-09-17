@@ -17,12 +17,12 @@ const inventory_movements_module_1 = require("../inventory-movements/inventory-m
 const notifications_module_1 = require("../notifications/notifications.module");
 const ingredients_module_1 = require("../ingredients/ingredients.module");
 const product_entity_1 = require("../products/entities/product.entity");
-const product_ingredient_entity_1 = require("../products/entities/product-ingredient.entity");
 const tenant_configuration_entity_1 = require("../tenants/entities/tenant-configuration.entity");
 const geocoding_module_1 = require("../geocoding/geocoding.module");
 const payments_module_1 = require("../payments/payments.module");
 const user_entity_1 = require("../users/entities/user.entity");
 const location_entity_1 = require("../locations/entities/location.entity");
+const ingredient_entity_1 = require("../ingredients/entities/ingredient.entity");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
@@ -33,16 +33,16 @@ exports.OrdersModule = OrdersModule = __decorate([
                 order_entity_1.Order,
                 order_item_entity_1.OrderItem,
                 product_entity_1.Product,
-                product_ingredient_entity_1.ProductIngredient,
                 tenant_configuration_entity_1.TenantConfiguration,
                 user_entity_1.User,
                 location_entity_1.Location,
+                ingredient_entity_1.Ingredient,
             ]),
             inventory_movements_module_1.InventoryMovementsModule,
             notifications_module_1.NotificationsModule,
             ingredients_module_1.IngredientsModule,
             (0, common_1.forwardRef)(() => payments_module_1.PaymentsModule),
-            geocoding_module_1.GeocodingModule
+            geocoding_module_1.GeocodingModule,
         ],
         controllers: [orders_controller_1.OrdersController],
         providers: [orders_service_1.OrdersService],

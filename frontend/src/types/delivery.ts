@@ -1,23 +1,10 @@
-export interface OptimizedRouteOrder {
-  id: string;
-  shortId: string;
-  deliveryAddress?: string;
-  latitude?: number;
-  longitude?: number;
-  isPriority?: boolean;
-  weight: number;
-  volume: number;
-}
+import { Order } from './order';
+import { User } from './user';
 
 export interface OptimizedRoute {
-  driverId: string;
-  driverName: string;
-  orders: OptimizedRouteOrder[];
-  orderCount: number;
-  estimatedDistanceKm?: string;
-  estimatedDurationMinutes?: number;
-  currentWeightKg: string;
-  maxWeightKg?: number;
-  currentVolumeM3: string;
-  maxVolumeM3?: number;
+  driver: User;
+  orders: Order[];
+  totalDistance: number; // in meters
+  totalDuration: number; // in seconds
+  routeGeometry?: any; // GeoJSON LineString or similar
 }

@@ -1,7 +1,8 @@
-import { KdsService } from './kds.service';
 import { UserPayload } from '../auth/decorators/user.decorator';
+import { KdsService } from './kds.service';
 export declare class KdsController {
     private readonly kdsService;
     constructor(kdsService: KdsService);
-    getActiveOrdersForZone(user: UserPayload, zoneId: string): Promise<import("../orders/entities/order.entity").Order[]>;
+    findAll(user: UserPayload): Promise<import("../orders/entities/order.entity").Order[]>;
+    findByZone(zoneId: string, user: UserPayload): Promise<import("../orders/entities/order.entity").Order[]>;
 }

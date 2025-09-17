@@ -5,9 +5,9 @@ import { UserPayload } from '../auth/decorators/user.decorator';
 export declare class PreparationZonesController {
     private readonly zonesService;
     constructor(zonesService: PreparationZonesService);
-    create(createDto: CreatePreparationZoneDto, user: UserPayload): Promise<any>;
-    findAll(user: UserPayload): Promise<PreparationZone[]>;
-    findOne(id: string, user: UserPayload): Promise<PreparationZone>;
-    update(id: string, updateDto: UpdatePreparationZoneDto, user: UserPayload): Promise<any>;
+    private ensureLocationSelected;
+    create(createDto: CreatePreparationZoneDto, user: UserPayload): Promise<import("./entities/preparation-zone.entity").PreparationZone>;
+    findAll(user: UserPayload): Promise<import("./entities/preparation-zone.entity").PreparationZone[]>;
+    update(id: string, updateDto: UpdatePreparationZoneDto, user: UserPayload): Promise<import("./entities/preparation-zone.entity").PreparationZone>;
     remove(id: string, user: UserPayload): Promise<void>;
 }

@@ -20,14 +20,13 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTenantDto.prototype, "name", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateTenantDto.prototype, "adminFullName", void 0);
+__decorate([
     (0, class_validator_1.IsEmail)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateTenantDto.prototype, "adminEmail", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.MinLength)(8, { message: 'La contraseña debe tener al menos 8 caracteres' }),
-    __metadata("design:type", String)
-], CreateTenantDto.prototype, "adminPassword", void 0);
 //# sourceMappingURL=create-tenant.dto.js.map

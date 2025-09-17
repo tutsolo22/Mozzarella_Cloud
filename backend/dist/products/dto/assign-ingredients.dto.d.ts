@@ -1,8 +1,8 @@
-declare class RecipeItemDto {
+declare class IngredientAssignment {
     ingredientId: string;
     quantityRequired: number;
 }
 export declare class AssignIngredientsDto {
-    ingredients: RecipeItemDto[];
+    ingredients: IngredientAssignment[];
 }
 export {};

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index, CreateDateColumn, UpdateDateColumn, OneToOne } from 'typeorm';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 import { Position } from './position.entity';
 
@@ -10,6 +11,7 @@ export enum PaymentFrequency {
 }
 
 @Entity('employees')
+@Index(['tenantId'])
 export class Employee {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -17,28 +19,35 @@ export class Employee {
   @Column()
   tenantId: string;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE', eager: true })
+  @ManyToOne(() => Tenant)
+  @JoinColumn({ name: 'tenantId' })
+  tenant: Tenant;
+
+  @Column({ unique: true })
+  userId: string;
+
+  @OneToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'uuid', unique: true })
-  userId: string;
+  @Column()
+  positionId: string;
 
-  @ManyToOne(() => Position, { eager: true, nullable: false })
+  @ManyToOne(() => Position)
   @JoinColumn({ name: 'positionId' })
   position: Position;
-
-  @Column({ type: 'uuid' })
-  positionId: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   salary: number;
 
-  @Column({ type: 'enum', enum: PaymentFrequency, default: PaymentFrequency.Monthly })
+  @Column({
+    type: 'enum',
+    enum: PaymentFrequency,
+  })
   paymentFrequency: PaymentFrequency;
 
-  @Column({ type: 'date' })
-  hireDate: Date;
+  @Column('date')
+  hireDate: string;
 
   @CreateDateColumn()
   createdAt: Date;

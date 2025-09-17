@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "vite-env.d.ts", "../backend/src/licenses/dto/generate-license.dto.ts", "../backend/src/settings/dto/update-smtp-setting.dto.ts", "../backend/src/settings/settings.service.ts", "../backend/src/settings/settings.module.ts", "../backend/src/settings/settings.controller.ts"]
 }

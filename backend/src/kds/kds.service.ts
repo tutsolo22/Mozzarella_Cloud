@@ -1,37 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus } from '../orders/enums/order-status.enum';
-import { OrdersService } from '../orders/orders.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Order } from '../orders/entities/order.entity';
+import { OrderStatus } from '../orders/enums/order-status.enum';
 
 @Injectable()
 export class KdsService {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+  ) {}
 
-  async getActiveOrdersForZone(
+  async findOrders(
     tenantId: string,
     locationId: string,
-    zoneId: string,
+    zoneId?: string,
   ): Promise<Order[]> {
-    const activeStatuses = [
-      OrderStatus.Confirmed,
+    const statuses = [
+      OrderStatus.PendingConfirmation,
       OrderStatus.InPreparation,
       OrderStatus.ReadyForExternalPickup,
     ];
 
-    const orders = await this.ordersService.findByStatus(
-      activeStatuses,
-      tenantId,
-      locationId,
-    );
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.items', 'item')
+      .leftJoinAndSelect('item.product', 'product')
+      .leftJoinAndSelect('product.preparationZone', 'preparationZone')
+      .leftJoinAndSelect('order.customer', 'customer')
+      .where('order.tenantId = :tenantId', { tenantId })
+      .andWhere('order.locationId = :locationId', { locationId })
+      .andWhere('order.status IN (:...statuses)', { statuses })
+      .orderBy('order.createdAt', 'ASC');
 
-    // Modificamos la instancia del pedido directamente para no perder el prototipo de la clase
-    return orders
-      .map((order) => {
-        order.items = order.items.filter(
-          (item) => item.product?.preparationZoneId === zoneId,
-        );
-        return order;
-      })
-      .filter((order) => order.items.length > 0);
+    if (zoneId) {
+      query.andWhere('product.preparationZoneId = :zoneId', { zoneId });
+    }
+
+    return query.getMany();
   }
 }

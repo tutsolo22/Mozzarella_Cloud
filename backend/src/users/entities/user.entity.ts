@@ -34,6 +34,12 @@ export class User {
   @Column({ type: 'timestamp', nullable: true, select: false })
   passwordResetExpires?: Date | null;
 
+    @Column({ type: 'varchar', nullable: true, select: false })
+  accountSetupToken?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true, select: false })
+  accountSetupTokenExpires?: Date | null;
+
   @Column()
   fullName: string;
 

@@ -90,6 +90,52 @@ Los roles disponibles son:
 
 ---
 
+### Módulo de Sucursales (`/locations`)
+
+#### `GET /locations`
+*   **Descripción**: Lista todas las sucursales del tenant.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Query Parameters (Opcional)**:
+    *   `includeInactive` (boolean): Si es `true`, incluye sucursales deshabilitadas.
+*   **Successful Response (200)**: Un array de objetos de sucursal.
+
+#### `POST /locations`
+*   **Descripción**: Crea una nueva sucursal.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Request Body (`CreateLocationDto`)**:
+    ```json
+    {
+      "name": "Sucursal Centro",
+      "address": "Av. Principal 123",
+      "phone": "+123456789"
+    }
+    ```
+*   **Successful Response (201)**: Devuelve el objeto de la sucursal creada.
+
+#### `PATCH /locations/:id`
+*   **Descripción**: Actualiza una sucursal existente.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) de la sucursal.
+*   **Request Body (`UpdateLocationDto`)**:
+    ```json
+    { "phone": "+987654321" }
+    ```
+*   **Successful Response (200)**: Devuelve el objeto de la sucursal actualizada.
+
+#### `DELETE /locations/:id`
+*   **Descripción**: Deshabilita (soft delete) una sucursal.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) de la sucursal.
+*   **Successful Response (204 No Content)**.
+
+#### `PATCH /locations/:id/restore`
+*   **Descripción**: Rehabilita una sucursal.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) de la sucursal.
+*   **Successful Response (204 No Content)**.
+
+---
+
 ### Módulo de Usuarios (`/users`)
 
 #### `GET /users/profile`
@@ -271,6 +317,24 @@ Los roles disponibles son:
 *   **Successful Response (200)**: Devuelve el objeto del producto actualizado.
 
 #### `DELETE /products/:id`
+*   **Descripción**: Deshabilita (soft delete) un producto.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) del producto.
+*   **Successful Response (204 No Content)**.
+
+#### `PATCH /products/:id/restore`
+*   **Descripción**: Rehabilita un producto.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **URL Parameters**: `id` (UUID) del producto.
+*   **Successful Response (204 No Content)**.
+
+#### `POST /products/:id/image`
+*   **Descripción**: Sube o actualiza la imagen de un producto.
+*   **Protección**: `JWT Auth` + `Rol: admin`, `manager`.
+*   **Request Body**: `multipart/form-data` con un campo `file`.
+*   **Successful Response (200)**: Devuelve el objeto del producto actualizado con la nueva `imageUrl`.
+
+#### `DELETE /products/:id` (Nota: Este endpoint fue renombrado a `disable` en el servicio)
 *   **Descripción**: Elimina un producto.
 *   **Protección**: `JWT Auth` + `Rol: admin`.
 *   **URL Parameters**: `id` (UUID) del producto.
@@ -315,6 +379,23 @@ Los roles disponibles son:
     }
     ```
 
+#### `GET /products/export`
+*   **Descripción**: Exporta todos los productos a un archivo CSV.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Successful Response (200)**: Un archivo `products.csv` para descargar.
+
+#### `POST /products/import`
+*   **Descripción**: Importa productos desde un archivo CSV.
+*   **Protección**: `JWT Auth` + `Rol: admin`.
+*   **Request Body**: `multipart/form-data` con un campo `file`.
+*   **Successful Response (201)**:
+    ```json
+    { "created": 10, "updated": 5, "errors": [] }
+    ```
+
+
+---
+
 ---
 
 ### Módulo de Clientes (`/customers`)
@@ -358,7 +439,71 @@ Todos los endpoints de este módulo requieren autenticación (`JWT Auth`) y el r
 
 ---
 
+### Módulo de Sesiones de Caja (`/cashier-sessions`)
+
+#### `GET /cashier-sessions/active`
+*   **Descripción**: Obtiene la sesión de caja activa para el usuario y sucursal actual.
+*   **Protección**: `JWT Auth`.
+*   **Successful Response (200)**: El objeto de la sesión de caja activa, o `null` si no hay ninguna.
+
+#### `POST /cashier-sessions/open`
+*   **Descripción**: Abre una nueva sesión de caja.
+*   **Protección**: `JWT Auth`.
+*   **Request Body**:
+    ```json
+    { "openingBalance": 100.50 }
+    ```
+*   **Successful Response (201)**: El objeto de la sesión de caja creada.
+
+#### `PATCH /cashier-sessions/close`
+*   **Descripción**: Cierra la sesión de caja activa.
+*   **Protección**: `JWT Auth`.
+*   **Request Body**:
+    ```json
+    { "closingBalance": 1500.75 }
+    ```
+*   **Successful Response (200)**: El objeto de la sesión de caja cerrada con todos los cálculos.
+
+#### `GET /cashier-sessions/history`
+*   **Descripción**: Obtiene el historial de sesiones de caja para la sucursal actual.
+*   **Protección**: `JWT Auth` + `Rol: admin`, `manager`.
+*   **Successful Response (200)**: Un array de objetos de sesión de caja.
+
+---
+
 ### Módulo de Reportes
+
+#### `GET /reports/dashboard-stats`
+*   **Descripción**: Obtiene las estadísticas principales para el dashboard.
+*   **Protección**: `JWT Auth`.
+*   **Successful Response (200)**:
+    ```json
+    {
+      "confirmed": 5,
+      "in_preparation": 3,
+      "in_delivery": 2,
+      "delivered": 10,
+      "totalRevenueToday": 550.25,
+      "totalOrdersToday": 20
+    }
+    ```
+
+#### `GET /orders/reports/profitability`
+*   **Descripción**: Obtiene un reporte de rentabilidad por producto, comparando el costo de los ingredientes con el precio de venta. Solo incluye productos con una receta definida.
+*   **Protección**: `JWT Auth` + `Rol: admin` o `manager`.
+*   **Successful Response (200)**:
+    ```json
+    [
+      {
+        "productId": "uuid-del-producto",
+        "productName": "Pizza Margarita",
+        "sellingPrice": 12.50,
+        "ingredientsCost": 4.75,
+        "profit": 7.75,
+        "margin": 62.00
+      }
+    ]
+    ```
 
 #### `GET /orders/reports/sales`
 *   **Descripción**: Obtiene un reporte de ventas filtrado por un rango de fechas. Excluye pedidos cancelados.
@@ -543,23 +688,6 @@ Todos los endpoints de este módulo requieren autenticación (`JWT Auth`) y el r
         }
       ]
     }
-    ```
-
-#### `GET /orders/reports/profitability`
-*   **Descripción**: Obtiene un reporte de rentabilidad por producto, comparando el costo de los ingredientes con el precio de venta. Solo incluye productos con una receta definida.
-*   **Protección**: `JWT Auth` + `Rol: admin` o `manager`.
-*   **Successful Response (200)**:
-    ```json
-    [
-      {
-        "productId": "uuid-del-producto",
-        "productName": "Pizza Margarita",
-        "sellingPrice": 12.50,
-        "ingredientsCost": 4.75,
-        "profit": 7.75,
-        "margin": 62.00
-      }
-    ]
     ```
 
 #### `GET /orders/reports/driver-performance`

@@ -1,52 +1,50 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { PaymentMethod } from '../../orders/enums/order-types.enum';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Tenant } from './tenant.entity';
 
 @Entity('tenant_configurations')
 export class TenantConfiguration {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', unique: true })
+  @Column()
   tenantId: string;
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-    comment: 'API Key for OpenRouteService (Directions)',
+  @OneToOne(() => Tenant, (tenant) => tenant.configuration, {
+    onDelete: 'CASCADE',
   })
-  directionsApiKey?: string;
+  @JoinColumn({ name: 'tenantId' })
+  tenant: Tenant;
 
-  @Column({
-    type: 'double precision',
-    nullable: true,
-    comment: 'Latitud de la ubicación base del restaurante',
-  })
-  restaurantLatitude?: number;
-
-  @Column({
-    type: 'double precision',
-    nullable: true,
-    comment: 'Longitud de la ubicación base del restaurante',
-  })
-  restaurantLongitude?: number;
-
-  @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-    comment: 'API Key for OpenCage (Geocoding)',
-  })
-  openCageApiKey?: string;
+  @Column({ type: 'jsonb', nullable: true })
+  deliveryArea: any; // GeoJSON Polygon
 
   @Column({ nullable: true })
-  mercadoPagoAccessToken?: string;
+  kdsNotificationSoundUrl: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  restaurantLatitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  restaurantLongitude: number;
+
+  @Column({ nullable: true })
+  directionsApiKey: string;
+
+  @Column({ nullable: true })
+  openCageApiKey: string;
+
+  @Column({ nullable: true, select: false })
+  mercadoPagoAccessToken: string;
 
   @Column({
     type: 'simple-array',
     nullable: true,
-    comment: 'Payment methods enabled for this tenant (e.g., cash, mercado_pago)',
-    default: 'cash',
   })
-  enabledPaymentMethods?: PaymentMethod[];
+  enabledPaymentMethods: string[];
 }

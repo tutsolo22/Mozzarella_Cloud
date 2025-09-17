@@ -20,6 +20,12 @@ export class Promotion {
   @Column('text')
   description: string;
 
+  @Column('decimal', { precision: 5, scale: 2, nullable: true })
+  discountPercentage: number;
+
+  @Column({ default: true })
+  isActive: boolean;
+
   @Column({ nullable: true })
   imageUrl: string;
 

@@ -18,7 +18,6 @@ const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const license_entity_1 = require("../licenses/entities/license.entity");
-const license_status_enum_1 = require("../licenses/enums/license-status.enum");
 let LicenseValidationService = class LicenseValidationService {
     constructor(licenseRepository, jwtService) {
         this.licenseRepository = licenseRepository;
@@ -34,23 +33,27 @@ let LicenseValidationService = class LicenseValidationService {
         }
         const license = await this.licenseRepository.findOne({
             where: { key: licenseKey },
+            relations: ['tenant'],
         });
         if (!license) {
             throw new common_1.NotFoundException('La clave de licencia no existe en nuestros registros.');
         }
-        if (license.status === license_status_enum_1.LicenseStatus.Revoked) {
+        if (license.status === license_entity_1.LicenseStatus.Revoked) {
             throw new common_1.UnauthorizedException('Esta licencia ha sido revocada.');
         }
-        if (localTenantId && license.tenantId !== localTenantId) {
+        if (!license.tenant) {
+            throw new common_1.UnauthorizedException('La licencia no está asociada a ningún tenant. Contacte a soporte.');
+        }
+        if (localTenantId && license.tenant.id !== localTenantId) {
             throw new common_1.UnauthorizedException('Esta licencia no pertenece a este tenant.');
         }
-        if (license.tenantId !== payload.tenantId) {
+        if (license.tenant.id !== payload.tenantId) {
             throw new common_1.UnauthorizedException('Inconsistencia en la licencia. Contacte a soporte.');
         }
         return {
             isValid: true,
             status: license.status,
-            tenantId: license.tenantId,
+            tenantId: license.tenant.id,
             userLimit: license.userLimit,
             branchLimit: license.branchLimit,
             expiresAt: license.expiresAt,

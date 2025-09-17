@@ -15,45 +15,40 @@ export class PreparationZonesService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  create(createDto: CreatePreparationZoneDto, tenantId: string, locationId: string) {
-    const zone = this.zoneRepository.create({ ...createDto, tenantId, locationId });
+  async create(dto: CreatePreparationZoneDto, tenantId: string, locationId: string): Promise<PreparationZone> {
+    const zone = this.zoneRepository.create({ ...dto, tenantId, locationId });
     return this.zoneRepository.save(zone);
   }
 
-  findAll(tenantId: string, locationId: string) {
+  findAll(tenantId: string, locationId: string): Promise<PreparationZone[]> {
     return this.zoneRepository.find({ where: { tenantId, locationId }, order: { name: 'ASC' } });
   }
 
-  async findOne(id: string, tenantId: string, locationId: string) {
+  async findOne(id: string, tenantId: string, locationId: string): Promise<PreparationZone> {
     const zone = await this.zoneRepository.findOneBy({ id, tenantId, locationId });
     if (!zone) {
-      throw new NotFoundException(`Zona de preparación con ID "${id}" no encontrada.`);
+      throw new NotFoundException(`Zona de preparación con ID #${id} no encontrada.`);
     }
     return zone;
   }
 
-  async update(id: string, updateDto: UpdatePreparationZoneDto, tenantId: string, locationId: string) {
-    await this.findOne(id, tenantId, locationId);
-    const zone = await this.zoneRepository.preload({ id, ...updateDto });
+  async update(id: string, dto: UpdatePreparationZoneDto, tenantId: string, locationId: string): Promise<PreparationZone> {
+    const zone = await this.findOne(id, tenantId, locationId);
+    Object.assign(zone, dto);
     return this.zoneRepository.save(zone);
   }
 
-  async remove(id: string, tenantId: string, locationId: string) {
+  async remove(id: string, tenantId: string, locationId: string): Promise<void> {
     const zone = await this.findOne(id, tenantId, locationId);
 
-    const productCount = await this.productRepository.count({
-      where: { preparationZoneId: id, locationId },
+    const productsInZone = await this.productRepository.count({
+      where: { preparationZoneId: id, tenantId },
     });
 
-    if (productCount > 0) {
-      throw new ConflictException(
-        `No se puede eliminar la zona "${zone.name}" porque tiene ${productCount} productos asociados.`,
-      );
+    if (productsInZone > 0) {
+      throw new ConflictException(`No se puede eliminar la zona porque está asignada a ${productsInZone} producto(s).`);
     }
 
-    const result = await this.zoneRepository.delete({ id, tenantId, locationId });
-    if (result.affected === 0) {
-      throw new NotFoundException(`Zona de preparación con ID "${id}" no encontrada.`);
-    }
+    await this.zoneRepository.remove(zone);
   }
 }

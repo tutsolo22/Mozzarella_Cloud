@@ -1,28 +1,62 @@
-import { User } from './user';
-
-export interface DriverPerformanceData {
-  driverId: string;
-  driverName: string;
-  totalDeliveries: number;
-  totalAmountCollected: number;
-  averageDeliveryTimeMinutes: string | null;
+export interface DashboardStats {
+  confirmed: number;
+  in_preparation: number;
+  in_delivery: number;
+  delivered: number;
+  totalRevenueToday: number;
+  totalOrdersToday: number;
 }
 
 export interface CashierSession {
   id: string;
-  tenantId: string;
-  openedByUser: User;
-  openedByUserId: string;
-  closedByUser?: User;
-  closedByUserId?: string;
+  openingBalance: number;
+  closingBalance?: number | null;
   openedAt: string;
-  closedAt?: string;
-  openingBalance: string; // Los decimales del backend a menudo se serializan como strings
-  closingBalance?: string;
-  totalSales?: string;
-  calculatedCash?: string;
-  calculatedCard?: string;
-  calculatedOther?: string;
-  difference?: string;
-  notes?: string;
+  closedAt?: string | null;
+  cashSales: number;
+  cardSales: number;
+  otherSales: number;
+  totalSales: number;
+  expectedCash: number;
+  cashDifference: number;
+  status: 'open' | 'closed';
+  user: {
+    id: string;
+    fullName: string;
+  };
+}
+
+export interface SalesReport {
+  reportPeriod: { from: string; to: string };
+  totalOrders: number;
+  totalRevenue: number;
+  productsBreakdown: {
+    productId: string;
+    productName: string;
+    quantitySold: number;
+    totalRevenue: number;
+  }[];
+}
+
+export interface ProductProfitability {
+  productId: string;
+  productName: string;
+  sellingPrice: number;
+  ingredientsCost: number;
+  profit: number;
+  margin: number;
+}
+
+export interface ProfitAndLossReport {
+  totalRevenue: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  laborCost: number;
+  overheadCosts: number;
+  totalExpenses: number;
+  netProfit: number;
+  period: {
+    from: string;
+    to: string;
+  };
 }

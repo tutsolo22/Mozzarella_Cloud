@@ -55,6 +55,7 @@ const AppMenu: React.FC = () => {
       label: 'Reportes',
       icon: <BarChartOutlined />,
       children: [
+        { key: '/reports/pnl', label: <Link to="/reports/pnl">Ganancias y Pérdidas</Link> },
         { key: '/reports/consolidated-sales', label: <Link to="/reports/consolidated-sales">Ventas Consolidadas</Link> },
         { key: '/reports/sales', label: <Link to="/reports/sales">Ventas</Link> },
         { key: '/reports/driver-performance', label: <Link to="/reports/driver-performance">Rendimiento Repartidores</Link> },

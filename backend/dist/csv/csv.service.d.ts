@@ -1,4 +1,5 @@
+import * as Papa from 'papaparse';
 export declare class CsvService {
-    parse<T>(file: Express.Multer.File): Promise<T[]>;
-    serialize<T>(data: T[]): string;
+    parse<T>(buffer: Buffer): T[];
+    stringify(data: any[], options?: Papa.UnparseConfig): string;
 }

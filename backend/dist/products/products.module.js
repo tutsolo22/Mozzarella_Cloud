@@ -14,24 +14,30 @@ const products_controller_1 = require("./products.controller");
 const product_entity_1 = require("./entities/product.entity");
 const files_module_1 = require("../files/files.module");
 const product_category_entity_1 = require("./entities/product-category.entity");
-const order_item_entity_1 = require("../orders/entities/order-item.entity");
 const recipe_item_entity_1 = require("./entities/recipe-item.entity");
-const files_service_1 = require("../files/files.service");
 const product_categories_controller_1 = require("./product-categories.controller");
 const product_categories_service_1 = require("./product-categories.service");
 const csv_module_1 = require("../csv/csv.module");
+const product_ingredient_entity_1 = require("./entities/product-ingredient.entity");
+const ingredient_entity_1 = require("../ingredients/entities/ingredient.entity");
 let ProductsModule = class ProductsModule {
 };
 exports.ProductsModule = ProductsModule;
 exports.ProductsModule = ProductsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([product_entity_1.Product, product_category_entity_1.ProductCategory, recipe_item_entity_1.RecipeItem, order_item_entity_1.OrderItem]),
+            typeorm_1.TypeOrmModule.forFeature([
+                product_entity_1.Product,
+                product_category_entity_1.ProductCategory,
+                recipe_item_entity_1.RecipeItem,
+                product_ingredient_entity_1.ProductIngredient,
+                ingredient_entity_1.Ingredient,
+            ]),
             files_module_1.FilesModule,
             csv_module_1.CsvModule,
         ],
         controllers: [products_controller_1.ProductsController, product_categories_controller_1.ProductCategoriesController],
-        providers: [products_service_1.ProductsService, product_categories_service_1.ProductCategoriesService, files_service_1.FilesService],
+        providers: [products_service_1.ProductsService, product_categories_service_1.ProductCategoriesService],
         exports: [products_service_1.ProductsService],
     })
 ], ProductsModule);

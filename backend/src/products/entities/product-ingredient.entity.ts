@@ -1,30 +1,28 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Product } from './product.entity';
 import { Ingredient } from '../../ingredients/entities/ingredient.entity';
 
 @Entity('product_ingredients')
 export class ProductIngredient {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  quantityRequired: number;
-
-  @ManyToOne(() => Product, (product) => product.ingredients, { onDelete: 'CASCADE' })
-  product: Product;
-
-  @Column()
+  @PrimaryColumn()
   productId: string;
 
-  @ManyToOne(() => Ingredient, (ingredient) => ingredient.productConnections)
+  @PrimaryColumn()
+  ingredientId: string;
+
+  @ManyToOne(() => Product, (product) => product.ingredients, {
+    onDelete: 'CASCADE', // Corrected: Removed 'primary: true'
+  })
+  @JoinColumn({ name: 'productId' })
+  product: Product;
+
+  @ManyToOne(() => Ingredient, (ingredient) => ingredient.productIngredients, {
+    eager: true, // Corrected: Removed 'primary: true'
+    onDelete: 'CASCADE', 
+  })
+  @JoinColumn({ name: 'ingredientId' })
   ingredient: Ingredient;
 
-  @Column()
-  ingredientId: string;
+  @Column('decimal', { precision: 10, scale: 3 })
+  quantityRequired: number;
 }

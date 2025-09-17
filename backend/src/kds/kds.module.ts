@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { KdsService } from './kds.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Order } from '../orders/entities/order.entity';
 import { KdsController } from './kds.controller';
-import { OrdersModule } from '../orders/orders.module';
+import { KdsService } from './kds.service';
 
 @Module({
-  imports: [OrdersModule],
+  imports: [TypeOrmModule.forFeature([Order])],
   controllers: [KdsController],
   providers: [KdsService],
 })

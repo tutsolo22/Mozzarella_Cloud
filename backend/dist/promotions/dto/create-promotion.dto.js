@@ -21,7 +21,7 @@ __decorate([
 ], CreatePromotionDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreatePromotionDto.prototype, "description", void 0);
 __decorate([
@@ -33,8 +33,24 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePromotionDto.prototype, "endDate", void 0);
 __decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreatePromotionDto.prototype, "discountPercentage", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreatePromotionDto.prototype, "isActive", void 0);
+__decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsUUID)('4', { each: true }),
     __metadata("design:type", Array)
 ], CreatePromotionDto.prototype, "productIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], CreatePromotionDto.prototype, "imageUrl", void 0);
 //# sourceMappingURL=create-promotion.dto.js.map

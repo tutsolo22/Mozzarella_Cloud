@@ -1,11 +1,5 @@
-export interface ProductCategory {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string; // This property indicates if the category is soft-deleted
-}
+import { PreparationZone } from './preparation-zone';
+import { ProductCategory } from './product-category';
 
 export interface ProductCategoryDto {
   name: string;
@@ -20,11 +14,13 @@ export interface Product {
   category: ProductCategory;
   imageUrl?: string;
   isAvailable: boolean;
+  recipeIsSet: boolean;
   deletedAt?: string;
+  preparationZone?: PreparationZone;
 }
 
-export type CreateProductDto = Omit<Product, 'id' | 'category' | 'isAvailable' | 'deletedAt'> & { categoryId: string };
-export type UpdateProductDto = Partial<CreateProductDto>;
+export type CreateProductDto = Omit<Product, 'id' | 'category' | 'isAvailable' | 'recipeIsSet' | 'deletedAt' | 'preparationZone'> & { categoryId: string; preparationZoneId?: string | null; };
+export type UpdateProductDto = Partial<CreateProductDto & { isAvailable: boolean }>;
 
 export interface Ingredient {
   id: string;
@@ -35,6 +31,7 @@ export interface Ingredient {
 }
 
 export type CreateIngredientDto = Omit<Ingredient, 'id'>;
+export type UpdateIngredientDto = Partial<Omit<Ingredient, 'id' | 'stockQuantity'>>;
 
 export interface RecipeItem {
   ingredientId: string;

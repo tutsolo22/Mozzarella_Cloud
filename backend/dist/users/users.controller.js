@@ -11,82 +11,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
-const create_user_dto_1 = require("./dto/create-user.dto");
-const update_user_dto_1 = require("./dto/update-user.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const role_enum_1 = require("../roles/enums/role.enum");
 const user_decorator_1 = require("../auth/decorators/user.decorator");
+const user_payload_interface_1 = require("../auth/interfaces/user-payload.interface");
+const update_profile_dto_1 = require("./dto/update-profile.dto");
+const change_password_dto_1 = require("./dto/change-password.dto");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
-    create(createUserDto, user) {
-        return this.usersService.create(createUserDto, user.tenantId);
+    updateMyProfile(user, updateProfileDto) {
+        return this.usersService.updateMyProfile(user.userId, updateProfileDto);
     }
-    findAll(user) {
-        return this.usersService.findAll(user.tenantId);
-    }
-    findOne(id, user) {
-        return this.usersService.findOne(id, user.tenantId);
-    }
-    update(id, updateUserDto, user) {
-        return this.usersService.update(id, updateUserDto, user.tenantId);
-    }
-    remove(id, user) {
-        return this.usersService.remove(id, user.tenantId);
+    changePassword(user, changePasswordDto) {
+        return this.usersService.changePassword(user.userId, changePasswordDto);
     }
 };
 exports.UsersController = UsersController;
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, user_decorator_1.User)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "create", null);
-__decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Patch)('me'),
     __param(0, (0, user_decorator_1.User)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "findAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, user_decorator_1.User)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_user_dto_1.UpdateUserDto, Object]),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_payload_interface_1.UserPayload !== "undefined" && user_payload_interface_1.UserPayload) === "function" ? _a : Object, update_profile_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "update", null);
+], UsersController.prototype, "updateMyProfile", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, user_decorator_1.User)()),
+    (0, common_1.Patch)('me/password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof user_payload_interface_1.UserPayload !== "undefined" && user_payload_interface_1.UserPayload) === "function" ? _b : Object, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "remove", null);
+], UsersController.prototype, "changePassword", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(role_enum_1.RoleEnum.Admin),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

@@ -4,9 +4,13 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  Index,
 } from 'typeorm';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 @Entity('customers')
+@Index(['tenantId', 'phoneNumber'], { unique: true })
 export class Customer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -14,14 +18,14 @@ export class Customer {
   @Column()
   tenantId: string;
 
-  @Column({ unique: true })
-  phoneNumber: string;
+  @ManyToOne(() => Tenant)
+  tenant: Tenant;
 
   @Column()
   fullName: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  addresses: any;
+  @Column()
+  phoneNumber: string;
 
   @CreateDateColumn()
   createdAt: Date;

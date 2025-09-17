@@ -1,4 +1,4 @@
-import { Injectable, forwardRef, Inject, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../orders/entities/order.entity';
@@ -8,12 +8,12 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
-interface Point {
+interface Location {
   lat: number;
   lng: number;
 }
 
-const PROXIMITY_THRESHOLD_KM = 0.5; // 500 metros
+const PROXIMITY_THRESHOLD_KM = 0.5; // 500 meters
 
 @Injectable()
 export class GeofencingService {
@@ -29,8 +29,9 @@ export class GeofencingService {
     private readonly httpService: HttpService,
   ) {}
 
-  private getDistance(p1: Point, p2: Point): number {
-    const R = 6371; // Radio de la Tierra en km
+  // Haversine formula to calculate distance between two points
+  private getDistance(p1: Location, p2: Location): number {
+    const R = 6371; // Radius of the Earth in km
     const dLat = ((p2.lat - p1.lat) * Math.PI) / 180;
     const dLon = ((p2.lng - p1.lng) * Math.PI) / 180;
     const a =
@@ -43,11 +44,7 @@ export class GeofencingService {
     return R * c;
   }
 
-  private async getEta(
-    start: Point,
-    end: Point,
-    apiKey: string,
-  ): Promise<number | null> {
+  private async getEta(start: Location, end: Location, apiKey: string): Promise<number | null> {
     const url = 'https://api.openrouteservice.org/v2/directions/driving-car';
     try {
       const response = await firstValueFrom(
@@ -59,28 +56,21 @@ export class GeofencingService {
           { headers: { Authorization: apiKey } },
         ),
       );
-      // La API devuelve la duración en segundos
       const durationInSeconds = response.data.routes[0]?.summary?.duration;
-      // Convertimos a minutos, redondeando hacia arriba
-      return durationInSeconds ? Math.ceil(durationInSeconds / 60) : null;
+      return durationInSeconds ? Math.ceil(durationInSeconds / 60) : null; // Return ETA in minutes
     } catch (error) {
       this.logger.error('Error al obtener ETA de OpenRouteService', error.response?.data);
       return null;
     }
   }
 
-  async checkDriverProximity(
-    driverId: string,
-    tenantId: string,
-    driverLocation: Point,
-  ): Promise<void> {
+  async checkDriverProximity(driverId: string, tenantId: string, driverLocation: Location): Promise<void> {
     const tenantConfig = await this.tenantConfigRepository.findOneBy({ tenantId });
-
     if (!tenantConfig?.restaurantLatitude || !tenantConfig?.restaurantLongitude) {
-      return; // No se puede verificar si no hay ubicación del restaurante
+      return; // No restaurant location configured
     }
 
-    const restaurantLocation: Point = {
+    const restaurantLocation: Location = {
       lat: tenantConfig.restaurantLatitude,
       lng: tenantConfig.restaurantLongitude,
     };
@@ -92,7 +82,7 @@ export class GeofencingService {
         where: {
           assignedDriverId: driverId,
           status: OrderStatus.InDelivery,
-          pickupNotificationSent: false,
+          pickupNotificationSent: false, // Only notify once
         },
       });
 
@@ -105,13 +95,11 @@ export class GeofencingService {
       for (const order of ordersToNotify) {
         order.pickupNotificationSent = true;
         if (etaMinutes !== null) {
-          const arrivalTime = new Date();
-          arrivalTime.setMinutes(arrivalTime.getMinutes() + etaMinutes);
-          order.estimatedPickupArrivalAt = arrivalTime;
+            const arrivalTime = new Date();
+            arrivalTime.setMinutes(arrivalTime.getMinutes() + etaMinutes);
+            order.estimatedPickupArrivalAt = arrivalTime;
         }
         await this.orderRepository.save(order);
-        // TODO: Implement sendDriverApproachingNotification in NotificationsGateway
-        // this.notificationsGateway.sendDriverApproachingNotification(tenantId, order, etaMinutes);
       }
     }
   }
