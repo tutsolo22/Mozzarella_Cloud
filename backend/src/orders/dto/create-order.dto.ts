@@ -7,9 +7,12 @@ import {
   IsUUID,
   ValidateNested,
   IsNumber,
+  IsDefined
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderType, PaymentMethod } from '../enums/order-types.enum';
+import { OrderChannel } from '../enums/order-channel.enum';
+
 
 class OrderItemDto {
   @IsUUID()
@@ -34,6 +37,10 @@ export class CreateOrderDto {
 
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
+
+  @IsEnum(OrderChannel)
+  @IsDefined()
+  channel: OrderChannel;
 
   @IsOptional()
   @IsString()

@@ -36,22 +36,6 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, select: false }),
-    __metadata("design:type", String)
-], User.prototype, "passwordResetToken", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true, select: false }),
-    __metadata("design:type", Date)
-], User.prototype, "passwordResetExpires", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: true, select: false }),
-    __metadata("design:type", String)
-], User.prototype, "accountSetupToken", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true, select: false }),
-    __metadata("design:type", Date)
-], User.prototype, "accountSetupTokenExpires", void 0);
-__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "fullName", void 0);
@@ -64,10 +48,6 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "verificationToken", void 0);
-__decorate([
     (0, typeorm_1.ManyToOne)(() => role_entity_1.Role, { eager: true }),
     (0, typeorm_1.JoinColumn)({ name: 'roleId' }),
     __metadata("design:type", role_entity_1.Role)
@@ -77,7 +57,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "roleId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, tenant => tenant.users, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, (tenant) => tenant.users, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
     __metadata("design:type", tenant_entity_1.Tenant)
 ], User.prototype, "tenant", void 0);
@@ -86,11 +66,19 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "tenantId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'uuid', nullable: true, comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)' }),
+    (0, typeorm_1.Column)({
+        type: 'uuid',
+        nullable: true,
+        comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)',
+    }),
     __metadata("design:type", String)
 ], User.prototype, "locationId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => location_entity_1.Location, location => location.users, { nullable: true, eager: false }),
+    (0, typeorm_1.ManyToOne)(() => location_entity_1.Location, (location) => location.users, {
+        nullable: true,
+        eager: false,
+        onDelete: 'SET NULL',
+    }),
     (0, typeorm_1.JoinColumn)({ name: 'locationId' }),
     __metadata("design:type", location_entity_1.Location)
 ], User.prototype, "location", void 0);

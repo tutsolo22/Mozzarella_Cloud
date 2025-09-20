@@ -13,6 +13,15 @@ import { ProfitAndLossReport } from './interfaces/pnl-report.interface';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  @Get('dashboard-stats')
+  getDashboardStats(@User() user: UserPayload) {
+    // The implementation will likely depend on the tenant and location
+    // from the user payload.
+    return this.reportsService.getDashboardStats(
+      user.tenantId,
+      user.locationId,
+    );
+  }
   @Get('pnl')
   getProfitAndLossReport(
     @User() user: UserPayload,

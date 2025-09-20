@@ -13,7 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from '../users/entities/user.entity';
-import { Tenant, TenantPlan } from '../tenants/entities/tenant.entity';
+import { Tenant, TenantPlan, TenantStatus } from '../tenants/entities/tenant.entity';
 import { Role } from '../roles/entities/role.entity';
 import { Location } from '../locations/entities/location.entity';
 import { RoleEnum } from '../roles/enums/role.enum';
@@ -23,6 +23,7 @@ import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { createTransport } from 'nodemailer';
 import { SettingsService } from '../settings/settings.service';
+import { LicensingService } from '../licenses/licensing.service';
 
 @Injectable()
 export class AuthService {
@@ -34,6 +35,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly settingsService: SettingsService,
+    private readonly licensingService: LicensingService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -41,6 +43,7 @@ export class AuthService {
       .leftJoinAndSelect('user.role', 'role')
       .leftJoinAndSelect('role.permissions', 'permissions')
       .leftJoinAndSelect('user.tenant', 'tenant')
+      .leftJoinAndSelect('user.location', 'location')
       .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne();
@@ -67,9 +70,29 @@ export class AuthService {
   }
 
   async login(user: User) {
-    // Aplanamos los permisos del rol en un array de strings.
-    // El '?' es por si un rol no tuviera permisos asignados.
-    let permissions = user.role.permissions?.map((p) => p.name) || [];
+    // Se centraliza la validación aquí para asegurar que cualquier flujo (login, setup, etc.)
+    // que llame a `login` trabaje con un objeto de usuario completo.
+
+    if (!user.role) {
+      this.logger.error(`¡ERROR CRÍTICO! El usuario ${user.id} (${user.email}) fue pasado a la función login sin rol. El dashboard fallará.`);
+      throw new InternalServerErrorException('Error de consistencia: no se pudo cargar el rol del usuario.');
+    }
+
+    // Log de verificación para depuración definitiva.
+    this.logger.log(
+      `[LOGIN-VALIDATION-V4] User ${user.id} has role: ${user.role.name} and permissions count: ${user.role.permissions?.length || 0}`,
+    );
+
+    // El SuperAdmin no tiene sucursal, así que omitimos esta validación para él.
+    if (user.role.name !== RoleEnum.SuperAdmin && !user.location) {
+      this.logger.error(`¡ERROR CRÍTICO! El usuario ${user.id} (${user.email}) que no es SuperAdmin fue pasado a la función login sin sucursal (location). El dashboard se mostrará en blanco.`);
+      throw new InternalServerErrorException('Error de consistencia: no se pudo cargar la sucursal del usuario.');
+    }
+
+    // user.role.permissions puede ser undefined si la relación no se cargó, o un array vacío si no hay permisos.
+    // En ambos casos, el resultado debe ser un array vacío.
+    let permissions =
+      user.role.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
 
     // Si el tenant tiene un plan Básico, filtramos los permisos avanzados.
     if (user.tenant && user.tenant.plan === TenantPlan.Basic) {
@@ -78,7 +101,6 @@ export class AuthService {
         'manage:financials', // Módulo Financiero
         'view:consolidated_reports', // Reportes Consolidados
         'manage:hr', // Módulo de RRHH
-        // Aquí puedes añadir otros permisos considerados "avanzados"
       ]);
 
       permissions = permissions.filter(p => !advancedPermissions.has(p));
@@ -89,6 +111,7 @@ export class AuthService {
       email: user.email, 
       sub: user.id, 
       role: user.role.name, 
+      fullName: user.fullName,
       tenantId: user.tenantId,
       locationId: user.locationId,
       permissions: permissions,
@@ -96,9 +119,7 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
-      // We build a user object that is safe to send to the frontend.
-      // It should match the User type on the frontend.
-      user: { // This is a DTO, not the User entity.
+      user: {
         id: user.id,
         email: user.email,
         status: user.status,
@@ -106,7 +127,7 @@ export class AuthService {
         role: { id: user.role.id, name: user.role.name },
         permissions: permissions,
         locationId: user.locationId,
-        // location is not loaded here, so it will be undefined, which is fine.
+        location: user.location,
         tenant: user.tenant ? { id: user.tenant.id, name: user.tenant.name } : undefined,
       }
     };
@@ -115,7 +136,7 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
-      relations: ['role', 'tenant', 'role.permissions'],
+      relations: ['role', 'tenant', 'role.permissions', 'location'],
     });
 
     if (!user) {
@@ -123,7 +144,8 @@ export class AuthService {
       throw new NotFoundException('Usuario no encontrado.');
     }
 
-    const permissions = user.role?.permissions?.map((p) => p.name) || [];
+    const permissions =
+      user.role?.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
 
     // Return a safe user object, similar to the one in the login response.
     return {
@@ -133,6 +155,7 @@ export class AuthService {
       status: user.status,
       role: { id: user.role.id, name: user.role.name },
       locationId: user.locationId,
+      location: user.location,
       permissions: permissions,
       tenant: user.tenant ? { id: user.tenant.id, name: user.tenant.name } : undefined,
     };
@@ -219,20 +242,31 @@ export class AuthService {
     await queryRunner.startTransaction();
 
     try {
-      const existingUser = await queryRunner.manager.findOne(User, { where: { email } });
+      const existingUser = await queryRunner.manager.findOneBy(User, { email });
       if (existingUser) {
         throw new ConflictException('El email ya está registrado.');
       }
 
-      const adminRole = await queryRunner.manager.findOne(Role, { where: { name: RoleEnum.Admin } });
+      const adminRole = await queryRunner.manager.findOneBy(Role, { name: RoleEnum.Admin });
       if (!adminRole) {
         throw new InternalServerErrorException('El rol de administrador base no está configurado.');
       }
 
-      const tenant = queryRunner.manager.create(Tenant, { name: tenantName });
+      const tenant = queryRunner.manager.create(Tenant, {
+        name: tenantName,
+        status: TenantStatus.Inactive,
+        plan: null,
+      });
       await queryRunner.manager.save(tenant);
 
-      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const defaultLocation = queryRunner.manager.create(Location, {
+        name: 'Sucursal Principal',
+        address: 'Dirección por definir',
+        tenantId: tenant.id,
+        isActive: true,
+      });
+      await queryRunner.manager.save(defaultLocation);
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = queryRunner.manager.create(User, { 
         fullName, 
@@ -240,10 +274,14 @@ export class AuthService {
         password: hashedPassword, 
         role: adminRole, 
         tenant: tenant,
-        verificationToken,
+        locationId: defaultLocation.id,
         status: UserStatus.PendingVerification,
       });
       await queryRunner.manager.save(user);
+
+      // Generar un token JWT para la verificación de correo
+      const payload = { sub: user.id, type: 'email-verification' };
+      const verificationToken = this.jwtService.sign(payload, { expiresIn: '24h' });
 
       await queryRunner.commitTransaction();
       
@@ -252,6 +290,7 @@ export class AuthService {
       return { message: 'Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.' };
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(`Failed to register user: ${err.message}`, err.stack);
       if (err instanceof ConflictException) throw err;
       throw new InternalServerErrorException('No se pudo completar el registro.');
     } finally {
@@ -260,17 +299,57 @@ export class AuthService {
   }
 
   async verifyEmail(token: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { verificationToken: token } });
+    try {
+      const payload = this.jwtService.verify(token);
+      if (payload.type !== 'email-verification' || !payload.sub) {
+        throw new UnauthorizedException('El token es inválido o no es para esta acción.');
+      }
 
-    if (!user) {
-      throw new NotFoundException('Token de verificación no válido o ya utilizado.');
+      const userId = payload.sub;
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+        relations: ['tenant', 'location'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('Token de verificación no válido o ya utilizado.');
+      }
+
+      if (user.status === UserStatus.Active) {
+        throw new BadRequestException('Esta cuenta ya ha sido verificada.');
+      }
+
+      user.status = UserStatus.Active;
+
+      if (user.tenant && user.tenant.status === TenantStatus.Inactive) {
+        user.tenant.status = TenantStatus.Trial;
+        user.tenant.plan = TenantPlan.Trial;
+        await this.dataSource.getRepository(Tenant).save(user.tenant);
+
+        // Generar licencia de prueba al activar el tenant por registro público
+        this.logger.log(`Tenant ${user.tenant.name} activado por registro público. Generando licencia de prueba.`);
+        const trialDurationDays = 30;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + trialDurationDays);
+        await this.licensingService.generateLicense(
+          user.tenant,
+          5, // userLimit
+          1, // branchLimit
+          expiresAt,
+        );
+      }
+
+      await this.usersRepository.save(user);
+
+      return user;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('El token de verificación es inválido o ha expirado.');
+      }
+      this.logger.error('Error en verifyEmail', error.stack);
+      throw new InternalServerErrorException('Ocurrió un error al verificar el correo.');
     }
-
-    user.status = UserStatus.Active;
-    user.verificationToken = null;
-    await this.usersRepository.save(user);
-
-    return user;
   }
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -287,16 +366,9 @@ export class AuthService {
       return;
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.passwordResetToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    // El token expira en 1 hora
-    user.passwordResetExpires = new Date(Date.now() + 3600000);
-
-    await this.usersRepository.save(user);
+    // Crear un JWT de corta duración para el reseteo de contraseña.
+    const payload = { sub: user.id, type: 'password-reset' };
+    const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
 
     const resetUrl = `${this.getFrontendUrl()}/reset-password?token=${resetToken}`;
 
@@ -321,27 +393,41 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<User> {
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-    const user = await this.usersRepository.findOne({
-      where: {
-        passwordResetToken: hashedToken,
-      },
-    });
-
-    if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
-      throw new UnauthorizedException('El token es inválido o ha expirado.');
+    if (!token || !newPassword) {
+      throw new BadRequestException('El token y la nueva contraseña son requeridos.');
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.passwordResetToken = null;
-    user.passwordResetExpires = null;
+    try {
+      // 1. Verificar el token JWT
+      const payload = this.jwtService.verify(token);
+      if (payload.type !== 'password-reset' || !payload.sub) {
+        throw new UnauthorizedException('El token es inválido o no es para esta acción.');
+      }
+      const userId = payload.sub;
 
-    await this.usersRepository.save(user);
+      // 2. Encontrar al usuario
+      const user = await this.usersRepository.findOneBy({ id: userId });
 
-    // Omitir datos sensibles antes de devolver
-    delete user.password;
-    return user;
+      if (!user || user.status !== UserStatus.Active) {
+        throw new UnauthorizedException('El token es inválido o la cuenta no está activa.');
+      }
+
+      // 3. Actualizar contraseña y guardar
+      user.password = await bcrypt.hash(newPassword, 10);
+      await this.usersRepository.save(user);
+
+      delete user.password;
+      return user;
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('El token es inválido o ha expirado.');
+      }
+      this.logger.error('Error en resetPassword', error.stack);
+      throw new InternalServerErrorException('Ocurrió un error al restablecer la contraseña.');
+    }
   }
 
   async switchLocation(userId: string, locationId: string) {
@@ -366,7 +452,8 @@ export class AuthService {
 
     // The user object is valid and has access. Now, generate a new token
     // with the updated locationId in the payload.
-    const permissions = user.role.permissions?.map((p) => p.name) || [];
+    const permissions =
+      user.role.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
     const payload = {
       email: user.email,
       sub: user.id,
@@ -398,21 +485,14 @@ export class AuthService {
   }
 
   async sendAccountSetupEmail(user: User): Promise<void> {
-    const setupToken = crypto.randomBytes(32).toString('hex');
-
-    user.accountSetupToken = crypto
-      .createHash('sha256')
-      .update(setupToken)
-      .digest('hex');
-
-    // Token expires in 24 hours
-    user.accountSetupTokenExpires = new Date(Date.now() + 24 * 3600 * 1000);
-
-    await this.usersRepository.save(user);
+    // 1. Crear un JWT de corta duración para la configuración de la cuenta.
+    const payload = { sub: user.id, type: 'account-setup' };
+    const setupToken = this.jwtService.sign(payload, { expiresIn: '24h' });
 
     const setupUrl = `${this.getFrontendUrl()}/setup-account?token=${setupToken}`;
 
     try {
+      // 2. Preparar y enviar el correo. Si esto falla, no se ha hecho ningún cambio en la BD.
       const { transporter, from } = await this.createTransporter();
       await transporter.sendMail({
         from,
@@ -449,47 +529,69 @@ export class AuthService {
       throw new BadRequestException('El token y la contraseña son requeridos.');
     }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
-      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+      // 1. Verificar el token JWT
+      const payload = this.jwtService.verify(token);
+      if (payload.type !== 'account-setup' || !payload.sub) {
+        throw new UnauthorizedException('El token es inválido o no es para esta acción.');
+      }
+      const userId = payload.sub;
 
-      const user = await queryRunner.manager.findOne(User, {
-        where: {
-          accountSetupToken: hashedToken,
-        },
-        relations: ['role', 'role.permissions', 'tenant'],
+      this.logger.log(`Iniciando setupAccount para userId: ${userId}. Cargando usuario con todas las relaciones...`);
+
+      // 2. Encontrar al usuario
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+        relations: ['role', 'role.permissions', 'tenant', 'location'],
       });
 
-      if (!user || !user.accountSetupTokenExpires || user.accountSetupTokenExpires < new Date()) {
+      if (!user) {
         throw new UnauthorizedException('El token es inválido o ha expirado.');
       }
+
+      // La única validación necesaria aquí es que el usuario exista.
+      // Todas las demás comprobaciones de consistencia (rol, permisos, sucursal) se centralizan en la función `login`.
 
       if (user.status !== UserStatus.PendingVerification) {
         throw new BadRequestException('Esta cuenta ya ha sido activada. Por favor, inicia sesión.');
       }
 
+      // 3. Actualizar usuario y guardar
       user.password = await bcrypt.hash(password, 10);
       user.status = UserStatus.Active;
-      user.accountSetupToken = null;
-      user.accountSetupTokenExpires = null;
 
-      await queryRunner.manager.save(user);
+      // FIX: If the tenant was inactive, this first activation moves it to Trial status.
+      if (user.tenant && user.tenant.status === TenantStatus.Inactive) {
+        user.tenant.status = TenantStatus.Trial;
+        user.tenant.plan = TenantPlan.Trial;
+        await this.dataSource.getRepository(Tenant).save(user.tenant);
 
-      await queryRunner.commitTransaction();
+        // Generar licencia de prueba al activar el tenant
+        this.logger.log(`Tenant ${user.tenant.name} activado. Generando licencia de prueba.`);
+        const trialDurationDays = 30;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + trialDurationDays);
+        await this.licensingService.generateLicense(
+          user.tenant,
+          5, // Límite de usuarios para la prueba
+          1, // Límite de sucursales para la prueba
+          expiresAt,
+        );
+      }
 
+      await this.usersRepository.save(user);
+
+      // 4. Iniciar sesión
       return this.login(user);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
       if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
         throw error;
       }
+      if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('El token es inválido o ha expirado.');
+      }
       this.logger.error('Error en setupAccount', error.stack);
       throw new InternalServerErrorException('Ocurrió un error al configurar la cuenta.');
-    } finally {
-      await queryRunner.release();
     }
   }
 

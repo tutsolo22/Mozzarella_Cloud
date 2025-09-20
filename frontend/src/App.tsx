@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { ConfigProvider, Spin, Layout, theme as antdTheme } from 'antd';
+import { ConfigProvider, Spin, Layout, theme as antdTheme, App as AntApp } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LocationProvider } from './contexts/LocationContext';
@@ -12,7 +12,7 @@ const LoginPage = lazy(() => import('./pages/login/LoginPage'));
 const SetupAccountPage = lazy(() => import('./pages/auth/SetupAccountPage'));
 const RequestPasswordResetPage = lazy(() => import('./pages/auth/RequestPasswordResetPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
-// const RegisterPage = lazy(() => import('./pages/RegisterPage')); // This page is obsolete
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const KdsPage = lazy(() => import('./pages/kds/KdsPage'));
 const DispatchPage = lazy(() => import('./pages/dispatch/DispatchPage'));
@@ -41,6 +41,7 @@ const SuperAdminDashboardPage = lazy(() => import('./pages/superadmin/SuperAdmin
 const TenantManagementPage = lazy(() => import('./pages/superadmin/TenantManagementPage'));
 const LicenseManagementPage = lazy(() => import('./pages/superadmin/LicenseManagementPage'));
 const SmtpSettingsPage = lazy(() => import('./pages/superadmin/SmtpSettingsPage'));
+const LogViewerPage = lazy(() => import('./pages/superadmin/LogsViewerPage'));
 
 const CenteredSpinner: React.FC = () => (
   <Layout style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
@@ -54,6 +55,21 @@ const PrivateRoute: React.FC = () => {
     return <CenteredSpinner />;
   }
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const PublicRoute: React.FC = () => {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) {
+    return <CenteredSpinner />;
+  }
+
+  if (isAuthenticated) {
+    // If authenticated, redirect from public pages to the appropriate dashboard
+    const targetPath = user?.role.name === 'super_admin' ? '/super-admin/dashboard' : '/dashboard';
+    return <Navigate to={targetPath} replace />;
+  }
+
+  return <Outlet />;
 };
 
 const ProtectedLayout: React.FC = () => {
@@ -75,12 +91,15 @@ const ProtectedLayout: React.FC = () => {
 const AppRoutes: React.FC = () => (
   <Suspense fallback={<CenteredSpinner />}>
     <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
+      {/* Public routes that redirect if user is already logged in */}
+      <Route element={<PublicRoute />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/request-password-reset" element={<RequestPasswordResetPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+      </Route>
       <Route path="/setup-account" element={<SetupAccountPage />} />
-      <Route path="/request-password-reset" element={<RequestPasswordResetPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Protected routes */}
       <Route element={<PrivateRoute />}>
@@ -116,12 +135,13 @@ const AppRoutes: React.FC = () => (
             <Route path="tenants" element={<TenantManagementPage />} />
             <Route path="licenses" element={<LicenseManagementPage />} />
             <Route path="smtp-settings" element={<SmtpSettingsPage />} />
+            <Route path="logs" element={<LogViewerPage />} />
           </Route>
         </Route>
       </Route>
 
       {/* Fallback for any other route */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Suspense>
 );
@@ -156,13 +176,15 @@ const ThemedApp: React.FC = () => {
         }
       }}
     >
-      <AppRoutes />
+      <AntApp>
+        <AppRoutes />
+      </AntApp>
     </ConfigProvider>
   );
 };
 
 const App: React.FC = () => (
-  <Router>
+  <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <ThemeProvider>
       <AuthProvider>
         <ThemedApp />

@@ -31,8 +31,11 @@ let SmtpController = class SmtpController {
     async saveSmtpSettings(smtpSettings) {
         await this.smtpService.saveSmtpSettings(smtpSettings);
     }
-    testSmtpConnection(testSmtpDto) {
-        return this.smtpService.testSmtpConnection(testSmtpDto);
+    testSmtpConnection(smtpSettings) {
+        return this.smtpService.testSmtpConnection(smtpSettings);
+    }
+    sendTestEmailWithUnsavedSettings(testSmtpDto) {
+        return this.smtpService.sendTestEmailWithUnsavedSettings(testSmtpDto);
     }
     sendConfiguredTestEmail(email) {
         return this.smtpService.sendConfiguredTestEmail(email);
@@ -50,16 +53,23 @@ __decorate([
     (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [smtp_settings_dto_1.SmtpSettings]),
+    __metadata("design:paramtypes", [smtp_settings_dto_1.SmtpSettingsDto]),
     __metadata("design:returntype", Promise)
 ], SmtpController.prototype, "saveSmtpSettings", null);
 __decorate([
     (0, common_1.Post)('test-connection'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [test_smtp_dto_1.TestSmtpDto]),
+    __metadata("design:paramtypes", [smtp_settings_dto_1.SmtpSettingsDto]),
     __metadata("design:returntype", Promise)
 ], SmtpController.prototype, "testSmtpConnection", null);
+__decorate([
+    (0, common_1.Post)('send-form-test-email'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [test_smtp_dto_1.TestSmtpDto]),
+    __metadata("design:returntype", Promise)
+], SmtpController.prototype, "sendTestEmailWithUnsavedSettings", null);
 __decorate([
     (0, common_1.Post)('send-test-email'),
     __param(0, (0, common_1.Body)('email')),

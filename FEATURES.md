@@ -124,6 +124,7 @@ Este documento describe las principales características y capacidades del siste
 - **Multi-Tenant**: La arquitectura está diseñada para dar servicio a múltiples negocios (tenants) de forma segura y con datos completamente aislados.
 - **Panel de Super-Admin**: Una interfaz dedicada para el super administrador para gestionar los tenants y sus licencias.
 - **Comunicaciones en Tiempo Real**: Uso intensivo de WebSockets (con Socket.IO) para mantener sincronizados y actualizados en tiempo real el KDS, el panel de despacho y la futura app de repartidor.
+- **Flujo de Alta Robusto**: El sistema utiliza tokens seguros y sin estado (JWT) para la activación de cuentas, eliminando errores de "token inválido". La creación de tenants, ya sea por registro público o desde el panel de Super Admin, ahora incluye la creación automática de una "Sucursal Principal" para garantizar una experiencia de inicio sin errores.
 
 ## 9. Integración de Pagos y WhatsApp
 

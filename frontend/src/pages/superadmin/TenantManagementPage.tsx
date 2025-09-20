@@ -3,12 +3,13 @@ import { Table, Button, Modal, Form, Input, message, Tag, Tooltip, Space, Popcon
 import { PlusOutlined, MailOutlined, EditOutlined, StopOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getTenants, createTenant, resendInvitation, updateTenant, updateTenantStatus, deleteTenant } from '../../services/api';
 import { Tenant, TenantStatus } from '../../types/tenant';
-import { UserStatus } from '../../types/user';
+import { User, UserStatus } from '../../types/user';
 
 const TenantManagementPage: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [form] = Form.useForm();
@@ -47,15 +48,17 @@ const TenantManagementPage: React.FC = () => {
 
 
   const handleCreate = async (values: any) => {
+    setIsSubmitting(true);
     try {
       await createTenant(values);
       message.success('Tenant creado con éxito. Se ha enviado un correo de invitación al administrador.');
       setIsModalVisible(false);
-      form.resetFields();
       fetchTenants();
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Error al crear el tenant.';
       message.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,7 +77,11 @@ const TenantManagementPage: React.FC = () => {
       setLoading(false);
     }
   };
-  const handleResendInvitation = async (userId: string) => {
+  const handleResendInvitation = async (userId: string | undefined) => {
+    if (!userId) {
+      message.error('No se pudo encontrar el ID del usuario administrador.');
+      return;
+    }
     try {
       await resendInvitation(userId);
       message.success('Invitación reenviada con éxito.');
@@ -88,7 +95,7 @@ const TenantManagementPage: React.FC = () => {
     const actionText = newStatus === TenantStatus.Suspended ? 'suspender' : 'reactivar';
     try {
       const updatedTenant = await updateTenantStatus(tenantId, newStatus);
-      setTenants(prevTenants => 
+      setTenants(prevTenants =>
         prevTenants.map(t => t.id === tenantId ? { ...t, status: updatedTenant.status } : t)
       );
       message.success(`Tenant ${actionText === 'suspender' ? 'suspendido' : 'reactivado'} con éxito.`);
@@ -117,19 +124,18 @@ const TenantManagementPage: React.FC = () => {
     setIsEditModalVisible(true);
   };
 
-  const getStatusTag = (status: string) => {
-    switch (status) {
-      case TenantStatus.Active:
-        return <Tag color="#DAA520">Activo</Tag>;
-      case TenantStatus.Suspended:
-        return <Tag color="#800020">Suspendido</Tag>;
-      case 'trial':
-        return <Tag color="#8B8000">En Prueba</Tag>;
-      case UserStatus.PendingVerification:
-        return <Tag color="#8B8000">Pendiente</Tag>;
-      default:
-        return <Tag>{status}</Tag>;
+  const getStatusTag = (status: TenantStatus) => {
+    const statusConfig: Record<TenantStatus, { color: string; text: string }> = {
+      [TenantStatus.Active]: { color: 'success', text: 'Activo' },
+      [TenantStatus.Trial]: { color: 'processing', text: 'De Prueba' },
+      [TenantStatus.Suspended]: { color: 'error', text: 'Suspendido' },
+      [TenantStatus.Inactive]: { color: 'default', text: 'Inactivo' },
+    };
+    const config = statusConfig[status];
+    if (config) {
+      return <Tag color={config.color}>{config.text}</Tag>;
     }
+    return <Tag>{status}</Tag>;
   };
 
   const columns = [
@@ -147,7 +153,7 @@ const TenantManagementPage: React.FC = () => {
     {
       title: 'Administrador',
       key: 'admin',
-      render: (_: any, record: Tenant) => {
+      render: (_: any, record: Tenant): React.ReactNode => {
         const admin = record.users?.find(u => u.role.name === 'admin');
         if (!admin) return 'N/A';
         return `${admin.fullName} (${admin.email})`;
@@ -156,7 +162,7 @@ const TenantManagementPage: React.FC = () => {
     {
       title: 'Licencia',
       key: 'license',
-      render: (_: any, record: Tenant) => {
+      render: (_: any, record: Tenant): React.ReactNode => {
         if (!record.license) return <Tag color="#800020">Sin Licencia</Tag>;
         const expires = new Date(record.license.expiresAt);
         const isExpired = expires < new Date();
@@ -172,7 +178,7 @@ const TenantManagementPage: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      render: (_: any, record: Tenant) => {
+      render: (_: any, record: Tenant): React.ReactNode => {
         const admin = record.users?.find(u => u.role.name === 'admin');
         const isSuspended = record.status === TenantStatus.Suspended;
         return (
@@ -204,7 +210,7 @@ const TenantManagementPage: React.FC = () => {
               <Tooltip title="Reenviar correo de configuración de cuenta">
                 <Button
                   icon={<MailOutlined />}
-                  onClick={() => handleResendInvitation(admin.id)}
+                  onClick={() => handleResendInvitation(admin?.id)}
                 />
               </Tooltip>
             )}
@@ -248,11 +254,14 @@ const TenantManagementPage: React.FC = () => {
       <Modal
         title="Crear Nuevo Tenant"
         open={isModalVisible}
+        onOk={form.submit}
         onCancel={handleCancel}
-        footer={[<Button key="back" onClick={handleCancel}>Cancelar</Button>, <Button key="submit" type="primary" loading={loading} onClick={() => form.submit()}>Crear</Button>]}
-        confirmLoading={loading}
+        okText="Crear"
+        cancelText="Cancelar"
+        confirmLoading={isSubmitting}
+        destroyOnClose // Resets the form when the modal is closed
       >
-        <Form form={form} onFinish={handleCreate} layout="vertical">
+        <Form form={form} onFinish={handleCreate} layout="vertical" name="create_tenant_form">
           <Form.Item
             name="name"
             label="Nombre del Tenant"

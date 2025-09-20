@@ -7,14 +7,16 @@ import { RegisterDto } from './dto/register.dto';
 import { SetupAccountDto } from './dto/setup-account.dto';
 import { ConfigService } from '@nestjs/config';
 import { SettingsService } from '../settings/settings.service';
+import { LicensingService } from '../licenses/licensing.service';
 export declare class AuthService {
     private usersRepository;
     private dataSource;
     private jwtService;
     private readonly configService;
     private readonly settingsService;
+    private readonly licensingService;
     private readonly logger;
-    constructor(usersRepository: Repository<User>, dataSource: DataSource, jwtService: JwtService, configService: ConfigService, settingsService: SettingsService);
+    constructor(usersRepository: Repository<User>, dataSource: DataSource, jwtService: JwtService, configService: ConfigService, settingsService: SettingsService, licensingService: LicensingService);
     validateUser(email: string, pass: string): Promise<any>;
     login(user: User): Promise<{
         access_token: string;
@@ -29,6 +31,7 @@ export declare class AuthService {
             };
             permissions: string[];
             locationId: string;
+            location: Location;
             tenant: {
                 id: string;
                 name: string;
@@ -45,6 +48,7 @@ export declare class AuthService {
             name: RoleEnum;
         };
         locationId: string;
+        location: Location;
         permissions: string[];
         tenant: {
             id: string;

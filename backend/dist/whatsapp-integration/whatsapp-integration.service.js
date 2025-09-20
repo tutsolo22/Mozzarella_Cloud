@@ -16,6 +16,7 @@ const orders_service_1 = require("../orders/orders.service");
 const payments_service_1 = require("../payments/payments.service");
 const order_types_enum_1 = require("../orders/enums/order-types.enum");
 const order_status_enum_1 = require("../orders/enums/order-status.enum");
+const order_channel_enum_1 = require("../orders/enums/order-channel.enum");
 let WhatsappIntegrationService = class WhatsappIntegrationService {
     constructor(customersService, ordersService, paymentsService) {
         this.customersService = customersService;
@@ -37,6 +38,7 @@ let WhatsappIntegrationService = class WhatsappIntegrationService {
             paymentMethod: orderDto.paymentMethod,
             deliveryAddress: orderDto.deliveryAddress,
             items: orderDto.items,
+            channel: order_channel_enum_1.OrderChannel.WHATSAPP,
         }, tenant.id, orderDto.locationId, undefined, isOnlinePayment ? order_status_enum_1.OrderStatus.PendingPayment : order_status_enum_1.OrderStatus.Confirmed);
         if (isOnlinePayment) {
             const paymentInfo = await this.paymentsService.createMercadoPagoPreference(tenant, createdOrder);

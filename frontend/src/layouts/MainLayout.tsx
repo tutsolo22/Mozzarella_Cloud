@@ -17,9 +17,13 @@ import {
   DollarCircleOutlined,
   TagsOutlined,
   BuildOutlined,
+  FireOutlined,
   CrownOutlined,
+  SolutionOutlined,
+  BookOutlined,
   SafetyCertificateOutlined,
   MailOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { Can } from '../components/Auth/Can';
 import ThemeSwitcher from '../components/layout/ThemeSwitcher';
@@ -57,8 +61,13 @@ const MainLayout: React.FC = () => {
 
   // Lógica mejorada para resaltar el menú y submenú activo
   const pathSnippets = location.pathname.split('/').filter(i => i);
-  const openKeys = pathSnippets.length > 1 ? [`/${pathSnippets[0]}`] : [];
+  const defaultOpenKeys = pathSnippets.length > 1 ? [`/${pathSnippets[0]}`] : [];
 
+  // Añadimos una condición para mantener abierto el submenú de Configuración
+  if (location.pathname.startsWith('/settings') || location.pathname === '/management/preparation-zones') {
+    defaultOpenKeys.push('settings-submenu');
+  }
+  
   const userMenuItems: MenuProps['items'] =
     user?.role?.name === 'super_admin'
       ? [
@@ -86,7 +95,7 @@ const MainLayout: React.FC = () => {
         <div style={{ height: 32, margin: 16, background: '#333333', textAlign: 'center', color: '#DAA520', lineHeight: '32px', borderRadius: '6px', fontWeight: 'bold' }}>
           {collapsed ? 'MC' : 'Mozzarella Cloud'}
         </div>
-        <Menu theme="dark" selectedKeys={[location.pathname]} defaultOpenKeys={openKeys} mode="inline">
+        <Menu theme="dark" selectedKeys={[location.pathname]} defaultOpenKeys={defaultOpenKeys} mode="inline">
           {user?.role?.name === 'super_admin' ? (
             <>
               <Menu.Item key="/super-admin/dashboard" icon={<DashboardOutlined />}>
@@ -97,6 +106,9 @@ const MainLayout: React.FC = () => {
               </Menu.Item>
               <Menu.Item key="/super-admin/licenses" icon={<SafetyCertificateOutlined />}>
                 <Link to="/super-admin/licenses">Gestión de Licencias</Link>
+              </Menu.Item>
+              <Menu.Item key="/super-admin/logs" icon={<FileTextOutlined />}>
+                <Link to="/super-admin/logs">Visor de Logs</Link>
               </Menu.Item>
               <Menu.SubMenu key="/super-admin/settings" icon={<SettingOutlined />} title="Configuración">
                 <Menu.Item key="/super-admin/smtp-settings" icon={<MailOutlined />}>
@@ -109,51 +121,60 @@ const MainLayout: React.FC = () => {
               <Menu.Item key="/dashboard" icon={<DashboardOutlined />}>
                 <Link to="/dashboard">Dashboard</Link>
               </Menu.Item>
-              <Can permission="view:kds">
-                <Menu.Item key="/kds" icon={<DesktopOutlined />}>
-                  <Link to="/kds">KDS</Link>
-                </Menu.Item>
-              </Can>
-              <Can permission="manage:dispatch">
-                <Menu.Item key="/dispatch" icon={<CarOutlined />}>
-                  <Link to="/dispatch">Despacho</Link>
-                </Menu.Item>
-              </Can>
+              <Menu.SubMenu key="/operations" icon={<DesktopOutlined />} title="Operaciones">
+                <Can permission="view:kds">
+                  <Menu.Item key="/kds">
+                    <Link to="/kds">KDS (Cocina)</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="manage:dispatch">
+                  <Menu.Item key="/dispatch" icon={<CarOutlined />}>
+                    <Link to="/dispatch">Despacho</Link>
+                  </Menu.Item>
+                </Can>
+              </Menu.SubMenu>
               <Menu.SubMenu key="/management" icon={<AppstoreOutlined />} title="Gestión">
-                  <Can permission="manage:products">
-                    <Menu.Item key="/management/products" icon={<GiftOutlined />}>
-                      <Link to="/management/products">Productos</Link>
-                    </Menu.Item>
-                    <Menu.Item key="/management/product-categories" icon={<AppstoreOutlined />}>
-                      <Link to="/management/product-categories">Categorías</Link>
-                    </Menu.Item>
-                    <Menu.Item key="/management/promotions" icon={<TagsOutlined />}>
-                      <Link to="/management/promotions">Promociones</Link>
-                    </Menu.Item>
-                    <Menu.Item key="/management/preparation-zones" icon={<BuildOutlined />}>
-                      <Link to="/management/preparation-zones">Zonas de Preparación</Link>
-                    </Menu.Item>
-                  </Can>
-                  <Can permission="manage:users">
-                    <Menu.Item key="/management/users" icon={<UserOutlined />}>
-                      <Link to="/management/users">Usuarios</Link>
-                    </Menu.Item>
-                  </Can>
-                  <Can permission="manage:locations">
-                    <Menu.Item key="/management/locations" icon={<ShopOutlined />}>
-                      <Link to="/management/locations">Sucursales</Link>
-                    </Menu.Item>
-                  </Can>
-                  <Can permission="manage:hr">
-                    <Menu.Item key="/management/hr" icon={<TeamOutlined />}>
-                      <Link to="/management/hr">Recursos Humanos</Link>
-                    </Menu.Item>
-                  </Can>
+                <Can permission="manage:products">
+                  <Menu.Item key="/management/products" icon={<GiftOutlined />}>
+                    <Link to="/management/products">Productos</Link>
+                  </Menu.Item>
+                  <Menu.Item key="/management/product-categories" icon={<AppstoreOutlined />}>
+                    <Link to="/management/product-categories">Categorías</Link>
+                  </Menu.Item>
+                  <Menu.Item key="/management/promotions" icon={<TagsOutlined />}>
+                    <Link to="/management/promotions">Promociones</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="manage:users">
+                  <Menu.Item key="/management/users" icon={<UserOutlined />}>
+                    <Link to="/management/users">Usuarios</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="manage:locations">
+                  <Menu.Item key="/management/locations" icon={<ShopOutlined />}>
+                    <Link to="/management/locations">Sucursales</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="manage:hr">
+                  <Menu.Item key="/management/hr" icon={<TeamOutlined />}>
+                    <Link to="/management/hr">Recursos Humanos</Link>
+                  </Menu.Item>
+                </Can>
               </Menu.SubMenu>
               <Menu.SubMenu key="/financials" icon={<DollarCircleOutlined />} title="Finanzas">
                 <Can permission="manage:financials">
                   <Menu.Item key="/financials/overhead-costs">
                     <Link to="/financials/overhead-costs">Costos Operativos</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="manage:cashier_session">
+                  <Menu.Item key="/reports/cashier-session">
+                    <Link to="/reports/cashier-session">Corte de Caja</Link>
+                  </Menu.Item>
+                </Can>
+                <Can permission="view:reports">
+                  <Menu.Item key="/reports/cashier-history">
+                    <Link to="/reports/cashier-history">Historial de Cajas</Link>
                   </Menu.Item>
                 </Can>
               </Menu.SubMenu>
@@ -164,6 +185,9 @@ const MainLayout: React.FC = () => {
                   </Menu.Item>
                 </Can>
                 <Can permission="view:reports">
+                  <Menu.Item key="/reports/pnl">
+                    <Link to="/reports/pnl">Ganancias y Pérdidas</Link>
+                  </Menu.Item>
                   <Menu.Item key="/reports/sales">
                     <Link to="/reports/sales">Ventas</Link>
                   </Menu.Item>
@@ -180,20 +204,17 @@ const MainLayout: React.FC = () => {
                     <Link to="/reports/driver-performance">Rendimiento de Repartidores</Link>
                   </Menu.Item>
                 </Can>
-                <Can permission="manage:cashier_session">
-                  <Menu.Item key="/reports/cashier-session">
-                    <Link to="/reports/cashier-session">Corte de Caja</Link>
-                  </Menu.Item>
-                </Can>
-                 <Can permission="view:reports">
-                  <Menu.Item key="/reports/cashier-history">
-                    <Link to="/reports/cashier-history">Historial de Cajas</Link>
+              </Menu.SubMenu>
+              <Menu.SubMenu key="settings-submenu" icon={<SettingOutlined />} title="Configuración">
+                <Menu.Item key="/settings">
+                  <Link to="/settings">General</Link>
+                </Menu.Item>
+                <Can permission="manage:locations">
+                  <Menu.Item key="/management/preparation-zones" icon={<FireOutlined />}>
+                    <Link to="/management/preparation-zones">Zonas de Preparación</Link>
                   </Menu.Item>
                 </Can>
               </Menu.SubMenu>
-              <Menu.Item key="/settings" icon={<SettingOutlined />}>
-                <Link to="/settings">Configuración</Link>
-              </Menu.Item>
             </>
           )}
         </Menu>

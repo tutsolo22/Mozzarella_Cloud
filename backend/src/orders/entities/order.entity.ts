@@ -16,6 +16,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from '../enums/order-types.enum';
+import { OrderChannel } from '../enums/order-channel.enum';
 import { User } from '../../users/entities/user.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Location } from '../../locations/entities/location.entity';
@@ -60,6 +61,13 @@ export class Order {
   @JoinColumn({ name: 'assignedDriverId' })
   assignedDriver?: User;
 
+  @Column({
+    type: 'enum',
+    enum: OrderChannel,
+    default: OrderChannel.IN_STORE,
+  })
+  channel: OrderChannel;
+  
   @Column({ type: 'uuid', nullable: true })
   assignedDriverId?: string;
 

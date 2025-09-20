@@ -1,5 +1,9 @@
+import { License } from './license';
+import { User } from './user';
+
 export enum TenantStatus {
   Active = 'active',
+  Trial = 'trial',
   Inactive = 'inactive',
   Suspended = 'suspended',
 }
@@ -10,6 +14,8 @@ export interface Tenant {
   status: TenantStatus;
   createdAt: string;
   updatedAt: string;
+  license: License | null;
+  users?: User[];
 }
 
 export interface CreateTenantDto {

@@ -39,7 +39,8 @@ export const LocationProvider: React.FC<{ children: ReactNode }> = ({ children }
       getMyLocations()
         .then(locations => {
           if (isMounted) {
-            setAvailableLocations(locations);
+            // Asegurarnos de que siempre sea un array para evitar errores.
+            setAvailableLocations(Array.isArray(locations) ? locations : []);
             // Si un admin no tiene sucursal asignada, lo asignamos a la primera disponible.
             if (!user.locationId && locations.length > 0) {
               // Esto refrescará el token y recargará la página para aplicar el cambio.

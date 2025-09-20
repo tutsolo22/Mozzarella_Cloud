@@ -23,12 +23,86 @@ const inventory_movement_type_enum_1 = require("../inventory-movements/enums/inv
 const employee_entity_1 = require("../hr/entities/employee.entity");
 const overhead_cost_entity_1 = require("../financials/entities/overhead-cost.entity");
 const dayjs = require("dayjs");
+const weekOfYear = require("dayjs/plugin/weekOfYear");
+const weekday = require("dayjs/plugin/weekday");
+dayjs.extend(weekOfYear);
+dayjs.extend(weekday);
 let ReportsService = class ReportsService {
     constructor(orderRepository, movementRepository, employeeRepository, overheadCostRepository) {
         this.orderRepository = orderRepository;
         this.movementRepository = movementRepository;
         this.employeeRepository = employeeRepository;
         this.overheadCostRepository = overheadCostRepository;
+    }
+    async getDashboardStats(tenantId, locationId) {
+        const today = dayjs();
+        const startOfDay = today.startOf('day').toDate();
+        const endOfDay = today.endOf('day').toDate();
+        const whereConditionsToday = {
+            tenantId,
+            locationId,
+            createdAt: (0, typeorm_2.Between)(startOfDay, endOfDay),
+        };
+        const todayStats = await this.orderRepository
+            .createQueryBuilder('order')
+            .select('SUM(order.totalAmount)', 'totalSales')
+            .addSelect('COUNT(order.id)', 'totalOrders')
+            .where(whereConditionsToday)
+            .andWhere('order.status != :status', { status: order_status_enum_1.OrderStatus.Cancelled })
+            .getRawOne();
+        const todaySales = parseFloat(todayStats.totalSales) || 0;
+        const todayOrders = parseInt(todayStats.totalOrders, 10) || 0;
+        const pendingOrders = await this.orderRepository.count({
+            where: {
+                ...whereConditionsToday,
+                status: (0, typeorm_2.In)([order_status_enum_1.OrderStatus.Confirmed, order_status_enum_1.OrderStatus.InPreparation]),
+            },
+        });
+        const readyOrders = await this.orderRepository.count({
+            where: {
+                ...whereConditionsToday,
+                status: order_status_enum_1.OrderStatus.ReadyForDelivery,
+            },
+        });
+        const startOfLast7Days = today.subtract(6, 'day').startOf('day').toDate();
+        const weeklySalesData = await this.orderRepository
+            .createQueryBuilder('order')
+            .select(`DATE_TRUNC('day', "createdAt") as date`)
+            .addSelect('SUM("totalAmount")', 'sales')
+            .where({
+            tenantId,
+            locationId,
+            createdAt: (0, typeorm_2.Between)(startOfLast7Days, endOfDay),
+            status: (0, typeorm_2.In)([order_status_enum_1.OrderStatus.Confirmed, order_status_enum_1.OrderStatus.Delivered]),
+        })
+            .groupBy(`DATE_TRUNC('day', "createdAt")`)
+            .orderBy('date', 'ASC')
+            .getRawMany();
+        const salesByDate = new Map(weeklySalesData.map(d => [dayjs(d.date).format('YYYY-MM-DD'), parseFloat(d.sales)]));
+        const weeklySales = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = dayjs().subtract(i, 'day');
+            const formattedDate = date.format('YYYY-MM-DD');
+            weeklySales.push({
+                date: date.format('ddd'),
+                sales: salesByDate.get(formattedDate) || 0,
+            });
+        }
+        const statusCounts = await this.orderRepository
+            .createQueryBuilder('order')
+            .select('status')
+            .addSelect('COUNT(id)::int', 'count')
+            .where(whereConditionsToday)
+            .groupBy('status')
+            .getRawMany();
+        return {
+            todaySales,
+            todayOrders,
+            pendingOrders,
+            readyOrders,
+            weeklySales,
+            statusCounts,
+        };
     }
     async getProfitAndLossReport(tenantId, locationId, startDateStr, endDateStr) {
         const startDate = dayjs(startDateStr).startOf('day').toDate();

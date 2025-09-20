@@ -19,6 +19,7 @@ const local_auth_guard_1 = require("./guards/local-auth.guard");
 const config_1 = require("@nestjs/config");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
+const public_decorator_1 = require("./decorators/public.decorator");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const roles_decorator_1 = require("./decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
@@ -58,6 +59,7 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Request)()),
@@ -67,6 +69,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('register'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -74,6 +77,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('request-password-reset'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
@@ -82,6 +86,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "requestPasswordReset", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('reset-password'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
@@ -90,6 +95,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resetPassword", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('setup-account'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),

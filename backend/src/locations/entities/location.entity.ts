@@ -1,13 +1,13 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { Order } from '../../orders/entities/order.entity';
@@ -25,7 +25,10 @@ export class Location {
   address: string;
 
   @Column({ nullable: true })
-  phone?: string;
+  phone: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column()
   tenantId: string;
@@ -47,7 +50,7 @@ export class Location {
     nullable: true,
     comment: 'Área de entrega en formato GeoJSON Polygon',
   })
-  deliveryArea?: any;
+  deliveryArea: any; // Or a more specific GeoJSON type
 
   @CreateDateColumn()
   createdAt: Date;
@@ -56,5 +59,5 @@ export class Location {
   updatedAt: Date;
 
   @DeleteDateColumn()
-  deletedAt?: Date;
+  deletedAt: Date;
 }

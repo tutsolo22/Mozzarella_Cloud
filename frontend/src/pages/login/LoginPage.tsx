@@ -64,6 +64,9 @@ const LoginPage: React.FC = () => {
             <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
               Iniciar Sesión
             </Button>
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <Text style={{ color: '#F5F5DC' }}>¿No tienes una cuenta? </Text><Link to="/register" style={{ color: '#DAA520' }}>Crea una aquí</Link>
+            </div>
           </Form.Item>
         </Form>
       </Card>

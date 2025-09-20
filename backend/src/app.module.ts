@@ -20,6 +20,7 @@ import { InventoryMovementsModule } from './inventory-movements/inventory-moveme
 import { KdsModule } from './kds/kds.module';
 import { LicenseValidationModule } from './license-validation/license-validation.module';
 import { LocationsModule } from './locations/locations.module';
+import { LogsModule } from './logs/logs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -68,6 +69,7 @@ import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integ
     KdsModule,
     LicenseValidationModule,
     LocationsModule,
+    LogsModule,
     NotificationsModule,
     OrdersModule,
     PaymentsModule,

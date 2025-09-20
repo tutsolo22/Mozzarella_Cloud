@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SettingsService } from './settings.service';
-import { SmtpSettings } from './dto/smtp-settings.dto';
+import { SmtpSettingsDto } from './dto/smtp-settings.dto';
 import { TestSmtpDto } from './dto/test-smtp.dto';
 import { createTransport } from 'nodemailer';
 
@@ -10,58 +10,94 @@ export class SmtpService {
 
   constructor(private readonly settingsService: SettingsService) {}
 
-  async getSmtpSettings(): Promise<SmtpSettings> {
+  async getSmtpSettings(): Promise<SmtpSettingsDto> {
     const settings = await this.settingsService.getAllSettings();
+    const port = parseInt(settings.SMTP_PORT || '0', 10);
+    const secureSetting = settings.SMTP_SECURE;
+
     return {
-      SMTP_HOST: settings.SMTP_HOST || '',
-      SMTP_PORT: settings.SMTP_PORT || '',
-      SMTP_USER: settings.SMTP_USER || '',
-      SMTP_PASS: '', // Never return the password
-      APP_NAME: settings.APP_NAME || 'Mozzarella Cloud',
+      host: settings.SMTP_HOST || '',
+      port: port,
+      user: settings.SMTP_USER || '',
+      pass: '', // Never return the password
+      appName: settings.APP_NAME !== undefined ? settings.APP_NAME : 'Mozzarella Cloud',
+      // Prioriza el valor guardado, si no existe, lo deriva del puerto.
+      secure: secureSetting !== undefined ? secureSetting === 'true' : port === 465,
     };
   }
 
-  async saveSmtpSettings(smtpSettings: SmtpSettings): Promise<void> {
+  async saveSmtpSettings(smtpSettings: SmtpSettingsDto): Promise<void> {
     const settingsToSave: Record<string, string> = {
-      SMTP_HOST: smtpSettings.SMTP_HOST,
-      SMTP_PORT: smtpSettings.SMTP_PORT,
-      SMTP_USER: smtpSettings.SMTP_USER,
-      APP_NAME: smtpSettings.APP_NAME,
+      SMTP_HOST: smtpSettings.host,
+      SMTP_PORT: smtpSettings.port.toString(),
+      SMTP_USER: smtpSettings.user,
+      APP_NAME: smtpSettings.appName !== undefined ? smtpSettings.appName : 'Mozzarella Cloud',
+      SMTP_SECURE: (smtpSettings.secure ?? smtpSettings.port === 465).toString(),
     };
     // Only update password if a new one is provided and is not just whitespace
-    if (smtpSettings.SMTP_PASS && smtpSettings.SMTP_PASS.trim() !== '') {
-      settingsToSave.SMTP_PASS = smtpSettings.SMTP_PASS;
+    if (smtpSettings.pass && smtpSettings.pass.trim() !== '') {
+      settingsToSave.SMTP_PASS = smtpSettings.pass;
     }
     await this.settingsService.updateSettings({ settings: settingsToSave });
   }
 
-  async testSmtpConnection(testSmtpDto: TestSmtpDto): Promise<{ success: boolean; message: string }> {
-    const { recipientEmail, smtpSettings } = testSmtpDto;
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = smtpSettings;
+  async testSmtpConnection(smtpSettings: SmtpSettingsDto): Promise<{ success: boolean; message: string }> {
+    const { host, port, user, pass, secure } = smtpSettings;
 
-    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER) {
+    if (!host || !port || !user) {
       return { success: false, message: 'Faltan datos de configuración SMTP.' };
     }
 
     // If password is not provided in the test, try to get it from saved settings
-    const finalPass = SMTP_PASS || (await this.settingsService.getSetting('SMTP_PASS'));
+    const finalPass = pass || (await this.settingsService.getSetting('SMTP_PASS'));
     if (!finalPass) {
       return { success: false, message: 'La contraseña SMTP es requerida para la prueba.' };
     }
 
     const transporter = createTransport({
-      host: SMTP_HOST,
-      port: parseInt(SMTP_PORT, 10),
-      secure: parseInt(SMTP_PORT, 10) === 465,
-      auth: { user: SMTP_USER, pass: finalPass },
+      host: host,
+      port: port,
+      secure: secure ?? port === 465,
+      auth: { user: user, pass: finalPass },
       tls: { rejectUnauthorized: false }, // Useful for local/dev environments
     });
 
     try {
       await transporter.verify();
-      this.logger.log('Conexión SMTP de prueba exitosa.');
+      this.logger.log('Verificación de conexión SMTP exitosa.');
+      return { success: true, message: 'Conexión exitosa. Las credenciales son válidas.' };
+    } catch (error) {
+      this.logger.error('Fallo en la prueba de conexión SMTP:', error);
+      return { success: false, message: `Error: ${error.message}` };
+    }
+  }
+
+  async sendTestEmailWithUnsavedSettings(testSmtpDto: TestSmtpDto): Promise<{ success: boolean; message: string }> {
+    const { recipientEmail, host, port, user, pass, appName, secure } = testSmtpDto;
+
+    if (!host || !port || !user) {
+      return { success: false, message: 'Faltan datos de configuración SMTP.' };
+    }
+
+    // If password is not provided in the test, try to get it from saved settings
+    const finalPass = pass || (await this.settingsService.getSetting('SMTP_PASS'));
+    if (!finalPass) {
+      return { success: false, message: 'La contraseña SMTP es requerida para la prueba.' };
+    }
+
+    const transporter = createTransport({
+      host: host,
+      port: port,
+      secure: secure ?? port === 465,
+      auth: { user: user, pass: finalPass },
+      tls: { rejectUnauthorized: false }, // Useful for local/dev environments
+    });
+
+    try {
+      await transporter.verify();
+      this.logger.log('Verificación de conexión SMTP exitosa antes de enviar correo de prueba.');
       await transporter.sendMail({
-        from: `"${smtpSettings.APP_NAME || 'Mozzarella Cloud Test'}" <${SMTP_USER}>`,
+        from: `"${appName || 'Mozzarella Cloud Test'}" <${user}>`,
         to: recipientEmail,
         subject: 'Prueba de Conexión SMTP - Mozzarella Cloud',
         text: '¡Tu configuración SMTP funciona correctamente!',
@@ -70,7 +106,7 @@ export class SmtpService {
       this.logger.log(`Email de prueba enviado a ${recipientEmail}`);
       return { success: true, message: 'Conexión exitosa. Se ha enviado un correo de prueba.' };
     } catch (error) {
-      this.logger.error('Fallo en la prueba de conexión SMTP:', error);
+      this.logger.error('Fallo al enviar correo de prueba con configuración de formulario:', error);
       return { success: false, message: `Error: ${error.message}` };
     }
   }

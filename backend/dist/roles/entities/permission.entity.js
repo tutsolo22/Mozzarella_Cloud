@@ -20,18 +20,23 @@ __decorate([
     __metadata("design:type", String)
 ], Permission.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Permission.prototype, "name", void 0);
+], Permission.prototype, "action", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Permission.prototype, "description", void 0);
+], Permission.prototype, "subject", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], Permission.prototype, "conditions", void 0);
 __decorate([
     (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, (role) => role.permissions),
     __metadata("design:type", Array)
 ], Permission.prototype, "roles", void 0);
 exports.Permission = Permission = __decorate([
-    (0, typeorm_1.Entity)('permissions')
+    (0, typeorm_1.Entity)('permissions'),
+    (0, typeorm_1.Index)(['action', 'subject'], { unique: true })
 ], Permission);
 //# sourceMappingURL=permission.entity.js.map

@@ -1,30 +1,31 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToOne,
+  Entity,
   OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { License } from '../../licenses/entities/license.entity';
 import { TenantConfiguration } from './tenant-configuration.entity';
-import { User } from '../../users/entities/user.entity';
 import { Location } from '../../locations/entities/location.entity';
+
+export enum TenantPlan {
+  Trial = 'trial',
+  Basic = 'basic',
+  Premium = 'premium',
+}
 
 export enum TenantStatus {
   Active = 'active',
-  Suspended = 'suspended',
   Trial = 'trial',
+  Suspended = 'suspended',
+  Inactive = 'inactive',
 }
 
-export enum TenantPlan {
-  Basic = 'basic',
-  Advanced = 'advanced',
-  Enterprise = 'enterprise',
-}
-
-@Entity('tenants')
+@Entity()
 export class Tenant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -42,15 +43,12 @@ export class Tenant {
   @Column({
     type: 'enum',
     enum: TenantPlan,
-    default: TenantPlan.Basic,
+    nullable: true,
   })
   plan: TenantPlan;
 
-  @OneToOne(() => License, (license) => license.tenant)
-  license: License;
-
-  @OneToOne(() => TenantConfiguration, (config) => config.tenant, { cascade: true, eager: true })
-  configuration: TenantConfiguration;
+  @Column({ nullable: true })
+  whatsappApiKey: string;
 
   @OneToMany(() => User, (user) => user.tenant)
   users: User[];
@@ -58,8 +56,13 @@ export class Tenant {
   @OneToMany(() => Location, (location) => location.tenant)
   locations: Location[];
 
-  @Column({ type: 'varchar', length: 255, nullable: true, select: false })
-  whatsappApiKey?: string;
+  @OneToOne(() => License, (license) => license.tenant, { cascade: true })
+  license: License;
+
+  @OneToOne(() => TenantConfiguration, (config) => config.tenant, {
+    cascade: true,
+  })
+  configuration: TenantConfiguration;
 
   @CreateDateColumn()
   createdAt: Date;

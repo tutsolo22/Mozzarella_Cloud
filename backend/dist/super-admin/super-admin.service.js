@@ -22,14 +22,7 @@ const users_service_1 = require("../users/users.service");
 const role_enum_1 = require("../roles/enums/role.enum");
 const role_entity_1 = require("../roles/entities/role.entity");
 const user_entity_1 = require("../users/entities/user.entity");
-const license_entity_1 = require("../licenses/entities/license.entity");
-const product_entity_1 = require("../products/entities/product.entity");
-const order_entity_1 = require("../orders/entities/order.entity");
 const location_entity_1 = require("../locations/entities/location.entity");
-const customer_entity_1 = require("../customers/entities/customer.entity");
-const ingredient_entity_1 = require("../ingredients/entities/ingredient.entity");
-const product_category_entity_1 = require("../products/entities/product-category.entity");
-const tenant_configuration_entity_1 = require("../tenants/entities/tenant-configuration.entity");
 const licensing_service_1 = require("../licenses/licensing.service");
 const auth_service_1 = require("../auth/auth.service");
 const crypto = require("crypto");
@@ -52,50 +45,81 @@ let SuperAdminService = SuperAdminService_1 = class SuperAdminService {
     }
     async create(createTenantDto) {
         const { name, adminEmail, adminFullName } = createTenantDto;
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
         try {
-            const existingTenant = await queryRunner.manager.findOneBy(tenant_entity_1.Tenant, { name });
-            if (existingTenant) {
-                throw new common_1.ConflictException(`El tenant con el nombre "${name}" ya existe.`);
-            }
-            const existingUser = await queryRunner.manager.findOneBy(user_entity_1.User, { email: adminEmail });
-            if (existingUser) {
-                throw new common_1.ConflictException(`El email de administrador "${adminEmail}" ya está en uso.`);
-            }
-            const tenant = queryRunner.manager.create(tenant_entity_1.Tenant, { name });
-            await queryRunner.manager.save(tenant);
-            const adminRole = await queryRunner.manager.findOneBy(role_entity_1.Role, { name: role_enum_1.RoleEnum.Admin });
-            if (!adminRole) {
-                throw new common_1.InternalServerErrorException('El rol de Administrador base no existe.');
-            }
-            const temporaryPassword = crypto.randomBytes(20).toString('hex');
-            const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
-            const adminUser = queryRunner.manager.create(user_entity_1.User, {
-                email: adminEmail,
-                fullName: adminFullName,
-                password: hashedPassword,
-                role: adminRole,
-                tenant: tenant,
-                status: user_entity_1.UserStatus.PendingVerification,
+            const { tenant, adminUser } = await this.dataSource.transaction(async (transactionalEntityManager) => {
+                const existingTenant = await transactionalEntityManager.findOneBy(tenant_entity_1.Tenant, { name });
+                if (existingTenant) {
+                    throw new common_1.ConflictException(`El tenant con el nombre "${name}" ya existe.`);
+                }
+                const existingUser = await transactionalEntityManager.findOneBy(user_entity_1.User, { email: adminEmail });
+                if (existingUser) {
+                    throw new common_1.ConflictException(`El email de administrador "${adminEmail}" ya está en uso.`);
+                }
+                const tenant = transactionalEntityManager.create(tenant_entity_1.Tenant, {
+                    name,
+                    status: tenant_entity_1.TenantStatus.Inactive,
+                    plan: null,
+                });
+                await transactionalEntityManager.save(tenant);
+                const defaultLocation = transactionalEntityManager.create(location_entity_1.Location, {
+                    name: 'Sucursal Principal',
+                    address: 'Dirección por definir',
+                    tenantId: tenant.id,
+                    isActive: true,
+                });
+                await transactionalEntityManager.save(defaultLocation);
+                const adminRole = await transactionalEntityManager.findOneBy(role_entity_1.Role, { name: role_enum_1.RoleEnum.Admin });
+                if (!adminRole) {
+                    throw new common_1.InternalServerErrorException('El rol de Administrador base no existe.');
+                }
+                const temporaryPassword = crypto.randomBytes(20).toString('hex');
+                const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+                const adminUser = transactionalEntityManager.create(user_entity_1.User, {
+                    email: adminEmail,
+                    fullName: adminFullName,
+                    password: hashedPassword,
+                    role: adminRole,
+                    tenant: tenant,
+                    locationId: defaultLocation.id,
+                    status: user_entity_1.UserStatus.PendingVerification,
+                });
+                await transactionalEntityManager.save(adminUser);
+                return { tenant, adminUser };
             });
-            await queryRunner.manager.save(adminUser);
-            await queryRunner.commitTransaction();
             await this.authService.resendInvitation(adminUser.id);
             return tenant;
         }
         catch (error) {
-            await queryRunner.rollbackTransaction();
-            this.logger.error(`Error al crear el tenant: ${error}`);
+            this.logger.error(`Error al crear el tenant: ${error.message}`, error.stack);
+            if (error.message.includes('Fallo al enviar el correo')) {
+                throw error instanceof common_1.InternalServerErrorException ? error : new common_1.InternalServerErrorException(error.message);
+            }
             if (error instanceof common_1.ConflictException || error instanceof common_1.InternalServerErrorException) {
                 throw error;
             }
             throw new common_1.InternalServerErrorException('Ocurrió un error al crear el tenant.');
         }
-        finally {
-            await queryRunner.release();
+    }
+    async createDefaultLocationForTenant(tenantId) {
+        const tenant = await this.tenantRepository.findOneBy({ id: tenantId });
+        if (!tenant) {
+            throw new common_1.NotFoundException(`Tenant con ID #${tenantId} no encontrado.`);
         }
+        const existingDefaultLocation = await this.dataSource.getRepository(location_entity_1.Location).findOneBy({
+            tenantId: tenantId,
+            name: 'Sucursal Principal',
+        });
+        if (existingDefaultLocation) {
+            throw new common_1.ConflictException(`El tenant "${tenant.name}" ya tiene una "Sucursal Principal".`);
+        }
+        const defaultLocation = this.dataSource.getRepository(location_entity_1.Location).create({
+            name: 'Sucursal Principal',
+            address: 'Dirección por definir',
+            tenantId: tenant.id,
+            isActive: true,
+        });
+        this.logger.log(`Creada "Sucursal Principal" para el tenant ${tenant.name} (ID: ${tenant.id})`);
+        return this.dataSource.getRepository(location_entity_1.Location).save(defaultLocation);
     }
     async updateTenant(id, updateTenantDto) {
         const tenant = await this.tenantRepository.preload({
@@ -118,56 +142,6 @@ let SuperAdminService = SuperAdminService_1 = class SuperAdminService {
     async resendInvitation(userId) {
         return this.authService.resendInvitation(userId);
     }
-    async deleteTenant(tenantId) {
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-        try {
-            const tenant = await queryRunner.manager.findOneBy(tenant_entity_1.Tenant, { id: tenantId });
-            if (!tenant) {
-                throw new common_1.NotFoundException(`Tenant con ID #${tenantId} no encontrado.`);
-            }
-            const orderItemTableExists = await queryRunner.query("SELECT to_regclass('public.order_item')");
-            if (orderItemTableExists[0].to_regclass) {
-                await queryRunner.query('DELETE FROM "order_item" WHERE "orderId" IN (SELECT id FROM "order" WHERE "tenantId" = $1)', [tenantId]);
-            }
-            else {
-                this.logger.warn('Table "order_item" not found, skipping cleanup. This is expected for new tenants.');
-            }
-            const recipeItemTableExists = await queryRunner.query("SELECT to_regclass('public.recipe_item')");
-            if (recipeItemTableExists[0].to_regclass) {
-                await queryRunner.query('DELETE FROM "recipe_item" WHERE "productId" IN (SELECT id FROM "product" WHERE "tenantId" = $1)', [tenantId]);
-            }
-            else {
-                this.logger.warn('Table "recipe_item" not found, skipping cleanup. This is expected for new tenants.');
-            }
-            await queryRunner.manager.delete(order_entity_1.Order, { tenantId });
-            await queryRunner.manager.delete(product_entity_1.Product, { tenantId });
-            await queryRunner.manager.delete(user_entity_1.User, { tenantId });
-            await queryRunner.manager.delete(tenant_configuration_entity_1.TenantConfiguration, { tenantId });
-            await queryRunner.manager.delete(location_entity_1.Location, { tenantId });
-            await queryRunner.manager.delete(customer_entity_1.Customer, { tenantId });
-            await queryRunner.manager.delete(ingredient_entity_1.Ingredient, { tenantId });
-            await queryRunner.manager.delete(product_category_entity_1.ProductCategory, { tenantId });
-            const license = await queryRunner.manager.findOne(license_entity_1.License, { where: { tenant: { id: tenantId } } });
-            if (license) {
-                await queryRunner.manager.remove(license);
-            }
-            await queryRunner.manager.remove(tenant);
-            await queryRunner.commitTransaction();
-        }
-        catch (error) {
-            await queryRunner.rollbackTransaction();
-            this.logger.error(`Error al eliminar el tenant ${tenantId}:`, error);
-            if (error.message.includes('transaction is aborted')) {
-                throw new common_1.InternalServerErrorException('La transacción fue abortada debido a un error inesperado. Revisa los logs del servidor para más detalles.');
-            }
-            throw new common_1.InternalServerErrorException('Ocurrió un error al eliminar el tenant. Es posible que aún existan datos asociados. Revisa los logs del servidor para más detalles.');
-        }
-        finally {
-            await queryRunner.release();
-        }
-    }
     async generateTenantLicense(tenantId, generateLicenseDto) {
         const { userLimit, branchLimit, durationInDays } = generateLicenseDto;
         const tenant = await this.tenantRepository.findOne({ where: { id: tenantId }, relations: ['license'] });
@@ -188,6 +162,64 @@ let SuperAdminService = SuperAdminService_1 = class SuperAdminService {
         }
         await this.licensesService.revokeLicense(tenantId);
         return { message: 'Licencia revocada con éxito.' };
+    }
+    async deleteTenant(tenantId) {
+        try {
+            await this.dataSource.transaction(async (transactionalEntityManager) => {
+                this.logger.log(`Iniciando borrado transaccional para el tenant ID: ${tenantId}`);
+                const tenant = await transactionalEntityManager.findOneBy(tenant_entity_1.Tenant, { id: tenantId });
+                if (!tenant) {
+                    throw new common_1.NotFoundException(`Tenant con ID #${tenantId} no encontrado.`);
+                }
+                this.logger.log(`Eliminando dependencias profundas (Order Items, Product Ingredients, etc.)...`);
+                const junctionTables = ['order_items', 'product_ingredients', 'inventory_movements'];
+                for (const table of junctionTables) {
+                    const tableExists = (await transactionalEntityManager.query(`SELECT to_regclass('public."${table}"')`))[0].to_regclass;
+                    if (tableExists) {
+                        let deleteQuery = '';
+                        if (table === 'order_items') {
+                            deleteQuery = `DELETE FROM "order_items" WHERE "orderId" IN (SELECT id FROM "orders" WHERE "tenantId" = $1)`;
+                        }
+                        else if (table === 'product_ingredients') {
+                            deleteQuery = `DELETE FROM "product_ingredients" WHERE "productId" IN (SELECT id FROM "products" WHERE "tenantId" = $1)`;
+                        }
+                        else if (table === 'inventory_movements') {
+                            deleteQuery = `DELETE FROM "inventory_movements" WHERE "tenantId" = $1`;
+                        }
+                        if (deleteQuery)
+                            await transactionalEntityManager.query(deleteQuery, [tenantId]);
+                    }
+                    else {
+                        this.logger.warn(`Tabla de unión "${table}" no encontrada, se omite la limpieza.`);
+                    }
+                }
+                const tablesToDelete = [
+                    'orders', 'products', 'employees', 'cashier_sessions', 'overhead_costs',
+                    'customers', 'ingredients', 'product_categories', 'positions',
+                    'preparation_zones', 'locations', 'tenant_configurations', 'licenses'
+                ];
+                this.logger.log(`Eliminando datos de tablas principales...`);
+                for (const table of tablesToDelete) {
+                    const tableExists = (await transactionalEntityManager.query(`SELECT to_regclass('public."${table}"')`))[0].to_regclass;
+                    if (tableExists) {
+                        await transactionalEntityManager.query(`DELETE FROM "${table}" WHERE "tenantId" = $1`, [tenantId]);
+                    }
+                    else {
+                        this.logger.warn(`Tabla principal "${table}" no encontrada, se omite la limpieza.`);
+                    }
+                }
+                this.logger.log(`Eliminando el registro principal del tenant ${tenantId}...`);
+                await transactionalEntityManager.remove(tenant);
+            });
+            this.logger.log(`Tenant ${tenantId} y todos sus datos asociados han sido eliminados.`);
+        }
+        catch (error) {
+            this.logger.error(`Error al eliminar el tenant ${tenantId}: ${error.message}`, error.stack);
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new common_1.InternalServerErrorException('Ocurrió un error al eliminar el tenant. La operación fue revertida. Revisa los logs del servidor para más detalles.');
+        }
     }
 };
 exports.SuperAdminService = SuperAdminService;

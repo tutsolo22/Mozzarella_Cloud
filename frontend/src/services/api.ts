@@ -61,6 +61,11 @@ export const setupAccount = async (token: string, password: string): Promise<{ a
   return response.data;
 };
 
+export const register = async (data: Record<string, any>): Promise<{ message: string }> => {
+  const response = await axiosClient.post('/auth/register', data);
+  return response.data;
+};
+
 export const changePassword = async (data: ChangePasswordDto): Promise<void> => {
   const response = await axiosClient.patch('/users/me/password', data);
   return response.data;
@@ -364,6 +369,16 @@ export const deleteTenant = async (tenantId: string): Promise<void> => {
 
 export const sendConfiguredTestEmail = async (email: string): Promise<{ message: string }> => {
   const response = await axiosClient.post('/settings/smtp/send-test-email', { email });
+  return response.data;
+};
+
+export const getLogFiles = async (): Promise<string[]> => {
+  const response = await axiosClient.get('/super-admin/logs/files');
+  return response.data;
+};
+
+export const getLogContent = async (fileName: string, lines: number): Promise<{ log: string }> => {
+  const response = await axiosClient.get('/super-admin/logs', { params: { file: fileName, lines } });
   return response.data;
 };
 

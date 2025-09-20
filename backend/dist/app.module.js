@@ -27,6 +27,7 @@ const inventory_movements_module_1 = require("./inventory-movements/inventory-mo
 const kds_module_1 = require("./kds/kds.module");
 const license_validation_module_1 = require("./license-validation/license-validation.module");
 const locations_module_1 = require("./locations/locations.module");
+const logs_module_1 = require("./logs/logs.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const orders_module_1 = require("./orders/orders.module");
 const payments_module_1 = require("./payments/payments.module");
@@ -78,6 +79,7 @@ exports.AppModule = AppModule = __decorate([
             kds_module_1.KdsModule,
             license_validation_module_1.LicenseValidationModule,
             locations_module_1.LocationsModule,
+            logs_module_1.LogsModule,
             notifications_module_1.NotificationsModule,
             orders_module_1.OrdersModule,
             payments_module_1.PaymentsModule,

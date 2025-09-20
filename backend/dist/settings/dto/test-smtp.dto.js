@@ -11,19 +11,46 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestSmtpDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
-const smtp_settings_dto_1 = require("./smtp-settings.dto");
 class TestSmtpDto {
 }
 exports.TestSmtpDto = TestSmtpDto;
 __decorate([
-    (0, class_validator_1.IsEmail)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsEmail)({}, { message: 'Debe proporcionar un correo electrónico de destinatario válido.' }),
+    (0, class_validator_1.IsNotEmpty)({
+        message: 'El correo electrónico del destinatario no puede estar vacío.',
+    }),
     __metadata("design:type", String)
 ], TestSmtpDto.prototype, "recipientEmail", void 0);
 __decorate([
-    (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => smtp_settings_dto_1.SmtpSettings),
-    __metadata("design:type", smtp_settings_dto_1.SmtpSettings)
-], TestSmtpDto.prototype, "smtpSettings", void 0);
+    (0, class_validator_1.IsString)({ message: 'El host SMTP debe ser una cadena de texto.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El host SMTP no puede estar vacío.' }),
+    __metadata("design:type", String)
+], TestSmtpDto.prototype, "host", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)({ message: 'El puerto SMTP debe ser un número entero.' }),
+    (0, class_validator_1.Min)(1, { message: 'El puerto SMTP debe ser un número válido (1-65535).' }),
+    (0, class_validator_1.Max)(65535, { message: 'El puerto SMTP debe ser un número válido (1-65535).' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El puerto SMTP no puede estar vacío.' }),
+    __metadata("design:type", Number)
+], TestSmtpDto.prototype, "port", void 0);
+__decorate([
+    (0, class_validator_1.IsString)({ message: 'El usuario SMTP debe ser una cadena de texto.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El usuario SMTP no puede estar vacío.' }),
+    __metadata("design:type", String)
+], TestSmtpDto.prototype, "user", void 0);
+__decorate([
+    (0, class_validator_1.IsString)({ message: 'La contraseña SMTP debe ser una cadena de texto.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], TestSmtpDto.prototype, "pass", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)({ message: 'El campo "secure" (SSL/TLS) debe ser un valor booleano.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], TestSmtpDto.prototype, "secure", void 0);
+__decorate([
+    (0, class_validator_1.IsString)({ message: 'El nombre de la aplicación debe ser una cadena de texto.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], TestSmtpDto.prototype, "appName", void 0);
 //# sourceMappingURL=test-smtp.dto.js.map

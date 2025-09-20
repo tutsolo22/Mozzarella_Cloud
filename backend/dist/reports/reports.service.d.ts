@@ -4,11 +4,13 @@ import { InventoryMovement } from '../inventory-movements/entities/inventory-mov
 import { Employee } from '../hr/entities/employee.entity';
 import { OverheadCost } from '../financials/entities/overhead-cost.entity';
 import { ProfitAndLossReport } from './interfaces/pnl-report.interface';
+import { DashboardStats } from './interfaces/dashboard-stats.interface';
 export declare class ReportsService {
     private readonly orderRepository;
     private readonly movementRepository;
     private readonly employeeRepository;
     private readonly overheadCostRepository;
     constructor(orderRepository: Repository<Order>, movementRepository: Repository<InventoryMovement>, employeeRepository: Repository<Employee>, overheadCostRepository: Repository<OverheadCost>);
+    getDashboardStats(tenantId: string, locationId: string): Promise<DashboardStats>;
     getProfitAndLossReport(tenantId: string, locationId: string, startDateStr: string, endDateStr: string): Promise<ProfitAndLossReport>;
 }

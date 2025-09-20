@@ -24,11 +24,21 @@ let ReportsController = class ReportsController {
     constructor(reportsService) {
         this.reportsService = reportsService;
     }
+    getDashboardStats(user) {
+        return this.reportsService.getDashboardStats(user.tenantId, user.locationId);
+    }
     getProfitAndLossReport(user, startDate, endDate) {
         return this.reportsService.getProfitAndLossReport(user.tenantId, user.locationId, startDate, endDate);
     }
 };
 exports.ReportsController = ReportsController;
+__decorate([
+    (0, common_1.Get)('dashboard-stats'),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ReportsController.prototype, "getDashboardStats", null);
 __decorate([
     (0, common_1.Get)('pnl'),
     __param(0, (0, user_decorator_1.User)()),

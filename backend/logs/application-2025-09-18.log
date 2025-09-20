@@ -1,0 +1,21 @@
+{"level":"error","message":"Fallo al enviar el correo de configuración de cuenta a manueltut22@gmail.com.","timestamp":"2025-09-18T06:17:34.388Z"}
+{"level":"error","message":"Transaction is not started yet, start transaction before committing or rolling it back.","timestamp":"2025-09-18T06:17:34.462Z"}
+{"level":"error","message":"Fallo al enviar el correo de configuración de cuenta a manueltut22@gmail.com.","timestamp":"2025-09-18T06:33:04.003Z"}
+{"level":"error","message":"Transaction is not started yet, start transaction before committing or rolling it back.","timestamp":"2025-09-18T06:33:04.005Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: relation \"order_item\" does not exist","timestamp":"2025-09-18T06:41:44.904Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: relation \"order_item\" does not exist","timestamp":"2025-09-18T06:42:42.540Z"}
+{"level":"warn","message":"Tabla \"order_item\" no encontrada, se omite la limpieza. Esto es normal para tenants nuevos.","timestamp":"2025-09-18T06:46:11.847Z"}
+{"level":"warn","message":"Tabla \"product_ingredient\" no encontrada, se omite la limpieza. Esto es normal para tenants nuevos.","timestamp":"2025-09-18T06:46:11.848Z"}
+{"level":"warn","message":"Tabla \"inventory_movement\" no encontrada, se omite la limpieza. Esto es normal para tenants nuevos.","timestamp":"2025-09-18T06:46:11.849Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T06:46:11.994Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: relation \"order\" does not exist","timestamp":"2025-09-18T06:59:42.477Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T07:06:50.378Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T15:49:28.705Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T15:58:42.002Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T16:03:10.141Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T16:08:27.563Z"}
+{"level":"error","message":"Error al eliminar el tenant 7d8d4524-458c-48bd-8ef3-bfa91b540551: this.subQuery is not a function","timestamp":"2025-09-18T16:14:11.309Z"}
+{"level":"warn","message":"Tabla principal \"cashier_sessions\" no encontrada, se omite la limpieza.","timestamp":"2025-09-18T16:21:54.739Z"}
+{"level":"warn","message":"Tabla principal \"cashier_sessions\" no encontrada, se omite la limpieza.","timestamp":"2025-09-18T17:02:55.651Z"}
+{"level":"warn","message":"Tabla principal \"cashier_sessions\" no encontrada, se omite la limpieza.","timestamp":"2025-09-18T17:21:34.600Z"}
+{"level":"error","message":"¡ERROR CRÍTICO! El usuario b0a2bee2-d89f-493c-8522-fea771ec580a (manuel.tut@hexalux.mx) fue cargado sin sucursal (location) durante el login. El dashboard se mostrará en blanco.","timestamp":"2025-09-18T18:32:10.605Z"}

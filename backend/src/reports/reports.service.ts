@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository, In } from 'typeorm';
-import { Order } from '../orders/entities/order.entity';
+import { Between, Repository, In, DataSource } from 'typeorm';
+import { Order } from '../orders/entities/order.entity'; // Assuming this is correct
 import { OrderStatus } from '../orders/enums/order-status.enum';
 import { InventoryMovement } from '../inventory-movements/entities/inventory-movement.entity';
 import { InventoryMovementType } from '../inventory-movements/enums/inventory-movement-type.enum';
@@ -9,6 +9,11 @@ import { Employee, PaymentFrequency } from '../hr/entities/employee.entity';
 import { OverheadCost } from '../financials/entities/overhead-cost.entity';
 import { ProfitAndLossReport } from './interfaces/pnl-report.interface';
 import * as dayjs from 'dayjs';
+import { DashboardStats } from './interfaces/dashboard-stats.interface';
+import * as weekOfYear from 'dayjs/plugin/weekOfYear';
+import * as weekday from 'dayjs/plugin/weekday';
+dayjs.extend(weekOfYear);
+dayjs.extend(weekday);
 
 @Injectable()
 export class ReportsService {
@@ -23,6 +28,96 @@ export class ReportsService {
     private readonly overheadCostRepository: Repository<OverheadCost>,
   ) {}
 
+  async getDashboardStats(
+    tenantId: string,
+    locationId: string,
+  ): Promise<DashboardStats> {
+    const today = dayjs();
+    const startOfDay = today.startOf('day').toDate();
+    const endOfDay = today.endOf('day').toDate();
+
+    const whereConditionsToday = {
+      tenantId,
+      locationId,
+      createdAt: Between(startOfDay, endOfDay),
+    };
+
+    // 1. todaySales and todayOrders
+    const todayStats = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.totalAmount)', 'totalSales')
+      .addSelect('COUNT(order.id)', 'totalOrders')
+      .where(whereConditionsToday)
+      .andWhere('order.status != :status', { status: OrderStatus.Cancelled })
+      .getRawOne();
+
+    const todaySales = parseFloat(todayStats.totalSales) || 0;
+    const todayOrders = parseInt(todayStats.totalOrders, 10) || 0;
+
+    // 2. pendingOrders
+    const pendingOrders = await this.orderRepository.count({
+      where: {
+        ...whereConditionsToday,
+        status: In([OrderStatus.Confirmed, OrderStatus.InPreparation]),
+      },
+    });
+
+    // 3. readyOrders
+    const readyOrders = await this.orderRepository.count({
+      where: {
+        ...whereConditionsToday,
+        status: OrderStatus.ReadyForDelivery,
+      },
+    });
+
+    // 4. weeklySales
+    const startOfLast7Days = today.subtract(6, 'day').startOf('day').toDate();
+    const weeklySalesData = await this.orderRepository
+      .createQueryBuilder('order')
+      .select(`DATE_TRUNC('day', "createdAt") as date`)
+      .addSelect('SUM("totalAmount")', 'sales')
+      .where({
+        tenantId,
+        locationId,
+        createdAt: Between(startOfLast7Days, endOfDay),
+        status: In([OrderStatus.Confirmed, OrderStatus.Delivered]), // Only count completed orders for sales
+      })
+      .groupBy(`DATE_TRUNC('day', "createdAt")`)
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    const salesByDate = new Map(
+      weeklySalesData.map(d => [dayjs(d.date).format('YYYY-MM-DD'), parseFloat(d.sales)])
+    );
+
+    const weeklySales = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = dayjs().subtract(i, 'day');
+        const formattedDate = date.format('YYYY-MM-DD');
+        weeklySales.push({
+            date: date.format('ddd'), // e.g., 'Mon'
+            sales: salesByDate.get(formattedDate) || 0,
+        });
+    }
+
+    // 5. statusCounts
+    const statusCounts = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('status')
+      .addSelect('COUNT(id)::int', 'count')
+      .where(whereConditionsToday)
+      .groupBy('status')
+      .getRawMany();
+
+    return {
+      todaySales,
+      todayOrders,
+      pendingOrders,
+      readyOrders,
+      weeklySales,
+      statusCounts,
+    };
+  }
   async getProfitAndLossReport(
     tenantId: string,
     locationId: string,

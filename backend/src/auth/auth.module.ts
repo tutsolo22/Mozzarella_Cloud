@@ -12,6 +12,7 @@ import { Tenant } from 'src/tenants/entities/tenant.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Permission } from 'src/roles/entities/permission.entity';
 import { SettingsModule } from '../settings/settings.module';
+import { LicensingModule } from '../licenses/licenses.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SettingsModule } from '../settings/settings.module';
     TypeOrmModule.forFeature([User, Tenant, Role, Permission]),
     PassportModule,
     SettingsModule, // Importamos SettingsModule para que AuthService pueda inyectar SettingsService
+    LicensingModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

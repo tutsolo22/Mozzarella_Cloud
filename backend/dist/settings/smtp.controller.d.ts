@@ -1,12 +1,16 @@
 import { SmtpService } from './smtp.service';
-import { SmtpSettings } from './dto/smtp-settings.dto';
+import { SmtpSettingsDto } from './dto/smtp-settings.dto';
 import { TestSmtpDto } from './dto/test-smtp.dto';
 export declare class SmtpController {
     private readonly smtpService;
     constructor(smtpService: SmtpService);
-    getSmtpSettings(): Promise<SmtpSettings>;
-    saveSmtpSettings(smtpSettings: SmtpSettings): Promise<void>;
-    testSmtpConnection(testSmtpDto: TestSmtpDto): Promise<{
+    getSmtpSettings(): Promise<SmtpSettingsDto>;
+    saveSmtpSettings(smtpSettings: SmtpSettingsDto): Promise<void>;
+    testSmtpConnection(smtpSettings: SmtpSettingsDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    sendTestEmailWithUnsavedSettings(testSmtpDto: TestSmtpDto): Promise<{
         success: boolean;
         message: string;
     }>;

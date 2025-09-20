@@ -13,6 +13,7 @@ exports.CreateOrderDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const order_types_enum_1 = require("../enums/order-types.enum");
+const order_channel_enum_1 = require("../enums/order-channel.enum");
 class OrderItemDto {
 }
 __decorate([
@@ -45,6 +46,11 @@ __decorate([
     (0, class_validator_1.IsEnum)(order_types_enum_1.PaymentMethod),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(order_channel_enum_1.OrderChannel),
+    (0, class_validator_1.IsDefined)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "channel", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

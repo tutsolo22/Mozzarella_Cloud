@@ -6,6 +6,7 @@ import { Tenant } from '../tenants/entities/tenant.entity';
 import { PaymentsService } from '../payments/payments.service';
 import { PaymentMethod } from '../orders/enums/order-types.enum';
 import { OrderStatus } from '../orders/enums/order-status.enum';
+import { OrderChannel } from '../orders/enums/order-channel.enum';
 
 @Injectable()
 export class WhatsappIntegrationService {
@@ -39,6 +40,7 @@ export class WhatsappIntegrationService {
         paymentMethod: orderDto.paymentMethod,
         deliveryAddress: orderDto.deliveryAddress,
         items: orderDto.items,
+        channel: OrderChannel.WHATSAPP,
       },
       tenant.id,
       orderDto.locationId,

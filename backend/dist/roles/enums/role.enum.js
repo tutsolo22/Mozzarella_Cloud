@@ -8,6 +8,8 @@ var RoleEnum;
     RoleEnum["Manager"] = "manager";
     RoleEnum["Kitchen"] = "kitchen";
     RoleEnum["Delivery"] = "delivery";
+    RoleEnum["Cashier"] = "cashier";
+    RoleEnum["ElectronicCashier"] = "electronic_cashier";
     RoleEnum["Customer"] = "customer";
 })(RoleEnum || (exports.RoleEnum = RoleEnum = {}));
 //# sourceMappingURL=role.enum.js.map

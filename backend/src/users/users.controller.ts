@@ -1,8 +1,7 @@
 import { Controller, Patch, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User as UserPayload } from '../auth/decorators/user.decorator';
-import { UserPayload as IUserPayload } from '../auth/interfaces/user-payload.interface';
+import { User as UserPayload, UserPayload as IUserPayload } from '../auth/decorators/user.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
@@ -16,7 +15,7 @@ export class UsersController {
     @UserPayload() user: IUserPayload,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return this.usersService.updateMyProfile(user.userId, updateProfileDto);
+    return this.usersService.updateProfile(user.userId, updateProfileDto);
   }
 
   @Patch('me/password')

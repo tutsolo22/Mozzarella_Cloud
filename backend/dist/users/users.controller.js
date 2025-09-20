@@ -11,14 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const user_decorator_1 = require("../auth/decorators/user.decorator");
-const user_payload_interface_1 = require("../auth/interfaces/user-payload.interface");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
 const change_password_dto_1 = require("./dto/change-password.dto");
 let UsersController = class UsersController {
@@ -26,7 +24,7 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     updateMyProfile(user, updateProfileDto) {
-        return this.usersService.updateMyProfile(user.userId, updateProfileDto);
+        return this.usersService.updateProfile(user.userId, updateProfileDto);
     }
     changePassword(user, changePasswordDto) {
         return this.usersService.changePassword(user.userId, changePasswordDto);
@@ -38,7 +36,7 @@ __decorate([
     __param(0, (0, user_decorator_1.User)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_payload_interface_1.UserPayload !== "undefined" && user_payload_interface_1.UserPayload) === "function" ? _a : Object, update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "updateMyProfile", null);
 __decorate([
@@ -47,7 +45,7 @@ __decorate([
     __param(0, (0, user_decorator_1.User)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof user_payload_interface_1.UserPayload !== "undefined" && user_payload_interface_1.UserPayload) === "function" ? _b : Object, change_password_dto_1.ChangePasswordDto]),
+    __metadata("design:paramtypes", [Object, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "changePassword", null);
 exports.UsersController = UsersController = __decorate([

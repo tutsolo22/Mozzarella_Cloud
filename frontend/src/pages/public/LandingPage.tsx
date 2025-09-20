@@ -1,38 +1,30 @@
 import React from 'react';
-import { Layout, Button, Typography, Row, Col, Card, Space, Spin } from 'antd';
-import { WhatsAppOutlined, LoginOutlined, ShopOutlined, BarChartOutlined, SettingOutlined, TeamOutlined } from '@ant-design/icons';
-import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { Layout, Button, Typography, Row, Col, Card, Space } from 'antd';
+import { WhatsAppOutlined, LoginOutlined, ShopOutlined, BarChartOutlined, SettingOutlined, TeamOutlined, UserAddOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 const LandingPage: React.FC = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  if (loading) {
-    return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />;
-  }
-
-  // Si el usuario ya está autenticado, lo redirigimos a su panel correspondiente.
-  if (isAuthenticated) {
-    if (user?.role.name === 'super_admin') {
-      return <Navigate to="/super-admin/tenants" replace />;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return (
     <Layout className="layout">
       <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#000000', borderBottom: '1px solid #DAA520', padding: '0 50px', position: 'sticky', top: 0, zIndex: 10 }}>
         <div className="logo">
           <Title level={3} style={{ margin: 0, color: '#DAA520' }}>Mozzarella Cloud</Title>
         </div>
-        <Link to="/login">
-          <Button type="primary" icon={<LoginOutlined />}>
-            Iniciar Sesión
-          </Button>
-        </Link>
+        <Space>
+          <Link to="/register">
+            <Button icon={<UserAddOutlined />}>
+              Crear Cuenta
+            </Button>
+          </Link>
+          <Link to="/login">
+            <Button type="primary" icon={<LoginOutlined />}>
+              Iniciar Sesión
+            </Button>
+          </Link>
+        </Space>
       </Header>
 
       <Content>
@@ -101,7 +93,9 @@ const LandingPage: React.FC = () => {
                   <li><Text strong>Acceso completo</Text> a la plataforma</li>
                   <li>Soporte técnico remoto (respuesta en 48h)</li>
                 </ul>
-                <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Comenzar Ahora</Button>
+                <Link to="/register" style={{ width: '100%' }}>
+                  <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Comenzar Ahora</Button>
+                </Link>
               </Card>
             </Col>
             {/* Plan Crecimiento */}
@@ -121,7 +115,9 @@ const LandingPage: React.FC = () => {
                   <li><Text strong>Acceso completo</Text> a la plataforma</li>
                   <li>Soporte técnico remoto prioritario (respuesta en 24h)</li>
                 </ul>
-                <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Elegir Crecimiento</Button>
+                <Link to="/register" style={{ width: '100%' }}>
+                  <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Elegir Crecimiento</Button>
+                </Link>
               </Card>
             </Col>
             {/* Plan Profesional */}
@@ -140,7 +136,9 @@ const LandingPage: React.FC = () => {
                   <li><Text strong>Acceso completo</Text> a la plataforma</li>
                   <li>Soporte premium (remoto y en sitio, respuesta en 6h)</li>
                 </ul>
-                <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Obtener Plan Pro</Button>
+                <Link to="/register" style={{ width: '100%' }}>
+                  <Button type="primary" block size="large" style={{ marginTop: 'auto', background: '#DAA520', borderColor: '#DAA520', color: '#000', fontWeight: 'bold' }}>Obtener Plan Pro</Button>
+                </Link>
               </Card>
             </Col>
           </Row>

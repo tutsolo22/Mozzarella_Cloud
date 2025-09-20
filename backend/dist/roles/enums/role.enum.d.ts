@@ -4,5 +4,7 @@ export declare enum RoleEnum {
     Manager = "manager",
     Kitchen = "kitchen",
     Delivery = "delivery",
+    Cashier = "cashier",
+    ElectronicCashier = "electronic_cashier",
     Customer = "customer"
 }

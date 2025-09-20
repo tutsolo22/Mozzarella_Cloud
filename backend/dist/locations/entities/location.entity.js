@@ -34,6 +34,10 @@ __decorate([
     __metadata("design:type", String)
 ], Location.prototype, "phone", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Location.prototype, "isActive", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Location.prototype, "tenantId", void 0);

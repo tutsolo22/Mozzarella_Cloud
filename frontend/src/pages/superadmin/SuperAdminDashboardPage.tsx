@@ -106,12 +106,12 @@ const SuperAdminDashboardPage: React.FC = () => {
         </Col>
       </Row>
 
-      {stats?.soonToExpire?.length > 0 && (
+      {stats && stats.soonToExpire.length > 0 && (
         <>
           <Title level={4} style={{ marginTop: 32 }}>Licencias Próximas a Expirar (30 días)</Title>
           <Table
             columns={soonToExpireColumns}
-            dataSource={stats.soonToExpire as SoonToExpireLicense[]}
+            dataSource={stats.soonToExpire}
             rowKey="tenantId"
             pagination={false}
           />

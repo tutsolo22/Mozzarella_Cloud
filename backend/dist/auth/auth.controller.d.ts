@@ -23,6 +23,7 @@ export declare class AuthController {
             };
             permissions: string[];
             locationId: string;
+            location: import("../locations/entities/location.entity").Location;
             tenant: {
                 id: string;
                 name: string;
@@ -54,6 +55,7 @@ export declare class AuthController {
             name: RoleEnum;
         };
         locationId: string;
+        location: import("../locations/entities/location.entity").Location;
         permissions: string[];
         tenant: {
             id: string;

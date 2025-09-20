@@ -50,13 +50,18 @@ export class SettingsService {
     const port = await this.getSetting('SMTP_PORT');
     const user = await this.getSetting('SMTP_USER');
     const pass = await this.getSetting('SMTP_PASS');
+    const secure = await this.getSetting('SMTP_SECURE');
 
     if (!host || !port || !user || !pass) {
       this.logger.error('Faltan una o más configuraciones SMTP en la base de datos o variables de entorno.');
       throw new Error('Configuración SMTP incompleta.');
     }
 
-    const transport = { host, port: parseInt(port, 10), secure: parseInt(port, 10) === 465, auth: { user, pass } };
+    const portNumber = parseInt(port, 10);
+    // Prioriza el valor explícito de 'secure'. Si no existe, lo infiere del puerto.
+    const isSecure = secure !== undefined ? secure === 'true' : portNumber === 465;
+
+    const transport = { host, port: portNumber, secure: isSecure, auth: { user, pass } };
     const from = `"${await this.getSetting('APP_NAME', 'Mozzarella Cloud')}" <${user}>`;
     return { transport, from };
   }

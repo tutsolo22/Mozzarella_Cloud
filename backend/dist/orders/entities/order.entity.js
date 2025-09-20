@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const order_item_entity_1 = require("./order-item.entity");
 const order_status_enum_1 = require("../enums/order-status.enum");
 const order_types_enum_1 = require("../enums/order-types.enum");
+const order_channel_enum_1 = require("../enums/order-channel.enum");
 const user_entity_1 = require("../../users/entities/user.entity");
 const customer_entity_1 = require("../../customers/entities/customer.entity");
 const location_entity_1 = require("../../locations/entities/location.entity");
@@ -71,6 +72,14 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'assignedDriverId' }),
     __metadata("design:type", user_entity_1.User)
 ], Order.prototype, "assignedDriver", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: order_channel_enum_1.OrderChannel,
+        default: order_channel_enum_1.OrderChannel.IN_STORE,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "channel", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
     __metadata("design:type", String)

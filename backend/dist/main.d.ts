@@ -1,1 +1,1 @@
-export {};
+import 'winston-daily-rotate-file';

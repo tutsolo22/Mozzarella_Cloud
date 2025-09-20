@@ -5,13 +5,14 @@ export declare class Location {
     id: string;
     name: string;
     address: string;
-    phone?: string;
+    phone: string;
+    isActive: boolean;
     tenantId: string;
     tenant: Tenant;
     orders: Order[];
     users: User[];
-    deliveryArea?: any;
+    deliveryArea: any;
     createdAt: Date;
     updatedAt: Date;
-    deletedAt?: Date;
+    deletedAt: Date;
 }

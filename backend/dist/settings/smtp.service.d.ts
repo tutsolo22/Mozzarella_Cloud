@@ -1,13 +1,17 @@
 import { SettingsService } from './settings.service';
-import { SmtpSettings } from './dto/smtp-settings.dto';
+import { SmtpSettingsDto } from './dto/smtp-settings.dto';
 import { TestSmtpDto } from './dto/test-smtp.dto';
 export declare class SmtpService {
     private readonly settingsService;
     private readonly logger;
     constructor(settingsService: SettingsService);
-    getSmtpSettings(): Promise<SmtpSettings>;
-    saveSmtpSettings(smtpSettings: SmtpSettings): Promise<void>;
-    testSmtpConnection(testSmtpDto: TestSmtpDto): Promise<{
+    getSmtpSettings(): Promise<SmtpSettingsDto>;
+    saveSmtpSettings(smtpSettings: SmtpSettingsDto): Promise<void>;
+    testSmtpConnection(smtpSettings: SmtpSettingsDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    sendTestEmailWithUnsavedSettings(testSmtpDto: TestSmtpDto): Promise<{
         success: boolean;
         message: string;
     }>;

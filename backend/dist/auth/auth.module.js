@@ -21,6 +21,7 @@ const tenant_entity_1 = require("../tenants/entities/tenant.entity");
 const role_entity_1 = require("../roles/entities/role.entity");
 const permission_entity_1 = require("../roles/entities/permission.entity");
 const settings_module_1 = require("../settings/settings.module");
+const licenses_module_1 = require("../licenses/licenses.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -31,6 +32,7 @@ exports.AuthModule = AuthModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, tenant_entity_1.Tenant, role_entity_1.Role, permission_entity_1.Permission]),
             passport_1.PassportModule,
             settings_module_1.SettingsModule,
+            licenses_module_1.LicensingModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: async (configService) => ({

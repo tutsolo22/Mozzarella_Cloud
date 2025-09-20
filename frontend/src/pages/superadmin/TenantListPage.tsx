@@ -2,19 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Table, Card, Spin, Alert, Typography, Tag, Button, Modal, notification, Form, InputNumber, Space } from 'antd';
 import { getTenants, updateTenantStatus, generateLicense, revokeLicense } from '../../services/api';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
+// import { TenantStatus } from '../../types/tenant'; // Se usará un tipo local para evitar conflictos.
+import { License } from '../../types/license';
 
 const { Title, Paragraph } = Typography;
 
-type TenantStatus = 'active' | 'suspended' | 'trial';
+type TenantStatus = 'active' | 'trial' | 'suspended' | 'inactive';
 
-interface License {
-  id: string;
-  key: string;
-  status: 'active' | 'expired' | 'revoked';
-  expiresAt: string;
-}
-
+// Se define una interfaz local para asegurar que la propiedad 'license' esté presente,
+// resolviendo el conflicto con el tipo importado.
 interface Tenant {
   id: string;
   name: string;
@@ -138,11 +135,17 @@ const TenantListPage: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: TenantStatus) => {
-        let color = status === 'active' ? 'green' : 'volcano';
-        if (status === 'trial') {
-          color = 'blue';
-        }
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+        const statusConfig: Record<string, { color: string; text: string }> = {
+          active: { color: 'success', text: 'Activo' },
+          trial: { color: 'processing', text: 'De Prueba' },
+          suspended: { color: 'error', text: 'Suspendido' },
+          inactive: { color: 'default', text: 'Inactivo' },
+        };
+        const config = statusConfig[status] || {
+          color: 'default',
+          text: status.charAt(0).toUpperCase() + status.slice(1),
+        };
+        return <Tag color={config.color}>{config.text}</Tag>;
       },
     },
     {
@@ -176,7 +179,7 @@ const TenantListPage: React.FC = () => {
       render: (_, record: Tenant) => (
         <Space>
           <Button
-            type="primary"
+            icon={record.status === 'active' ? <StopOutlined /> : <CheckCircleOutlined />}
             danger={record.status === 'active'}
             onClick={() => handleUpdateStatus(record.id, record.status === 'active' ? 'suspended' : 'active')}
           >
@@ -188,7 +191,7 @@ const TenantListPage: React.FC = () => {
           <Button
             danger
             onClick={() => handleRevokeLicense(record)}
-            disabled={!record.license || record.license.status !== 'active' || new Date(record.license.expiresAt) < new Date()}
+            disabled={!record.license || record.license.status !== 'active'}
           >
             Revocar
           </Button>
@@ -200,8 +203,8 @@ const TenantListPage: React.FC = () => {
   const fetchTenants = async () => {
     try {
       setLoading(true);
-      const data = await getTenants();
-      setTenants(data);
+      const data = await getTenants(); // La API devuelve un tipo que puede no tener 'license'
+      setTenants(data as Tenant[]); // Hacemos un cast para que coincida con nuestra interfaz local
     } catch (err) {
       setError('No se pudieron cargar los tenants. Asegúrese de tener permisos de Super Administrador.');
     } finally {

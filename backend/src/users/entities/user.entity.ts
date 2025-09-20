@@ -2,10 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Tenant } from '../../tenants/entities/tenant.entity';
@@ -25,20 +25,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ select: false }) // Ocultar la contraseña por defecto en las consultas
-  password?: string;
-
-  @Column({ type: 'varchar', nullable: true, select: false })
-  passwordResetToken?: string | null;
-
-  @Column({ type: 'timestamp', nullable: true, select: false })
-  passwordResetExpires?: Date | null;
-
-    @Column({ type: 'varchar', nullable: true, select: false })
-  accountSetupToken?: string | null;
-
-  @Column({ type: 'timestamp', nullable: true, select: false })
-  accountSetupTokenExpires?: Date | null;
+  @Column({ select: false })
+  password: string;
 
   @Column()
   fullName: string;
@@ -50,9 +38,6 @@ export class User {
   })
   status: UserStatus;
 
-  @Column({ nullable: true })
-  verificationToken?: string;
-
   @ManyToOne(() => Role, { eager: true })
   @JoinColumn({ name: 'roleId' })
   role: Role;
@@ -60,19 +45,27 @@ export class User {
   @Column()
   roleId: string;
 
-  @ManyToOne(() => Tenant, tenant => tenant.users, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.users, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
-  @Column({ nullable: true }) // Super-admin no necesita un tenant
+  @Column({ nullable: true })
   tenantId: string;
 
-  @Column({ type: 'uuid', nullable: true, comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)' })
-  locationId?: string;
+  @Column({
+    type: 'uuid',
+    nullable: true,
+    comment: 'ID de la sucursal a la que pertenece el usuario (si aplica)',
+  })
+  locationId: string;
 
-  @ManyToOne(() => Location, location => location.users, { nullable: true, eager: false })
+  @ManyToOne(() => Location, (location) => location.users, {
+    nullable: true,
+    eager: false,
+    onDelete: 'SET NULL', // <-- FIX: Ensures data integrity when a location is deleted.
+  })
   @JoinColumn({ name: 'locationId' })
-  location?: Location;
+  location: Location;
 
   @Column('decimal', {
     precision: 10,
@@ -80,7 +73,7 @@ export class User {
     nullable: true,
     comment: 'Capacidad máxima de carga en kg para repartidores',
   })
-  maxWeightCapacityKg?: number;
+  maxWeightCapacityKg: number;
 
   @Column('decimal', {
     precision: 10,
@@ -88,7 +81,7 @@ export class User {
     nullable: true,
     comment: 'Capacidad máxima de volumen en m³ para repartidores',
   })
-  maxVolumeCapacityM3?: number;
+  maxVolumeCapacityM3: number;
 
   @CreateDateColumn()
   createdAt: Date;

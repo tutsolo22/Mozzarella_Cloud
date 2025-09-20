@@ -24,17 +24,18 @@ const tenant_entity_1 = require("../tenants/entities/tenant.entity");
 const role_entity_1 = require("../roles/entities/role.entity");
 const location_entity_1 = require("../locations/entities/location.entity");
 const role_enum_1 = require("../roles/enums/role.enum");
-const crypto = require("crypto");
 const config_1 = require("@nestjs/config");
 const nodemailer_1 = require("nodemailer");
 const settings_service_1 = require("../settings/settings.service");
+const licensing_service_1 = require("../licenses/licensing.service");
 let AuthService = AuthService_1 = class AuthService {
-    constructor(usersRepository, dataSource, jwtService, configService, settingsService) {
+    constructor(usersRepository, dataSource, jwtService, configService, settingsService, licensingService) {
         this.usersRepository = usersRepository;
         this.dataSource = dataSource;
         this.jwtService = jwtService;
         this.configService = configService;
         this.settingsService = settingsService;
+        this.licensingService = licensingService;
         this.logger = new common_1.Logger(AuthService_1.name);
     }
     async validateUser(email, pass) {
@@ -42,6 +43,7 @@ let AuthService = AuthService_1 = class AuthService {
             .leftJoinAndSelect('user.role', 'role')
             .leftJoinAndSelect('role.permissions', 'permissions')
             .leftJoinAndSelect('user.tenant', 'tenant')
+            .leftJoinAndSelect('user.location', 'location')
             .addSelect('user.password')
             .where('user.email = :email', { email })
             .getOne();
@@ -61,7 +63,16 @@ let AuthService = AuthService_1 = class AuthService {
         return result;
     }
     async login(user) {
-        let permissions = user.role.permissions?.map((p) => p.name) || [];
+        if (!user.role) {
+            this.logger.error(`¡ERROR CRÍTICO! El usuario ${user.id} (${user.email}) fue pasado a la función login sin rol. El dashboard fallará.`);
+            throw new common_1.InternalServerErrorException('Error de consistencia: no se pudo cargar el rol del usuario.');
+        }
+        this.logger.log(`[LOGIN-VALIDATION-V4] User ${user.id} has role: ${user.role.name} and permissions count: ${user.role.permissions?.length || 0}`);
+        if (user.role.name !== role_enum_1.RoleEnum.SuperAdmin && !user.location) {
+            this.logger.error(`¡ERROR CRÍTICO! El usuario ${user.id} (${user.email}) que no es SuperAdmin fue pasado a la función login sin sucursal (location). El dashboard se mostrará en blanco.`);
+            throw new common_1.InternalServerErrorException('Error de consistencia: no se pudo cargar la sucursal del usuario.');
+        }
+        let permissions = user.role.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
         if (user.tenant && user.tenant.plan === tenant_entity_1.TenantPlan.Basic) {
             const advancedPermissions = new Set([
                 'manage:dispatch',
@@ -75,6 +86,7 @@ let AuthService = AuthService_1 = class AuthService {
             email: user.email,
             sub: user.id,
             role: user.role.name,
+            fullName: user.fullName,
             tenantId: user.tenantId,
             locationId: user.locationId,
             permissions: permissions,
@@ -89,6 +101,7 @@ let AuthService = AuthService_1 = class AuthService {
                 role: { id: user.role.id, name: user.role.name },
                 permissions: permissions,
                 locationId: user.locationId,
+                location: user.location,
                 tenant: user.tenant ? { id: user.tenant.id, name: user.tenant.name } : undefined,
             }
         };
@@ -96,12 +109,12 @@ let AuthService = AuthService_1 = class AuthService {
     async getProfile(userId) {
         const user = await this.usersRepository.findOne({
             where: { id: userId },
-            relations: ['role', 'tenant', 'role.permissions'],
+            relations: ['role', 'tenant', 'role.permissions', 'location'],
         });
         if (!user) {
             throw new common_1.NotFoundException('Usuario no encontrado.');
         }
-        const permissions = user.role?.permissions?.map((p) => p.name) || [];
+        const permissions = user.role?.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
         return {
             id: user.id,
             email: user.email,
@@ -109,6 +122,7 @@ let AuthService = AuthService_1 = class AuthService {
             status: user.status,
             role: { id: user.role.id, name: user.role.name },
             locationId: user.locationId,
+            location: user.location,
             permissions: permissions,
             tenant: user.tenant ? { id: user.tenant.id, name: user.tenant.name } : undefined,
         };
@@ -183,17 +197,27 @@ let AuthService = AuthService_1 = class AuthService {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
-            const existingUser = await queryRunner.manager.findOne(user_entity_1.User, { where: { email } });
+            const existingUser = await queryRunner.manager.findOneBy(user_entity_1.User, { email });
             if (existingUser) {
                 throw new common_1.ConflictException('El email ya está registrado.');
             }
-            const adminRole = await queryRunner.manager.findOne(role_entity_1.Role, { where: { name: role_enum_1.RoleEnum.Admin } });
+            const adminRole = await queryRunner.manager.findOneBy(role_entity_1.Role, { name: role_enum_1.RoleEnum.Admin });
             if (!adminRole) {
                 throw new common_1.InternalServerErrorException('El rol de administrador base no está configurado.');
             }
-            const tenant = queryRunner.manager.create(tenant_entity_1.Tenant, { name: tenantName });
+            const tenant = queryRunner.manager.create(tenant_entity_1.Tenant, {
+                name: tenantName,
+                status: tenant_entity_1.TenantStatus.Inactive,
+                plan: null,
+            });
             await queryRunner.manager.save(tenant);
-            const verificationToken = crypto.randomBytes(32).toString('hex');
+            const defaultLocation = queryRunner.manager.create(location_entity_1.Location, {
+                name: 'Sucursal Principal',
+                address: 'Dirección por definir',
+                tenantId: tenant.id,
+                isActive: true,
+            });
+            await queryRunner.manager.save(defaultLocation);
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = queryRunner.manager.create(user_entity_1.User, {
                 fullName,
@@ -201,16 +225,19 @@ let AuthService = AuthService_1 = class AuthService {
                 password: hashedPassword,
                 role: adminRole,
                 tenant: tenant,
-                verificationToken,
+                locationId: defaultLocation.id,
                 status: user_entity_1.UserStatus.PendingVerification,
             });
             await queryRunner.manager.save(user);
+            const payload = { sub: user.id, type: 'email-verification' };
+            const verificationToken = this.jwtService.sign(payload, { expiresIn: '24h' });
             await queryRunner.commitTransaction();
             await this.sendVerificationEmail(user, verificationToken);
             return { message: 'Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.' };
         }
         catch (err) {
             await queryRunner.rollbackTransaction();
+            this.logger.error(`Failed to register user: ${err.message}`, err.stack);
             if (err instanceof common_1.ConflictException)
                 throw err;
             throw new common_1.InternalServerErrorException('No se pudo completar el registro.');
@@ -220,14 +247,45 @@ let AuthService = AuthService_1 = class AuthService {
         }
     }
     async verifyEmail(token) {
-        const user = await this.usersRepository.findOne({ where: { verificationToken: token } });
-        if (!user) {
-            throw new common_1.NotFoundException('Token de verificación no válido o ya utilizado.');
+        try {
+            const payload = this.jwtService.verify(token);
+            if (payload.type !== 'email-verification' || !payload.sub) {
+                throw new common_1.UnauthorizedException('El token es inválido o no es para esta acción.');
+            }
+            const userId = payload.sub;
+            const user = await this.usersRepository.findOne({
+                where: { id: userId },
+                relations: ['tenant', 'location'],
+            });
+            if (!user) {
+                throw new common_1.NotFoundException('Token de verificación no válido o ya utilizado.');
+            }
+            if (user.status === user_entity_1.UserStatus.Active) {
+                throw new common_1.BadRequestException('Esta cuenta ya ha sido verificada.');
+            }
+            user.status = user_entity_1.UserStatus.Active;
+            if (user.tenant && user.tenant.status === tenant_entity_1.TenantStatus.Inactive) {
+                user.tenant.status = tenant_entity_1.TenantStatus.Trial;
+                user.tenant.plan = tenant_entity_1.TenantPlan.Trial;
+                await this.dataSource.getRepository(tenant_entity_1.Tenant).save(user.tenant);
+                this.logger.log(`Tenant ${user.tenant.name} activado por registro público. Generando licencia de prueba.`);
+                const trialDurationDays = 30;
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + trialDurationDays);
+                await this.licensingService.generateLicense(user.tenant, 5, 1, expiresAt);
+            }
+            await this.usersRepository.save(user);
+            return user;
         }
-        user.status = user_entity_1.UserStatus.Active;
-        user.verificationToken = null;
-        await this.usersRepository.save(user);
-        return user;
+        catch (error) {
+            if (error instanceof common_1.BadRequestException)
+                throw error;
+            if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+                throw new common_1.UnauthorizedException('El token de verificación es inválido o ha expirado.');
+            }
+            this.logger.error('Error en verifyEmail', error.stack);
+            throw new common_1.InternalServerErrorException('Ocurrió un error al verificar el correo.');
+        }
     }
     async requestPasswordReset(email) {
         const user = await this.usersRepository.findOneBy({ email });
@@ -240,13 +298,8 @@ let AuthService = AuthService_1 = class AuthService {
             await this.sendInactiveAccountPasswordResetAttemptEmail(user);
             return;
         }
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        user.passwordResetToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex');
-        user.passwordResetExpires = new Date(Date.now() + 3600000);
-        await this.usersRepository.save(user);
+        const payload = { sub: user.id, type: 'password-reset' };
+        const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
         const resetUrl = `${this.getFrontendUrl()}/reset-password?token=${resetToken}`;
         try {
             const { transporter, from } = await this.createTransporter();
@@ -268,21 +321,34 @@ let AuthService = AuthService_1 = class AuthService {
         }
     }
     async resetPassword(token, newPassword) {
-        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-        const user = await this.usersRepository.findOne({
-            where: {
-                passwordResetToken: hashedToken,
-            },
-        });
-        if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
-            throw new common_1.UnauthorizedException('El token es inválido o ha expirado.');
+        if (!token || !newPassword) {
+            throw new common_1.BadRequestException('El token y la nueva contraseña son requeridos.');
         }
-        user.password = await bcrypt.hash(newPassword, 10);
-        user.passwordResetToken = null;
-        user.passwordResetExpires = null;
-        await this.usersRepository.save(user);
-        delete user.password;
-        return user;
+        try {
+            const payload = this.jwtService.verify(token);
+            if (payload.type !== 'password-reset' || !payload.sub) {
+                throw new common_1.UnauthorizedException('El token es inválido o no es para esta acción.');
+            }
+            const userId = payload.sub;
+            const user = await this.usersRepository.findOneBy({ id: userId });
+            if (!user || user.status !== user_entity_1.UserStatus.Active) {
+                throw new common_1.UnauthorizedException('El token es inválido o la cuenta no está activa.');
+            }
+            user.password = await bcrypt.hash(newPassword, 10);
+            await this.usersRepository.save(user);
+            delete user.password;
+            return user;
+        }
+        catch (error) {
+            if (error instanceof common_1.UnauthorizedException || error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+                throw new common_1.UnauthorizedException('El token es inválido o ha expirado.');
+            }
+            this.logger.error('Error en resetPassword', error.stack);
+            throw new common_1.InternalServerErrorException('Ocurrió un error al restablecer la contraseña.');
+        }
     }
     async switchLocation(userId, locationId) {
         const user = await this.usersRepository.findOne({
@@ -299,7 +365,7 @@ let AuthService = AuthService_1 = class AuthService {
         if (!location) {
             throw new common_1.ForbiddenException('No tienes permiso para acceder a esta sucursal.');
         }
-        const permissions = user.role.permissions?.map((p) => p.name) || [];
+        const permissions = user.role.permissions?.map((p) => `${p.action}:${p.subject}`) || [];
         const payload = {
             email: user.email,
             sub: user.id,
@@ -326,13 +392,8 @@ let AuthService = AuthService_1 = class AuthService {
         };
     }
     async sendAccountSetupEmail(user) {
-        const setupToken = crypto.randomBytes(32).toString('hex');
-        user.accountSetupToken = crypto
-            .createHash('sha256')
-            .update(setupToken)
-            .digest('hex');
-        user.accountSetupTokenExpires = new Date(Date.now() + 24 * 3600 * 1000);
-        await this.usersRepository.save(user);
+        const payload = { sub: user.id, type: 'account-setup' };
+        const setupToken = this.jwtService.sign(payload, { expiresIn: '24h' });
         const setupUrl = `${this.getFrontendUrl()}/setup-account?token=${setupToken}`;
         try {
             const { transporter, from } = await this.createTransporter();
@@ -363,18 +424,18 @@ let AuthService = AuthService_1 = class AuthService {
         if (!token || !password) {
             throw new common_1.BadRequestException('El token y la contraseña son requeridos.');
         }
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
         try {
-            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-            const user = await queryRunner.manager.findOne(user_entity_1.User, {
-                where: {
-                    accountSetupToken: hashedToken,
-                },
-                relations: ['role', 'role.permissions', 'tenant'],
+            const payload = this.jwtService.verify(token);
+            if (payload.type !== 'account-setup' || !payload.sub) {
+                throw new common_1.UnauthorizedException('El token es inválido o no es para esta acción.');
+            }
+            const userId = payload.sub;
+            this.logger.log(`Iniciando setupAccount para userId: ${userId}. Cargando usuario con todas las relaciones...`);
+            const user = await this.usersRepository.findOne({
+                where: { id: userId },
+                relations: ['role', 'role.permissions', 'tenant', 'location'],
             });
-            if (!user || !user.accountSetupTokenExpires || user.accountSetupTokenExpires < new Date()) {
+            if (!user) {
                 throw new common_1.UnauthorizedException('El token es inválido o ha expirado.');
             }
             if (user.status !== user_entity_1.UserStatus.PendingVerification) {
@@ -382,22 +443,28 @@ let AuthService = AuthService_1 = class AuthService {
             }
             user.password = await bcrypt.hash(password, 10);
             user.status = user_entity_1.UserStatus.Active;
-            user.accountSetupToken = null;
-            user.accountSetupTokenExpires = null;
-            await queryRunner.manager.save(user);
-            await queryRunner.commitTransaction();
+            if (user.tenant && user.tenant.status === tenant_entity_1.TenantStatus.Inactive) {
+                user.tenant.status = tenant_entity_1.TenantStatus.Trial;
+                user.tenant.plan = tenant_entity_1.TenantPlan.Trial;
+                await this.dataSource.getRepository(tenant_entity_1.Tenant).save(user.tenant);
+                this.logger.log(`Tenant ${user.tenant.name} activado. Generando licencia de prueba.`);
+                const trialDurationDays = 30;
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + trialDurationDays);
+                await this.licensingService.generateLicense(user.tenant, 5, 1, expiresAt);
+            }
+            await this.usersRepository.save(user);
             return this.login(user);
         }
         catch (error) {
-            await queryRunner.rollbackTransaction();
             if (error instanceof common_1.UnauthorizedException || error instanceof common_1.BadRequestException) {
                 throw error;
             }
+            if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+                throw new common_1.UnauthorizedException('El token es inválido o ha expirado.');
+            }
             this.logger.error('Error en setupAccount', error.stack);
             throw new common_1.InternalServerErrorException('Ocurrió un error al configurar la cuenta.');
-        }
-        finally {
-            await queryRunner.release();
         }
     }
     async resendInvitation(userId) {
@@ -420,6 +487,7 @@ exports.AuthService = AuthService = AuthService_1 = __decorate([
         typeorm_2.DataSource,
         jwt_1.JwtService,
         config_1.ConfigService,
-        settings_service_1.SettingsService])
+        settings_service_1.SettingsService,
+        licensing_service_1.LicensingService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

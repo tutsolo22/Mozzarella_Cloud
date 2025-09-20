@@ -25,6 +25,49 @@ sequenceDiagram
     AuthService-->>-AuthController: Devuelve { access_token: '...' }
     AuthController-->>-Client: Responde con el token JWT
 ```
+
+## Flujos de Activación y Creación de Tenants
+
+Esta sección detalla la lógica detrás de la creación de nuevos tenants y la activación de cuentas de usuario, un proceso crítico que ha sido refactorizado para ser más robusto y fiable.
+
+### 1. Cambio a Tokens "Stateless" (JWT)
+
+Anteriormente, el sistema utilizaba tokens temporales que se guardaban en la base de datos para acciones como la activación de una cuenta o el reseteo de contraseña. Este enfoque (stateful) presentaba un problema: si el sistema generaba un nuevo token y lo guardaba, pero fallaba al enviar el correo electrónico, el usuario quedaba con un enlace antiguo que ya no era válido, resultando en un error de "token inválido".
+
+**Solución Implementada:**
+
+El sistema ahora utiliza **tokens "stateless" (sin estado)**, implementados con JSON Web Tokens (JWT).
+
+-   **Generación**: Cuando se necesita una acción (ej. activar cuenta), se genera un JWT que contiene la información necesaria (como el `userId` y el tipo de acción) y una fecha de expiración.
+-   **Envío**: Este token se envía al usuario por correo.
+-   **Validación**: El backend solo necesita verificar la firma y la validez del JWT para autorizar la acción, sin necesidad de consultar o modificar un token en la base de datos.
+
+Este cambio, implementado principalmente en `backend/src/auth/auth.service.ts`, elimina la desincronización entre la base de datos y el correo enviado, haciendo el proceso mucho más robusto.
+
+### 2. Doble Flujo de Creación de Tenants
+
+Es fundamental entender que en Mozzarella Cloud existen **dos flujos distintos** para crear un nuevo negocio (tenant).
+
+1.  **Flujo de Registro Público**: Un usuario se registra por su cuenta a través de un formulario público.
+    -   **Archivo responsable**: `backend/src/auth/auth.service.ts` (método `register`).
+
+2.  **Flujo de Creación desde Super Admin**: El Super Administrador da de alta un nuevo tenant y su primer usuario administrador desde su panel de control.
+    -   **Archivo responsable**: `backend/src/super-admin/super-admin.service.ts` (método `create`).
+
+> **Nota Importante para Desarrolladores**: Cualquier modificación en la lógica de creación de un tenant (como añadir valores por defecto, cambiar estados iniciales, etc.) **debe ser implementada en ambos archivos** (`auth.service.ts` y `super-admin.service.ts`) para mantener la consistencia en todo el sistema.
+
+### 3. Creación de Sucursal por Defecto
+
+**Problema Anterior**: Al crear un nuevo tenant, no se creaba ninguna sucursal por defecto. Esto causaba que el administrador del nuevo tenant viera una página en blanco al iniciar sesión, ya que el dashboard requiere que exista al menos una sucursal para funcionar.
+
+**Solución Implementada**:
+
+Ahora, durante la creación de un tenant (en ambos flujos mencionados anteriormente), el sistema realiza dos acciones adicionales:
+1.  Crea automáticamente una sucursal por defecto llamada **"Sucursal Principal"**.
+2.  Asigna el primer usuario administrador a esta nueva sucursal.
+
+Esto garantiza que cada nuevo negocio tenga una configuración inicial funcional, eliminando la página en blanco y mejorando la experiencia de incorporación del cliente.
+
 ### Payload del Token
 
 Una vez que el `AuthService` valida al usuario, crea un "payload" (carga útil) con información esencial y lo firma para generar el `access_token`. Este payload es lo que se recupera en las rutas protegidas.

@@ -14,6 +14,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { Public } from './decorators/public.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Roles } from './decorators/roles.decorator';
 import { RoleEnum } from '../roles/enums/role.enum';
@@ -28,6 +29,7 @@ export class AuthController {
     private configService: ConfigService,
   ) {}
 
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req, @Body() _loginDto: LoginDto) {
@@ -36,11 +38,13 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
+  @Public()
   @Post('request-password-reset')
   @HttpCode(HttpStatus.OK)
   async requestPasswordReset(@Body() body: { email: string }) {
@@ -53,6 +57,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: { token: string; password: string }) {
@@ -60,6 +65,7 @@ export class AuthController {
     return { message: 'Contraseña actualizada con éxito.' };
   }
 
+  @Public()
   @Post('setup-account')
   @HttpCode(HttpStatus.OK)
   async setupAccount(@Body() setupAccountDto: SetupAccountDto) {
