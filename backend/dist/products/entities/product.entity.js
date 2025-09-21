@@ -104,6 +104,18 @@ __decorate([
     __metadata("design:type", Array)
 ], Product.prototype, "recipeItems", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 10, nullable: true, comment: 'Clave de Producto o Servicio del catálogo del SAT' }),
+    __metadata("design:type", String)
+], Product.prototype, "satProductKey", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 5, nullable: true, comment: 'Clave de Unidad de Medida del catálogo del SAT' }),
+    __metadata("design:type", String)
+], Product.prototype, "satUnitKey", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true, comment: 'Indica si el producto causa impuestos (IVA)' }),
+    __metadata("design:type", Boolean)
+], Product.prototype, "isTaxable", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Product.prototype, "createdAt", void 0);

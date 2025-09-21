@@ -265,6 +265,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], Order.prototype, "generateShortId", null);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'boolean', default: false, comment: 'Indica si la orden ya fue facturada.' }),
+    __metadata("design:type", Boolean)
+], Order.prototype, "isBilled", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true, comment: 'URL de la factura generada.' }),
+    __metadata("design:type", String)
+], Order.prototype, "invoiceUrl", void 0);
 exports.Order = Order = __decorate([
     (0, typeorm_1.Entity)('orders')
 ], Order);

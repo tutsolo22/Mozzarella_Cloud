@@ -70,13 +70,21 @@ export default class RoleSeeder implements Seeder {
     ];
 
     for (const roleData of rolesToSeed) {
-      const existingRole = await roleRepository.findOne({ where: { name: roleData.name } });
-      if (!existingRole) {
-        const newRole = roleRepository.create(roleData);
-        await roleRepository.save(newRole);
+      // Buscar si el rol ya existe para obtener su ID
+      let role = await roleRepository.findOne({ where: { name: roleData.name } });
+
+      if (!role) {
+        // Si no existe, creamos una nueva entidad
+        console.log(`Creating role: ${roleData.name}`);
+        role = roleRepository.create({ name: roleData.name });
       }
+
+      // Asignar (o reasignar) los permisos correctos y guardar.
+      // El método .save() se encarga de hacer un INSERT si es nuevo o un UPDATE si ya existe.
+      role.permissions = roleData.permissions.filter(Boolean);
+      await roleRepository.save(role);
     }
 
-    console.log('✅ Roles seeded successfully');
+    console.log('✅ Roles and permissions associations updated successfully');
   }
 }

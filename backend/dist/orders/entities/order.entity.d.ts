@@ -50,4 +50,6 @@ export declare class Order {
     createdAt: Date;
     updatedAt: Date;
     generateShortId(): void;
+    isBilled: boolean;
+    invoiceUrl?: string;
 }

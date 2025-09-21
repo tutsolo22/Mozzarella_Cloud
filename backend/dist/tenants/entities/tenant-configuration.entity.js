@@ -24,47 +24,102 @@ __decorate([
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "tenantId", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => tenant_entity_1.Tenant, (tenant) => tenant.configuration, {
-        onDelete: 'CASCADE',
-    }),
+    (0, typeorm_1.OneToOne)(() => tenant_entity_1.Tenant, tenant => tenant.configuration),
     (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
     __metadata("design:type", tenant_entity_1.Tenant)
 ], TenantConfiguration.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
-    __metadata("design:type", Object)
-], TenantConfiguration.prototype, "deliveryArea", void 0);
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "slogan", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "contactPhone", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "fiscalAddress", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "logoUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "logoDarkUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "faviconUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 13, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "rfc", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "businessName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "taxRegime", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "facebookUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "instagramUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "tiktokUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 45, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "primaryPrinterIp", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 45, nullable: true }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "secondaryPrinterIp", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "kdsNotificationSoundUrl", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
+    (0, typeorm_1.Column)({ type: 'double precision', nullable: true }),
     __metadata("design:type", Number)
 ], TenantConfiguration.prototype, "restaurantLatitude", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 7, nullable: true }),
+    (0, typeorm_1.Column)({ type: 'double precision', nullable: true }),
     __metadata("design:type", Number)
 ], TenantConfiguration.prototype, "restaurantLongitude", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true, comment: 'API Key for route optimization services' }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "directionsApiKey", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true, comment: 'API Key for geocoding services' }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "openCageApiKey", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true, select: false }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true, comment: 'Access Token for Mercado Pago' }),
     __metadata("design:type", String)
 ], TenantConfiguration.prototype, "mercadoPagoAccessToken", void 0);
 __decorate([
-    (0, typeorm_1.Column)({
-        type: 'simple-array',
-        nullable: true,
-    }),
+    (0, typeorm_1.Column)({ type: 'simple-array', nullable: true, comment: 'List of enabled payment methods' }),
     __metadata("design:type", Array)
 ], TenantConfiguration.prototype, "enabledPaymentMethods", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'geography', spatialFeatureType: 'Polygon', srid: 4326, nullable: true, comment: 'Área de entrega a nivel de tenant (fallback)' }),
+    __metadata("design:type", Object)
+], TenantConfiguration.prototype, "deliveryArea", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true, comment: 'URL de la aplicación de facturación para que el usuario acceda.' }),
+    __metadata("design:type", String)
+], TenantConfiguration.prototype, "invoicingAppUrl", void 0);
 exports.TenantConfiguration = TenantConfiguration = __decorate([
     (0, typeorm_1.Entity)('tenant_configurations')
 ], TenantConfiguration);

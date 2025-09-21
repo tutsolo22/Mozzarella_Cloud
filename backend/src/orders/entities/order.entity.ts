@@ -228,4 +228,10 @@ export class Order {
     );
     this.shortId = nanoid().replace(/(\w{4})/, '$1-');
   }
+  // --- Nuevos Campos para Integración de Facturación ---
+  @Column({ type: 'boolean', default: false, comment: 'Indica si la orden ya fue facturada.' })
+  isBilled: boolean;
+
+  @Column({ type: 'varchar', length: 512, nullable: true, comment: 'URL de la factura generada.' })
+  invoiceUrl?: string;
 }

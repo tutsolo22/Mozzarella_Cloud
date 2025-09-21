@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "vite-env.d.ts", "../backend/src/licenses/dto/generate-license.dto.ts", "../backend/src/settings/dto/update-smtp-setting.dto.ts", "../backend/src/settings/settings.service.ts", "../backend/src/settings/settings.module.ts", "../backend/src/settings/settings.controller.ts", "../backend/src/logs"]
+  "include": ["src", "vite-env.d.ts", "../backend/src/licenses/dto/generate-license.dto.ts", "../backend/src/settings/dto/update-smtp-setting.dto.ts", "../backend/src/settings/settings.service.ts", "../backend/src/settings/settings.module.ts", "../backend/src/settings/settings.controller.ts", "../backend/src/logs", "../backend/src/common/encryption/encryption.module.ts", "../backend/src/api-keys/entities/api-keys.service.ts", "../backend/src/api-keys/api-keys.module.ts", "../backend/src/api-keys/entities/api-key.entity.ts", "../backend/src/webhooks/webhooks.module.ts", "../backend/src/webhooks/guards/webhook-signature.guard.ts"]
 }

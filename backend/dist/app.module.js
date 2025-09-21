@@ -41,6 +41,8 @@ const tasks_module_1 = require("./tasks/tasks.module");
 const tenants_module_1 = require("./tenants/tenants.module");
 const users_module_1 = require("./users/users.module");
 const whatsapp_integration_module_1 = require("./whatsapp-integration/whatsapp-integration.module");
+const api_keys_module_1 = require("./api-keys/api-keys.module");
+const webhooks_module_1 = require("./webhooks/webhooks.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -61,7 +63,7 @@ exports.AppModule = AppModule = __decorate([
                     password: configService.get('POSTGRES_PASSWORD'),
                     database: configService.get('POSTGRES_DB'),
                     autoLoadEntities: true,
-                    synchronize: true,
+                    synchronize: false,
                 }),
             }),
             schedule_1.ScheduleModule.forRoot(),
@@ -93,6 +95,8 @@ exports.AppModule = AppModule = __decorate([
             tenants_module_1.TenantsModule,
             users_module_1.UsersModule,
             whatsapp_integration_module_1.WhatsappIntegrationModule,
+            api_keys_module_1.ApiKeysModule,
+            webhooks_module_1.WebhooksModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

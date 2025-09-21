@@ -1,25 +1,23 @@
 import {
   IsArray,
   IsEnum,
-  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   ValidateNested,
   IsNumber,
-  IsDefined
+  IsPositive,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderType, PaymentMethod } from '../enums/order-types.enum';
 import { OrderChannel } from '../enums/order-channel.enum';
 
-
-class OrderItemDto {
+export class CreateOrderItemDto {
   @IsUUID()
   productId: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsPositive()
   quantity: number;
 
   @IsOptional()
@@ -38,20 +36,16 @@ export class CreateOrderDto {
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
 
-  @IsEnum(OrderChannel)
-  @IsDefined()
-  channel: OrderChannel;
-
   @IsOptional()
   @IsString()
   deliveryAddress?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => OrderItemDto)
-  items: OrderItemDto[];
+  @Type(() => CreateOrderItemDto)
+  items: CreateOrderItemDto[];
 
   @IsOptional()
-  @IsNumber()
-  deliveryFee?: number;
+  @IsEnum(OrderChannel)
+  channel?: OrderChannel;
 }

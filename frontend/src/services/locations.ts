@@ -1,28 +1,25 @@
 import api from '../api/axiosClient';
-import { Location } from '../types/location';
-
-export interface CreateLocationDto {
-  name: string;
-  address: string;
-  phone?: string;
-}
-
-export type UpdateLocationDto = Partial<CreateLocationDto>;
+import { Location, CreateLocationDto, UpdateLocationDto } from '../types/location';
 
 /**
  * Obtiene las sucursales a las que el usuario autenticado tiene acceso.
  */
-export const getMyLocations = (): Promise<Location[]> => {
-  return api.get('/locations?includeInactive=true');
+export const getLocations = async (includeInactive = false): Promise<Location[]> => {
+  // FIX: Se añade await y se devuelve .data para asegurar que siempre se retorne un array.
+  // Este era el origen del error de la página en blanco.
+  const response = await api.get<Location[]>('/locations', {
+    params: { includeInactive },
+  });
+  return response.data;
 };
 
 export const createLocation = async (data: CreateLocationDto): Promise<Location> => {
-  const response = await api.post('/locations', data);
+  const response = await api.post<Location>('/locations', data);
   return response.data;
 };
 
 export const updateLocation = async (id: string, data: UpdateLocationDto): Promise<Location> => {
-  const response = await api.patch(`/locations/${id}`, data);
+  const response = await api.patch<Location>(`/locations/${id}`, data);
   return response.data;
 };
 
@@ -31,5 +28,6 @@ export const disableLocation = async (id: string): Promise<void> => {
 };
 
 export const enableLocation = async (id: string): Promise<void> => {
-  await api.patch(`/locations/${id}/restore`);
+  // FIX: El endpoint correcto es /enable, no /restore.
+  await api.patch(`/locations/${id}/enable`);
 };

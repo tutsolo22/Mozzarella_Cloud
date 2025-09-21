@@ -1,5 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+// Cargar .env y permitir que sobreescriba las variables de entorno existentes.
+// Esto es crucial para entornos como GitHub Codespaces que pre-configuran variables de BD.
+import { config } from 'dotenv';
+config({ path: `.env.${process.env.NODE_ENV || 'development'}`, override: true });
+config({ override: true }); // Fallback a .env
+
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { join } from 'path';

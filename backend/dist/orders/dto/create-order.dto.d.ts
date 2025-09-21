@@ -1,6 +1,6 @@
 import { OrderType, PaymentMethod } from '../enums/order-types.enum';
 import { OrderChannel } from '../enums/order-channel.enum';
-declare class OrderItemDto {
+export declare class CreateOrderItemDto {
     productId: string;
     quantity: number;
     notes?: string;
@@ -9,9 +9,7 @@ export declare class CreateOrderDto {
     customerId?: string;
     orderType: OrderType;
     paymentMethod: PaymentMethod;
-    channel: OrderChannel;
     deliveryAddress?: string;
-    items: OrderItemDto[];
-    deliveryFee?: number;
+    items: CreateOrderItemDto[];
+    channel?: OrderChannel;
 }
-export {};

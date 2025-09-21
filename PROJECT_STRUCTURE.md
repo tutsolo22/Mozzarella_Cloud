@@ -16,6 +16,9 @@ Mozzarella_Cloud/ ├── .git/ ├── backend/ # Aplicación de la API con
 *   **`backend/`**
     *   Es un proyecto independiente de **NestJS** que funciona como nuestra API principal.
     *   Gestiona toda la lógica de negocio, la autenticación, y la comunicación con la base de datos.
+    *   **Módulos Notables**:
+        *   `ApiKeysModule`: Gestiona de forma segura (con cifrado) las credenciales para conectarse a APIs externas.
+        *   `WebhooksModule`: Proporciona endpoints seguros para recibir notificaciones de servicios externos, validando las peticiones con firmas HMAC.
 
 *   **`frontend/`**
     *   Es un proyecto independiente de **React** (usando Vite y TypeScript).

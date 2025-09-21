@@ -34,6 +34,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { UsersModule } from './users/users.module';
 import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integration.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -51,7 +53,7 @@ import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integ
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
         autoLoadEntities: true, // Carga automáticamente las entidades
-        synchronize: true, // ¡Solo para desarrollo! Sincroniza el esquema de la BD.
+        synchronize: false, // Se deshabilita para usar migraciones de forma controlada.
       }),
     }),
     ScheduleModule.forRoot(),
@@ -83,6 +85,8 @@ import { WhatsappIntegrationModule } from './whatsapp-integration/whatsapp-integ
     TenantsModule,
     UsersModule,
     WhatsappIntegrationModule,
+    ApiKeysModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

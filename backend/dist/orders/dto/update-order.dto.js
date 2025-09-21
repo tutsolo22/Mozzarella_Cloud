@@ -10,10 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateOrderDto = void 0;
+const mapped_types_1 = require("@nestjs/mapped-types");
+const create_order_dto_1 = require("./create-order.dto");
 const class_validator_1 = require("class-validator");
 const order_status_enum_1 = require("../enums/order-status.enum");
 const order_types_enum_1 = require("../enums/order-types.enum");
-class UpdateOrderDto {
+class UpdateOrderDto extends (0, mapped_types_1.PartialType)(create_order_dto_1.CreateOrderDto) {
 }
 exports.UpdateOrderDto = UpdateOrderDto;
 __decorate([
@@ -23,14 +25,19 @@ __decorate([
 ], UpdateOrderDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateOrderDto.prototype, "assignedDriverId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(order_types_enum_1.PaymentStatus),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "paymentStatus", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdateOrderDto.prototype, "assignedDriverId", void 0);
+], UpdateOrderDto.prototype, "paymentGatewayId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUrl)(),
@@ -38,7 +45,12 @@ __decorate([
 ], UpdateOrderDto.prototype, "paymentLink", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateOrderDto.prototype, "isBilled", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
-], UpdateOrderDto.prototype, "paymentGatewayId", void 0);
+], UpdateOrderDto.prototype, "invoiceUrl", void 0);
 //# sourceMappingURL=update-order.dto.js.map

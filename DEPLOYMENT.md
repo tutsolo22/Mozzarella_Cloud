@@ -47,6 +47,9 @@ Es crucial configurar las variables de entorno para el entorno de producción. N
     # Secreto para firmar los tokens JWT (¡usa un valor largo y aleatorio!)
     JWT_SECRET="a_v3ry_l0ng_and_s3cur3_r4nd0m_jwt_s3cr3t_f0r_pr0duct10n_!@#$"
 
+    # Clave para cifrar datos sensibles (API Keys). DEBE ser de 32 caracteres.
+    ENCRYPTION_KEY="una_clave_secreta_de_32_caracteres_aqui"
+
     # URL pública de la API (la que usará el frontend)
     API_URL="https://api.tudominio.com"
 

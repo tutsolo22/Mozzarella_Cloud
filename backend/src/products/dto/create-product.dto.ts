@@ -29,4 +29,16 @@ export class CreateProductDto {
   @IsUrl()
   @IsOptional()
   imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  satProductKey?: string;
+
+  @IsString()
+  @IsOptional()
+  satUnitKey?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isTaxable?: boolean;
 }

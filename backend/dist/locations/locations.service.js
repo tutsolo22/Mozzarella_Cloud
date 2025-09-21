@@ -35,6 +35,7 @@ let LocationsService = class LocationsService {
         return this.locationRepository.find({
             where: { tenantId },
             withDeleted: includeInactive,
+            order: { name: 'ASC' },
         });
     }
     async findOne(id, tenantId) {

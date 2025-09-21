@@ -6,4 +6,7 @@ export declare class CreateProductDto {
     preparationZoneId?: string;
     isAvailable?: boolean;
     imageUrl?: string;
+    satProductKey?: string;
+    satUnitKey?: string;
+    isTaxable?: boolean;
 }

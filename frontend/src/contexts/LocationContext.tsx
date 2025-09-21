@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { Location } from '../types/location';
-import { getMyLocations } from '../services/locations';
+import { getLocations } from '../services/locations';
 import { useAuth } from './AuthContext';
 import { message } from 'antd';
 
@@ -9,6 +9,7 @@ interface LocationContextType {
   currentLocationId: string | null;
   switchLocation: (locationId: string) => Promise<void>;
   loading: boolean;
+  refreshLocations: () => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -18,6 +19,21 @@ export const LocationProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [currentLocationId, setCurrentLocationId] = useState<string | null>(user?.locationId || null);
   const [loading, setLoading] = useState(true);
+
+  const refreshLocations = useCallback(async () => {
+    if (user && (user.role.name === 'admin' || user.role.name === 'super_admin')) {
+      try {
+        const locations = await getLocations(true);
+        setAvailableLocations(Array.isArray(locations) ? locations : []);
+      } catch (error) {
+        message.error('No se pudieron recargar las sucursales.');
+        console.error(error);
+      }
+    } else if (user?.location) {
+      // For non-admins, their available locations list is just their own location
+      setAvailableLocations([user.location]);
+    }
+  }, [user]);
 
   const switchLocation = useCallback(async (locationId: string) => {
     try {
@@ -36,7 +52,7 @@ export const LocationProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (user && (user.role.name === 'admin' || user.role.name === 'super_admin')) {
       setLoading(true);
-      getMyLocations()
+      getLocations(true)
         .then(locations => {
           if (isMounted) {
             // Asegurarnos de que siempre sea un array para evitar errores.
@@ -71,7 +87,7 @@ export const LocationProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [user, switchLocation]);
 
   return (
-    <LocationContext.Provider value={{ availableLocations, currentLocationId, switchLocation, loading }}>
+    <LocationContext.Provider value={{ availableLocations, currentLocationId, switchLocation, loading, refreshLocations }}>
       {children}
     </LocationContext.Provider>
   );

@@ -35,6 +35,7 @@ export class LocationsService {
     return this.locationRepository.find({
       where: { tenantId },
       withDeleted: includeInactive,
+      order: { name: 'ASC' }, // Buena práctica para un orden consistente
     });
   }
 

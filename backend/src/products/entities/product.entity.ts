@@ -83,6 +83,18 @@ export class Product {
   @OneToMany(() => RecipeItem, (item) => item.product)
   recipeItems: RecipeItem[];
 
+  // --- Nuevos Campos para Facturación (SAT) ---
+
+  @Column({ type: 'varchar', length: 10, nullable: true, comment: 'Clave de Producto o Servicio del catálogo del SAT' })
+  satProductKey?: string;
+
+  @Column({ type: 'varchar', length: 5, nullable: true, comment: 'Clave de Unidad de Medida del catálogo del SAT' })
+  satUnitKey?: string;
+
+  @Column({ default: true, comment: 'Indica si el producto causa impuestos (IVA)' })
+  isTaxable: boolean;
+
+  // --- Fin de Nuevos Campos ---
   @CreateDateColumn()
   createdAt: Date;
 

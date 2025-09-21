@@ -63,13 +63,15 @@ class RoleSeeder {
             { name: role_enum_1.RoleEnum.Customer, permissions: [] },
         ];
         for (const roleData of rolesToSeed) {
-            const existingRole = await roleRepository.findOne({ where: { name: roleData.name } });
-            if (!existingRole) {
-                const newRole = roleRepository.create(roleData);
-                await roleRepository.save(newRole);
+            let role = await roleRepository.findOne({ where: { name: roleData.name } });
+            if (!role) {
+                console.log(`Creating role: ${roleData.name}`);
+                role = roleRepository.create({ name: roleData.name });
             }
+            role.permissions = roleData.permissions.filter(Boolean);
+            await roleRepository.save(role);
         }
-        console.log('✅ Roles seeded successfully');
+        console.log('✅ Roles and permissions associations updated successfully');
     }
 }
 exports.default = RoleSeeder;

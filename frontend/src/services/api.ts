@@ -297,6 +297,33 @@ export const updateTenantConfiguration = async (data: Partial<TenantConfiguratio
   return response.data;
 };
 
+export const uploadTenantLogo = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const uploadTenantLogoDark = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/logo-dark', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const uploadTenantFavicon = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/favicon', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 export const uploadKdsSound = async (file: File): Promise<TenantConfiguration> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -306,6 +333,24 @@ export const uploadKdsSound = async (file: File): Promise<TenantConfiguration> =
 
 export const deleteKdsSound = async (): Promise<void> => {
   await axiosClient.delete('/tenants/configuration/kds-sound');
+};
+
+export const uploadCsdCertFile = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/csd-cert', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const uploadCsdKeyFile = async (file: File): Promise<TenantConfiguration> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axiosClient.post('/tenants/configuration/csd-key', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
 };
 
 // --- Super Admin ---
@@ -379,12 +424,6 @@ export const getLogFiles = async (): Promise<string[]> => {
 
 export const getLogContent = async (fileName: string, lines: number): Promise<{ log: string }> => {
   const response = await axiosClient.get('/super-admin/logs', { params: { file: fileName, lines } });
-  return response.data;
-};
-
-// --- Locations (for user management) ---
-export const getLocations = async (): Promise<Location[]> => {
-  const response = await axiosClient.get('/locations?includeInactive=true');
   return response.data;
 };
 

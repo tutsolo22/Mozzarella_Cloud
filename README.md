@@ -49,6 +49,21 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en Keep a Changelog,
 y este proyecto se adhiere a Semantic Versioning.
 
+## [0.8.0] - 2024-05-23
+### Added
+- **Arquitectura de Integraciones Escalable**:
+  - Se implementó un nuevo `ApiKeysModule` para gestionar de forma centralizada y segura las credenciales de servicios externos (como sistemas de facturación). Las claves se almacenan encriptadas en la base de datos.
+  - Se añadió un `WebhooksModule` con un endpoint seguro (`/webhooks/invoicing`) para recibir notificaciones de sistemas externos.
+  - Se creó un `WebhookSignatureGuard` que protege los endpoints de webhooks verificando una firma HMAC-SHA256 en cada petición, garantizando la autenticidad e integridad de los datos.
+
+### Changed
+- **Refactorización Arquitectónica de Facturación**: Se eliminó la gestión directa de Certificados de Sello Digital (CSD) y contraseñas. El sistema ahora se integra con una aplicación de facturación externa, siguiendo un modelo más seguro y desacoplado.
+- **Entidad `TenantConfiguration`**: Se simplificó para eliminar los campos de CSD y solo mantener un campo `invoicingAppUrl` para enlazar al panel de la aplicación externa.
+- **Entidad `Order`**: Se añadieron los campos `isBilled` e `invoiceUrl` para rastrear el estado de facturación de un pedido a través de los webhooks.
+
+### Security
+- **Cifrado de Secretos**: Todas las claves de API para servicios de terceros ahora se cifran en la base de datos utilizando `aes-256-gcm`, con una clave maestra gestionada a través de la variable de entorno `ENCRYPTION_KEY`.
+
 ## [0.7.0] - 2024-05-22
 ### Added
 - **Gestión de Zonas de Preparación**:

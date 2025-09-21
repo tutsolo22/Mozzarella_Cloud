@@ -13,6 +13,7 @@ import {
   Col,
   Typography,
   Switch,
+  Tag,
 } from 'antd';
 import {
   PlusOutlined,
@@ -26,7 +27,7 @@ import {
   UpdateLocationDto,
 } from '../../types/location';
 import {
-  getMyLocations,
+  getLocations,
   createLocation,
   updateLocation,
   disableLocation,
@@ -48,7 +49,7 @@ const LocationsManagementPage: React.FC = () => {
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      const data = await getMyLocations(showInactive);
+      const data = await getLocations(showInactive);
       setLocations(data);
     } catch (error) {
       message.error('Error al cargar las sucursales');

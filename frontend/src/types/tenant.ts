@@ -32,4 +32,29 @@ export interface TenantConfiguration {
   deliveryArea: any; // GeoJSON Polygon
   openRouteServiceApiKey?: string | null;
   kdsNotificationSoundUrl?: string | null;
+
+  // Nuevos campos para Información General
+  slogan?: string;
+  contactPhone?: string;
+  fiscalAddress?: string;
+
+  // Nuevos campos para Branding
+  logoUrl?: string;
+  logoDarkUrl?: string;
+  faviconUrl?: string;
+
+  // Nuevos campos para Datos Fiscales
+  rfc?: string;
+  businessName?: string; // Razón Social
+  taxRegime?: string; // Régimen Fiscal
+
+  // Nuevos campos para Redes Sociales e Impresión
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  primaryPrinterIp?: string;
+  secondaryPrinterIp?: string;
+
+  // Nuevos campos para Integración de Facturación
+  invoicingAppUrl?: string;
 }

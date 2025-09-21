@@ -24,6 +24,9 @@ export declare class Product {
     preparationZone: PreparationZone;
     ingredients: ProductIngredient[];
     recipeItems: RecipeItem[];
+    satProductKey?: string;
+    satUnitKey?: string;
+    isTaxable: boolean;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
