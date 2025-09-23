@@ -1,9 +1,7 @@
 import 'reflect-metadata';
-// Cargar .env y permitir que sobreescriba las variables de entorno existentes.
-// Esto es crucial para entornos como GitHub Codespaces que pre-configuran variables de BD.
 import { config } from 'dotenv';
-config({ path: `.env.${process.env.NODE_ENV || 'development'}`, override: true });
-config({ override: true }); // Fallback a .env
+import { join } from 'path';
+config({ path: join(__dirname, '..', '..', '.env'), override: true });
 
 import PermissionSeeder from './database/seed/permissions.seeder';
 import RoleSeeder from './database/seed/roles.seeder';

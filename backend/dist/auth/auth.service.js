@@ -223,8 +223,8 @@ let AuthService = AuthService_1 = class AuthService {
                 fullName,
                 email,
                 password: hashedPassword,
-                role: adminRole,
-                tenant: tenant,
+                roleId: adminRole.id,
+                tenantId: tenant.id,
                 locationId: defaultLocation.id,
                 status: user_entity_1.UserStatus.PendingVerification,
             });
@@ -253,22 +253,31 @@ let AuthService = AuthService_1 = class AuthService {
                 throw new common_1.UnauthorizedException('El token es inválido o no es para esta acción.');
             }
             const userId = payload.sub;
-            const user = await this.usersRepository.findOne({
-                where: { id: userId },
-                relations: ['tenant', 'location'],
-            });
+            let user = await this.usersRepository.createQueryBuilder('user')
+                .leftJoinAndSelect('user.tenant', 'tenant')
+                .where('user.id = :userId', { userId })
+                .getOne();
             if (!user) {
                 throw new common_1.NotFoundException('Token de verificación no válido o ya utilizado.');
+            }
+            if (!user.tenant && user.tenantId) {
+                user.tenant = await this.dataSource.getRepository(tenant_entity_1.Tenant).findOneBy({ id: user.tenantId });
+                if (!user.tenant) {
+                    throw new common_1.InternalServerErrorException('Error de consistencia de datos: Tenant no encontrado.');
+                }
+            }
+            else if (!user.tenant && !user.tenantId) {
+                throw new common_1.InternalServerErrorException('Error de consistencia de datos: Usuario sin Tenant asignado.');
             }
             if (user.status === user_entity_1.UserStatus.Active) {
                 throw new common_1.BadRequestException('Esta cuenta ya ha sido verificada.');
             }
             user.status = user_entity_1.UserStatus.Active;
-            if (user.tenant && user.tenant.status === tenant_entity_1.TenantStatus.Inactive) {
+            if (user.tenant.status === tenant_entity_1.TenantStatus.Inactive) {
                 user.tenant.status = tenant_entity_1.TenantStatus.Trial;
                 user.tenant.plan = tenant_entity_1.TenantPlan.Trial;
                 await this.dataSource.getRepository(tenant_entity_1.Tenant).save(user.tenant);
-                this.logger.log(`Tenant ${user.tenant.name} activado por registro público. Generando licencia de prueba.`);
+                this.logger.log(`Tenant '${user.tenant.name}' activado por registro público. Generando licencia de prueba.`);
                 const trialDurationDays = 30;
                 const expiresAt = new Date();
                 expiresAt.setDate(expiresAt.getDate() + trialDurationDays);

@@ -193,15 +193,12 @@ const TenantManagementPage: React.FC = () => {
               cancelText="No"
             >
               <Button
-                type={isSuspended ? "primary" : "default"}
+                type={isSuspended ? 'primary' : 'default'}
+                danger={!isSuspended}
                 style={
-                  isSuspended
-                    ? { background: '#8B8000', borderColor: '#8B8000' }
-                    : { color: '#ffffffff', borderColor: '#ed295aff' }
+                  isSuspended ? { background: '#8B8000', borderColor: '#8B8000' } : undefined
                 }
-                icon={
-                  isSuspended ? <CheckCircleOutlined /> : <StopOutlined style={{ color: '#ed295aff' }} />
-                }
+                icon={isSuspended ? <CheckCircleOutlined /> : <StopOutlined />}
               >
                 {isSuspended ? 'Reactivar' : 'Suspender'}
               </Button>
@@ -222,10 +219,7 @@ const TenantManagementPage: React.FC = () => {
               cancelText="Cancelar"
               okButtonProps={{ danger: true }}
             >
-              <Button
-                style={{ color: '#ffffffff', borderColor: '#ed295aff' }}
-                icon={<DeleteOutlined style={{ color: '#ed295aff' }} />}
-              >
+              <Button danger icon={<DeleteOutlined />}>
                 Borrar
               </Button>
             </Popconfirm>

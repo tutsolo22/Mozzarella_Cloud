@@ -4,15 +4,15 @@ services:
     container_name: mozzarella_cloud_db
     restart: always
     environment:
-      POSTGRES_USER: codespace
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pG_sTr0nPa55w0rd_f0r_M0zz4r3ll4!
       POSTGRES_DB: mozzarella_new
-      POSTGRES_HOST_AUTH_METHOD: trust # Allow password-less connections for local development
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U codespace -d mozzarella_new"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -61,6 +61,15 @@ export const setupAccount = async (token: string, password: string): Promise<{ a
   return response.data;
 };
 
+/**
+ * Envía el token de verificación de correo al backend.
+ * @param token El token recibido en la URL.
+ * @returns Una promesa que se resuelve si la verificación es exitosa.
+ */
+export const verifyEmail = (token: string) => {
+  return axiosClient.post('/auth/verify-email', { token });
+};
+
 export const register = async (data: Record<string, any>): Promise<{ message: string }> => {
   const response = await axiosClient.post('/auth/register', data);
   return response.data;

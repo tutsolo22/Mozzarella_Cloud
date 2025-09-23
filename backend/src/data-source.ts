@@ -1,16 +1,12 @@
 import 'reflect-metadata';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
+import { join } from 'path';
 
-// Cargar variables de entorno y permitir que sobreescriban las existentes.
-// Esto es crucial para entornos como GitHub Codespaces.
-config({ path: `.env.${process.env.NODE_ENV || 'development'}`, override: true });
-config({ override: true }); // Cargar .env como fallback
+config({ path: join(__dirname, '..', '..', '.env'), override: true });
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  // Usar DATABASE_URL si está disponible, si no, construirla con las otras variables
-  url: process.env.DATABASE_URL,
   // Corregido para usar las variables del archivo .env local
   host: process.env.POSTGRES_HOST,
   port: parseInt(process.env.POSTGRES_PORT || '5432', 10),

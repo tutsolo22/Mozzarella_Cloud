@@ -13,6 +13,9 @@ const SetupAccountPage = lazy(() => import('./pages/auth/SetupAccountPage'));
 const RequestPasswordResetPage = lazy(() => import('./pages/auth/RequestPasswordResetPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
+const ActivationSuccessPage = lazy(() => import('./pages/auth/ActivationSuccessPage'));
+const ActivationFailurePage = lazy(() => import('./pages/auth/ActivationFailurePage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const KdsPage = lazy(() => import('./pages/kds/KdsPage'));
 const DispatchPage = lazy(() => import('./pages/dispatch/DispatchPage'));
@@ -100,6 +103,9 @@ const AppRoutes: React.FC = () => (
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
       <Route path="/setup-account" element={<SetupAccountPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/activation-success" element={<ActivationSuccessPage />} />
+      <Route path="/activation-failure" element={<ActivationFailurePage />} />
 
       {/* Protected routes */}
       <Route element={<PrivateRoute />}>

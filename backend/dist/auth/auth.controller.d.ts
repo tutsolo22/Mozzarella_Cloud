@@ -33,6 +33,11 @@ export declare class AuthController {
     register(registerDto: RegisterDto): Promise<{
         message: string;
     }>;
+    verifyEmail(body: {
+        token: string;
+    }): Promise<{
+        message: string;
+    }>;
     requestPasswordReset(body: {
         email: string;
     }): Promise<{

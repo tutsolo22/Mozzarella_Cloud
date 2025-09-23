@@ -88,12 +88,14 @@ export class SuperAdminService {
         const temporaryPassword = crypto.randomBytes(20).toString('hex');
         const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
+        // --- CORRECCIÓN ---
+        // Se asignan los IDs directamente para asegurar la correcta creación de las relaciones.
         const adminUser = transactionalEntityManager.create(User, {
           email: adminEmail,
           fullName: adminFullName,
           password: hashedPassword,
-          role: adminRole,
-          tenant: tenant,
+          roleId: adminRole.id,
+          tenantId: tenant.id,
           locationId: defaultLocation.id,
           status: UserStatus.PendingVerification,
         });
@@ -102,6 +104,8 @@ export class SuperAdminService {
         return { tenant, adminUser };
       });
 
+      // Enviar la invitación después de que la transacción sea exitosa
+      // Se usa resendInvitation que internamente llama a sendAccountSetupEmail
       await this.authService.resendInvitation(adminUser.id);
 
       return tenant;

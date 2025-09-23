@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 const dotenv_1 = require("dotenv");
-(0, dotenv_1.config)({ path: `.env.${process.env.NODE_ENV || 'development'}`, override: true });
-(0, dotenv_1.config)({ override: true });
+const path_1 = require("path");
+(0, dotenv_1.config)({ path: (0, path_1.join)(__dirname, '..', '..', '.env'), override: true });
 const permissions_seeder_1 = require("./database/seed/permissions.seeder");
 const roles_seeder_1 = require("./database/seed/roles.seeder");
 const core_1 = require("@nestjs/core");

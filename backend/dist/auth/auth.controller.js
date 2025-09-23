@@ -37,6 +37,12 @@ let AuthController = class AuthController {
     async register(registerDto) {
         return this.authService.register(registerDto);
     }
+    async verifyEmail(body) {
+        await this.authService.verifyEmail(body.token);
+        return {
+            message: 'Cuenta verificada con éxito. Ahora puedes iniciar sesión.',
+        };
+    }
     async requestPasswordReset(body) {
         await this.authService.requestPasswordReset(body.email);
         return {
@@ -76,6 +82,15 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('verify-email'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyEmail", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('request-password-reset'),

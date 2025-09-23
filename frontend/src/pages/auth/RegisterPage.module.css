@@ -1,0 +1,41 @@
+.registerPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #1f1f1f; /* Un fondo ligeramente más claro que el negro puro */
+  padding: 1rem;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  background: #262626;
+  border: 1px solid #daa520;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+.title {
+  text-align: center;
+  color: #daa520 !important;
+  margin-bottom: 1.5rem !important;
+  font-weight: 300;
+}
+
+/* --- LA SOLUCIÓN MEJORADA --- */
+/* Aplicamos el color a todas las etiquetas dentro del formulario */
+.formContainer label {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.footerText {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.footerLink {
+  color: #daa520;
+  font-weight: 600;
+}

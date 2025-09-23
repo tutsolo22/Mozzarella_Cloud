@@ -8,6 +8,9 @@ import {
   HttpCode,
   HttpStatus,
   Patch,
+  Query,
+  Redirect,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -42,6 +45,21 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() body: { token: string }) {
+    // Este endpoint recibe el token de verificación del frontend.
+    // Llama al servicio que activa al usuario, al tenant y genera la licencia de prueba.
+    if (!body.token) {
+      throw new BadRequestException('Falta el token de verificación.');
+    }
+    await this.authService.verifyEmail(body.token);
+    return {
+      message: 'Cuenta verificada con éxito. Ahora puedes iniciar sesión.',
+    };
   }
 
   @Public()

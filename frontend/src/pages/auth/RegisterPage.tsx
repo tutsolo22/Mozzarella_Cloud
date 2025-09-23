@@ -1,46 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  ShopOutlined,
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+} from '@ant-design/icons';
 import { register } from '../../services/api';
+import styles from './RegisterPage.module.css';
 
 const { Title } = Typography;
 
+// Definimos una interfaz para los valores del formulario para mejorar la seguridad de tipos.
+interface RegisterFormValues {
+  tenantName: string;
+  fullName: string;
+  email: string;
+  password: string;
+  confirm: string;
+}
+
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: RegisterFormValues) => {
+    // El objeto `values` del formulario incluye el campo `confirm` que solo se usa para validación en el frontend.
+    // Debemos omitirlo antes de enviarlo al backend para evitar un error de validación (400 Bad Request).
+    const { confirm, ...registerData } = values;
+    setLoading(true);
     try {
-      await register(values);
-      message.success(
-        '¡Registro exitoso! Revisa tu correo para activar tu cuenta.',
-      );
+      await register(registerData);
+      message.success('¡Registro exitoso! Revisa tu correo para activar tu cuenta.');
       navigate('/login');
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || 'Ocurrió un error durante el registro.';
       message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        background: '#333333', // Fondo oscuro de la marca
-      }}
-    >
-      <Card
-        style={{
-          width: 400,
-          background: '#262626', // Color de contenedor oscuro
-          border: '1px solid #DAA520', // Borde dorado
-          boxShadow: '0 8px 16px 0 rgba(0,0,0,0.5)',
-        }}
-      >
-        <Title level={2} style={{ textAlign: 'center', color: '#DAA520' }}>
+    <div className={styles.registerPage}>
+      <div className={styles.formContainer}>
+        <Title level={2} className={styles.title}>
           Crear Cuenta en Mozzarella Cloud
         </Title>
         <Form
@@ -48,14 +54,16 @@ const RegisterPage: React.FC = () => {
           onFinish={onFinish}
           layout="vertical"
           requiredMark="optional"
-          labelCol={{ style: { color: '#F5F5DC' } }} // Color de etiquetas para tema oscuro
         >
           <Form.Item
             name="tenantName"
             label="Nombre del Negocio"
             rules={[{ required: true, message: 'Por favor, ingresa el nombre de tu negocio.' }]}
           >
-            <Input placeholder="Ej: Pizzería Don Carlo" />
+            <Input
+              prefix={<ShopOutlined className="site-form-item-icon" />}
+              placeholder="Ej: Pizzería Don Carlo"
+            />
           </Form.Item>
 
           <Form.Item
@@ -63,36 +71,78 @@ const RegisterPage: React.FC = () => {
             label="Tu Nombre Completo"
             rules={[{ required: true, message: 'Por favor, ingresa tu nombre completo.' }]}
           >
-            <Input placeholder="Ej: Juan Pérez" />
+            <Input
+              prefix={<UserOutlined className="site-form-item-icon" />}
+              placeholder="Ej: Juan Pérez"
+            />
           </Form.Item>
 
           <Form.Item
             name="email"
             label="Correo Electrónico"
-            rules={[{ required: true, message: 'Por favor, ingresa tu correo.' }, { type: 'email', message: 'El correo no es válido.' }]}
+            rules={[
+              { required: true, message: 'Por favor, ingresa tu correo.' },
+              { type: 'email', message: 'El correo no es válido.' },
+            ]}
           >
-            <Input placeholder="tu@correo.com" />
+            <Input
+              prefix={<MailOutlined className="site-form-item-icon" />}
+              placeholder="tu@correo.com"
+            />
           </Form.Item>
 
-          <Form.Item name="password" label="Contraseña" rules={[{ required: true, message: 'Por favor, ingresa tu contraseña.' }]} hasFeedback>
-            <Input.Password />
+          <Form.Item
+            name="password"
+            label="Contraseña"
+            rules={[
+              { required: true, message: 'Por favor, ingresa tu contraseña.' },
+              { min: 8, message: 'La contraseña debe tener al menos 8 caracteres.' },
+            ]}
+            hasFeedback
+          >
+            <Input.Password
+              prefix={<LockOutlined className="site-form-item-icon" />}
+              placeholder="Contraseña"
+            />
           </Form.Item>
 
-          <Form.Item name="confirm" label="Confirmar Contraseña" dependencies={['password']} hasFeedback rules={[{ required: true, message: 'Por favor, confirma tu contraseña.' }, ({ getFieldValue }) => ({ validator(_, value) { if (!value || getFieldValue('password') === value) { return Promise.resolve(); } return Promise.reject(new Error('Las contraseñas no coinciden.')); }, })]}>
-            <Input.Password />
+          <Form.Item
+            name="confirm"
+            label="Confirmar Contraseña"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Por favor, confirma tu contraseña.' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Las contraseñas no coinciden.'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="site-form-item-icon" />}
+              placeholder="Confirmar contraseña"
+            />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={loading}>
               Crear Cuenta
             </Button>
           </Form.Item>
 
-          <div style={{ textAlign: 'center', color: '#F5F5DC' }}>
-            ¿Ya tienes una cuenta? <Link to="/login" style={{ color: '#DAA520' }}>Inicia sesión</Link>
+          <div className={styles.footerText}>
+            ¿Ya tienes una cuenta?{' '}
+            <Link to="/login" className={styles.footerLink}>
+              Inicia sesión
+            </Link>
           </div>
         </Form>
-      </Card>
+      </div>
     </div>
   );
 };

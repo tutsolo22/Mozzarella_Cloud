@@ -49,6 +49,17 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en Keep a Changelog,
 y este proyecto se adhiere a Semantic Versioning.
 
+## [0.9.0] - 2024-05-24
+### Fixed
+- **Flujo de Registro de Super Admin**: Se corrigió un error crítico en la creación de tenants desde el panel de super-administrador que impedía la correcta asignación del `tenantId` y `roleId` al usuario administrador. Esto causaba que la activación de la cuenta y la generación de la licencia de prueba fallaran.
+- **Flujo de Registro Público**: Se robusteció el proceso de verificación de correo electrónico. El enlace de activación ahora dirige a una página dedicada en el frontend que se comunica con el backend, mostrando un estado claro al usuario (éxito o fallo) y eliminando el comportamiento de "página en blanco".
+
+### Added
+- **Páginas de Estado de Activación**: Se crearon las páginas `ActivationSuccessPage`, `ActivationFailurePage` y `VerifyEmailPage` en el frontend para gestionar de forma explícita y robusta el resultado del proceso de verificación de correo.
+
+### Changed
+- **Lógica de Activación**: Se unificó la lógica de activación de licencias de prueba. Ahora, tanto el flujo de registro público como el de creación por super-admin garantizan la correcta activación del tenant y la generación de su licencia.
+
 ## [0.8.0] - 2024-05-23
 ### Added
 - **Arquitectura de Integraciones Escalable**:

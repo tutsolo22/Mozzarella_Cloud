@@ -78,8 +78,8 @@ let SuperAdminService = SuperAdminService_1 = class SuperAdminService {
                     email: adminEmail,
                     fullName: adminFullName,
                     password: hashedPassword,
-                    role: adminRole,
-                    tenant: tenant,
+                    roleId: adminRole.id,
+                    tenantId: tenant.id,
                     locationId: defaultLocation.id,
                     status: user_entity_1.UserStatus.PendingVerification,
                 });

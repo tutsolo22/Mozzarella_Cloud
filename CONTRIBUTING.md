@@ -77,21 +77,21 @@ El proyecto utiliza Docker para gestionar la base de datos PostgreSQL con PostGI
 
 ### 4. Configurar y Ejecutar el Backend (NestJS)
 
-1.  Navega a la carpeta del backend: `cd backend`.
-2.  Crea tu propio archivo de variables de entorno a partir del ejemplo:
+1.  **Configurar Variables de Entorno**: El proyecto busca un único archivo `.env` en la raíz del proyecto. Crea este archivo:
     ```bash
-    cp .env.example .env
+    cp .env.example .env # Ejecutar en la raíz del proyecto
     ```
-    Abre el archivo `.env` y asegúrate de que las variables estén configuradas correctamente para tu entorno. La más importante para que los correos electrónicos funcionen es `FRONTEND_URL`:
+    Abre el nuevo archivo `.env` y asegúrate de que las variables coincidan con tu entorno. Especialmente, si estás en un entorno como GitHub Codespaces, ajusta `FRONTEND_URL`:
 
     ```dotenv
     # ... otras variables
     # URL pública del Frontend (la que usará el backend para generar enlaces en correos)
-    FRONTEND_URL=http://localhost:5173
+    FRONTEND_URL=https://tu-url-de-codespaces-5173.app.github.dev
     # ...
     ```
-    *Si estás desarrollando en un entorno como GitHub Codespaces, asegúrate de usar la URL pública que te proporciona el entorno para el frontend.*
+    Las credenciales de la base de datos en este archivo ya están configuradas para funcionar con el `docker-compose.yml` por defecto.
 
+2.  Navega a la carpeta del backend: `cd backend`.
 3.  Instala todas las dependencias del proyecto:
     ```bash
     npm install

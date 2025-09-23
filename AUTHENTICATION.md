@@ -28,45 +28,44 @@ sequenceDiagram
 
 ## Flujos de Activación y Creación de Tenants
 
-Esta sección detalla la lógica detrás de la creación de nuevos tenants y la activación de cuentas de usuario, un proceso crítico que ha sido refactorizado para ser más robusto y fiable.
+Esta sección detalla la lógica detrás de la creación de nuevos tenants y la activación de cuentas de usuario. Es fundamental entender que en Mozzarella Cloud existen **dos flujos distintos** para crear un nuevo negocio (tenant), y ambos culminan en la activación de una licencia de prueba.
 
-### 1. Cambio a Tokens "Stateless" (JWT)
+### 1. Flujo de Registro Público (Autoservicio)
 
-Anteriormente, el sistema utilizaba tokens temporales que se guardaban en la base de datos para acciones como la activación de una cuenta o el reseteo de contraseña. Este enfoque (stateful) presentaba un problema: si el sistema generaba un nuevo token y lo guardaba, pero fallaba al enviar el correo electrónico, el usuario quedaba con un enlace antiguo que ya no era válido, resultando en un error de "token inválido".
+Un usuario se registra por su cuenta a través de un formulario público. Este proceso se divide en dos fases:
 
-**Solución Implementada:**
+1.  **Registro (`register` en `auth.service.ts`)**:
+    -   Se crea un `Tenant` con estado `inactive`.
+    -   Se crea una `Location` por defecto ("Sucursal Principal").
+    -   Se crea un `User` con el rol `admin`, se le asigna el nuevo tenant y la sucursal, y su estado se establece en `pending_verification`.
+    -   Se genera un token JWT de activación y se envía un correo de bienvenida al usuario.
 
-El sistema ahora utiliza **tokens "stateless" (sin estado)**, implementados con JSON Web Tokens (JWT).
+2.  **Verificación de Correo (`verifyEmail` en `auth.service.ts`)**:
+    -   Cuando el usuario hace clic en el enlace del correo, el backend valida el token.
+    -   El estado del `User` se cambia a `active`.
+    -   El estado del `Tenant` se cambia a `trial` y se le asigna el plan de prueba.
+    -   **Se genera automáticamente una licencia de prueba por 30 días** para el tenant.
+    -   El usuario ya puede iniciar sesión.
 
--   **Generación**: Cuando se necesita una acción (ej. activar cuenta), se genera un JWT que contiene la información necesaria (como el `userId` y el tipo de acción) y una fecha de expiración.
--   **Envío**: Este token se envía al usuario por correo.
--   **Validación**: El backend solo necesita verificar la firma y la validez del JWT para autorizar la acción, sin necesidad de consultar o modificar un token en la base de datos.
+### 2. Flujo de Creación por Super Admin
 
-Este cambio, implementado principalmente en `backend/src/auth/auth.service.ts`, elimina la desincronización entre la base de datos y el correo enviado, haciendo el proceso mucho más robusto.
+El Super Administrador crea un nuevo tenant y su usuario administrador desde el panel.
 
-### 2. Doble Flujo de Creación de Tenants
+1.  **Creación (`create` en `super-admin.service.ts`)**:
+    -   Se crea un `Tenant` con estado `inactive`.
+    -   Se crea una `Location` por defecto ("Sucursal Principal").
+    -   Se crea un `User` con el rol `admin`, se le asigna el tenant y la sucursal, y su estado se establece en `pending_verification`.
+    -   Se genera un token JWT de configuración y se envía un correo de invitación al usuario.
 
-Es fundamental entender que en Mozzarella Cloud existen **dos flujos distintos** para crear un nuevo negocio (tenant).
+2.  **Configuración de Cuenta (`setupAccount` en `auth.service.ts`)**:
+    -   Cuando el usuario hace clic en el enlace, se le pide que establezca una contraseña.
+    -   El backend valida el token y la nueva contraseña.
+    -   El estado del `User` se cambia a `active`.
+    -   El estado del `Tenant` se cambia a `trial` y se le asigna el plan de prueba.
+    -   **Se genera automáticamente una licencia de prueba por 30 días** para el tenant.
+    -   Se emite un token de sesión y el usuario inicia sesión automáticamente.
 
-1.  **Flujo de Registro Público**: Un usuario se registra por su cuenta a través de un formulario público.
-    -   **Archivo responsable**: `backend/src/auth/auth.service.ts` (método `register`).
-
-2.  **Flujo de Creación desde Super Admin**: El Super Administrador da de alta un nuevo tenant y su primer usuario administrador desde su panel de control.
-    -   **Archivo responsable**: `backend/src/super-admin/super-admin.service.ts` (método `create`).
-
-> **Nota Importante para Desarrolladores**: Cualquier modificación en la lógica de creación de un tenant (como añadir valores por defecto, cambiar estados iniciales, etc.) **debe ser implementada en ambos archivos** (`auth.service.ts` y `super-admin.service.ts`) para mantener la consistencia en todo el sistema.
-
-### 3. Creación de Sucursal por Defecto
-
-**Problema Anterior**: Al crear un nuevo tenant, no se creaba ninguna sucursal por defecto. Esto causaba que el administrador del nuevo tenant viera una página en blanco al iniciar sesión, ya que el dashboard requiere que exista al menos una sucursal para funcionar.
-
-**Solución Implementada**:
-
-Ahora, durante la creación de un tenant (en ambos flujos mencionados anteriormente), el sistema realiza dos acciones adicionales:
-1.  Crea automáticamente una sucursal por defecto llamada **"Sucursal Principal"**.
-2.  Asigna el primer usuario administrador a esta nueva sucursal.
-
-Esto garantiza que cada nuevo negocio tenga una configuración inicial funcional, eliminando la página en blanco y mejorando la experiencia de incorporación del cliente.
+> **Nota Importante**: Ambos flujos utilizan tokens JWT "stateless" (sin estado) para los correos de activación/configuración. Esto elimina errores de "token inválido" que ocurrían con sistemas anteriores y hace el proceso mucho más robusto.
 
 ### Payload del Token
 

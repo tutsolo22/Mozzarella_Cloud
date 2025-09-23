@@ -42,18 +42,21 @@ import { WebhooksModule } from './webhooks/webhooks.module';
     ConfigModule.forRoot({
       isGlobal: true, // Hace que las variables de entorno estén disponibles en toda la app
     }),
+    // Se restaura la configuración asíncrona de TypeORM, que es la mejor práctica en NestJS.
+    // Esto permite que la configuración de la base de datos se cargue dinámicamente
+    // a través del ConfigService, manteniendo el código más limpio y modular.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get<string>('POSTGRES_HOST'),
-        port: configService.get<number>('POSTGRES_PORT'),
+        port: parseInt(configService.get<string>('POSTGRES_PORT'), 10),
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
-        autoLoadEntities: true, // Carga automáticamente las entidades
-        synchronize: false, // Se deshabilita para usar migraciones de forma controlada.
+        autoLoadEntities: true,
+        synchronize: false,
       }),
     }),
     ScheduleModule.forRoot(),

@@ -187,6 +187,7 @@ export class AuthService {
   }
 
   private async sendVerificationEmail(user: User, token: string) {
+    // El enlace apunta a una página dedicada en el frontend.
     const verificationLink = `${this.getFrontendUrl()}/verify-email?token=${token}`;
 
     try {
@@ -268,15 +269,18 @@ export class AuthService {
       await queryRunner.manager.save(defaultLocation);
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = queryRunner.manager.create(User, { 
-        fullName, 
-        email, 
-        password: hashedPassword, 
-        role: adminRole, 
-        tenant: tenant,
+      // --- CORRECCIÓN ---
+      // Se asignan los IDs directamente para asegurar la correcta creación de las relaciones.
+      const user = queryRunner.manager.create(User, {
+        fullName,
+        email,
+        password: hashedPassword,
+        roleId: adminRole.id, // Asignación explícita del ID del rol
+        tenantId: tenant.id, // Asignación explícita del ID del tenant
         locationId: defaultLocation.id,
         status: UserStatus.PendingVerification,
       });
+
       await queryRunner.manager.save(user);
 
       // Generar un token JWT para la verificación de correo
@@ -306,13 +310,26 @@ export class AuthService {
       }
 
       const userId = payload.sub;
-      const user = await this.usersRepository.findOne({
-        where: { id: userId },
-        relations: ['tenant', 'location'],
-      });
+
+      // Se cambia a QueryBuilder para asegurar que la relación con 'tenant' se cargue correctamente.
+      // El método `findOne` con el array `relations` puede ser inconsistente en algunos casos.
+      let user = await this.usersRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.tenant', 'tenant')
+        .where('user.id = :userId', { userId })
+        .getOne();
 
       if (!user) {
         throw new NotFoundException('Token de verificación no válido o ya utilizado.');
+      }
+
+      // Fallback: Si la relación tenant no se cargó correctamente por alguna razón, la cargamos explícitamente.
+      if (!user.tenant && user.tenantId) {
+        user.tenant = await this.dataSource.getRepository(Tenant).findOneBy({ id: user.tenantId });
+        if (!user.tenant) {
+          throw new InternalServerErrorException('Error de consistencia de datos: Tenant no encontrado.');
+        }
+      } else if (!user.tenant && !user.tenantId) {
+        throw new InternalServerErrorException('Error de consistencia de datos: Usuario sin Tenant asignado.');
       }
 
       if (user.status === UserStatus.Active) {
@@ -321,22 +338,18 @@ export class AuthService {
 
       user.status = UserStatus.Active;
 
-      if (user.tenant && user.tenant.status === TenantStatus.Inactive) {
+      // Ahora que hemos asegurado que user.tenant está cargado, podemos verificar su estado.
+      if (user.tenant.status === TenantStatus.Inactive) {
         user.tenant.status = TenantStatus.Trial;
         user.tenant.plan = TenantPlan.Trial;
         await this.dataSource.getRepository(Tenant).save(user.tenant);
 
         // Generar licencia de prueba al activar el tenant por registro público
-        this.logger.log(`Tenant ${user.tenant.name} activado por registro público. Generando licencia de prueba.`);
+        this.logger.log(`Tenant '${user.tenant.name}' activado por registro público. Generando licencia de prueba.`);
         const trialDurationDays = 30;
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + trialDurationDays);
-        await this.licensingService.generateLicense(
-          user.tenant,
-          5, // userLimit
-          1, // branchLimit
-          expiresAt,
-        );
+        await this.licensingService.generateLicense(user.tenant, 5, 1, expiresAt);
       }
 
       await this.usersRepository.save(user);
