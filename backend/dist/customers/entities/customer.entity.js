@@ -36,6 +36,18 @@ __decorate([
     __metadata("design:type", String)
 ], Customer.prototype, "phoneNumber", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Customer.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'double precision', nullable: true }),
+    __metadata("design:type", Number)
+], Customer.prototype, "latitude", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'double precision', nullable: true }),
+    __metadata("design:type", Number)
+], Customer.prototype, "longitude", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Customer.prototype, "createdAt", void 0);

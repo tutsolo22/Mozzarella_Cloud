@@ -5,10 +5,7 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 export declare class CustomersService {
     private readonly customerRepository;
     constructor(customerRepository: Repository<Customer>);
-    findOrCreateByPhone(details: {
-        phoneNumber: string;
-        fullName: string;
-    }, tenantId: string): Promise<Customer>;
+    findOrCreateByPhone(details: CreateCustomerDto, tenantId: string): Promise<Customer>;
     create(createCustomerDto: CreateCustomerDto, tenantId: string): Promise<Customer>;
     findAll(tenantId: string): Promise<Customer[]>;
     findOne(id: string, tenantId: string): Promise<Customer>;

@@ -5,6 +5,9 @@ export declare class Customer {
     tenant: Tenant;
     fullName: string;
     phoneNumber: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -13,15 +13,19 @@ export class CustomersService {
   ) {}
 
   async findOrCreateByPhone(
-    details: { phoneNumber: string; fullName: string },
+    details: CreateCustomerDto,
     tenantId: string,
   ): Promise<Customer> {
     let customer = await this.customerRepository.findOneBy({
       phoneNumber: details.phoneNumber,
       tenantId,
     });
-
-    if (!customer) {
+    if (customer) {
+      // Customer exists, update their info with any new details provided
+      Object.assign(customer, details);
+      await this.customerRepository.save(customer);
+    } else {
+      // Customer does not exist, create a new one
       customer = this.customerRepository.create({ ...details, tenantId });
       await this.customerRepository.save(customer);
     }

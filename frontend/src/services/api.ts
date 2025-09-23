@@ -14,6 +14,7 @@ import { GenerateLicenseDto, License } from '../types/license';
 import { ProductCategory } from '../types/product-category';
 import { SmtpSettings, TestSmtpDto } from '../types/smtp';
 import { PreparationZone, CreatePreparationZoneDto, UpdatePreparationZoneDto } from '../types/preparation-zone';
+import { Customer, CreateCustomerDto, UpdateCustomerDto } from '../types/customer';
 
 export interface SuperAdminStats {
   tenants: {
@@ -300,6 +301,31 @@ export const disableLocation = async (id: string): Promise<void> => {
 export const enableLocation = async (id: string): Promise<Location> => {
   // El backend debe tener un endpoint para restaurar o reactivar
   const response = await axiosClient.patch(`/locations/${id}/enable`);
+  return response.data;
+};
+
+// --- Customers ---
+export const getCustomers = async (): Promise<Customer[]> => {
+  const response = await axiosClient.get('/customers');
+  return response.data;
+};
+
+export const createCustomer = async (data: CreateCustomerDto): Promise<Customer> => {
+  const response = await axiosClient.post('/customers', data);
+  return response.data;
+};
+
+export const updateCustomer = async (id: string, data: UpdateCustomerDto): Promise<Customer> => {
+  const response = await axiosClient.patch(`/customers/${id}`, data);
+  return response.data;
+};
+
+export const deleteCustomer = async (id: string): Promise<void> => {
+  await axiosClient.delete(`/customers/${id}`);
+};
+
+export const findCustomerByPhone = async (phoneNumber: string): Promise<Customer[]> => {
+  const response = await axiosClient.get(`/customers/by-phone/${phoneNumber}`);
   return response.data;
 };
 

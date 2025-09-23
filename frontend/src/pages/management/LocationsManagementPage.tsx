@@ -29,12 +29,12 @@ import {
   UpdateLocationDto,
 } from '../../types/location';
 import {
-  getLocations,
   createLocation,
   updateLocation,
   disableLocation,
   enableLocation,
-getTenantConfiguration,
+  getLocations,
+  getTenantConfiguration,
 } from '../../services/api';
 import { TenantConfiguration } from '../../types/tenant';
 import { useLocationContext } from '../../contexts/LocationContext';

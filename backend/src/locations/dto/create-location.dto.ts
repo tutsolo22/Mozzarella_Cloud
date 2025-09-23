@@ -18,6 +18,10 @@ export class CreateLocationDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  whatsappNumber?: string;
+
+  @IsOptional()
   @IsJSON()
   deliveryArea?: any; // GeoJSON Polygon
 }

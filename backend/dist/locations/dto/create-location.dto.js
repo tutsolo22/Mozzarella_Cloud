@@ -31,6 +31,11 @@ __decorate([
 ], CreateLocationDto.prototype, "phone", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLocationDto.prototype, "whatsappNumber", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsJSON)(),
     __metadata("design:type", Object)
 ], CreateLocationDto.prototype, "deliveryArea", void 0);

@@ -26,7 +26,11 @@ let CustomersService = class CustomersService {
             phoneNumber: details.phoneNumber,
             tenantId,
         });
-        if (!customer) {
+        if (customer) {
+            Object.assign(customer, details);
+            await this.customerRepository.save(customer);
+        }
+        else {
             customer = this.customerRepository.create({ ...details, tenantId });
             await this.customerRepository.save(customer);
         }
