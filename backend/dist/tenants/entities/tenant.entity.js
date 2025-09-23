@@ -13,7 +13,7 @@ exports.Tenant = exports.TenantStatus = exports.TenantPlan = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const license_entity_1 = require("../../licenses/entities/license.entity");
-const tenant_configuration_entity_1 = require("./tenant-configuration.entity");
+const tenant_configuration_entity_1 = require("../../tenant-configuration/entities/tenant-configuration.entity");
 const location_entity_1 = require("../../locations/entities/location.entity");
 var TenantPlan;
 (function (TenantPlan) {

@@ -18,15 +18,30 @@ export enum PaymentFrequency {
 
 export interface Employee {
   id: string;
-  user: User;
+  fullName: string;
   position: Position;
   salary: number;
   paymentFrequency: PaymentFrequency;
   hireDate: string;
+  user?: User | null; // La cuenta de usuario asociada, si existe
+  userId?: string | null;
 }
 
 export type CreatePositionDto = Pick<Position, 'name' | 'description'>;
 export type UpdatePositionDto = Partial<CreatePositionDto>;
 
-export type CreateEmployeeDto = Omit<Employee, 'id' | 'user' | 'position'> & { userId: string; positionId: string };
+export interface CreateEmployeeDto {
+  // Campos del empleado
+  fullName: string;
+  positionId: string;
+  salary: number;
+  paymentFrequency: PaymentFrequency;
+  hireDate: string;
+
+  // Campos opcionales para crear la cuenta de usuario
+  createSystemUser: boolean;
+  email?: string;
+  roleId?: string;
+}
+
 export type UpdateEmployeeDto = Partial<Omit<Employee, 'id' | 'user' | 'position' | 'userId'>> & { positionId?: string };

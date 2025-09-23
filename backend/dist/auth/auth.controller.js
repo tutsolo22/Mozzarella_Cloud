@@ -38,6 +38,9 @@ let AuthController = class AuthController {
         return this.authService.register(registerDto);
     }
     async verifyEmail(body) {
+        if (!body.token) {
+            throw new common_1.BadRequestException('Falta el token de verificación.');
+        }
         await this.authService.verifyEmail(body.token);
         return {
             message: 'Cuenta verificada con éxito. Ahora puedes iniciar sesión.',

@@ -12,7 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const tenants_service_1 = require("./tenants.service");
 const tenants_controller_1 = require("./tenants.controller");
 const tenant_entity_1 = require("./entities/tenant.entity");
-const tenant_configuration_entity_1 = require("./entities/tenant-configuration.entity");
+const tenant_configuration_entity_1 = require("../tenant-configuration/entities/tenant-configuration.entity");
 const files_module_1 = require("../files/files.module");
 let TenantsModule = class TenantsModule {
 };

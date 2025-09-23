@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { Order } from '../orders/entities/order.entity';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { HttpService } from '@nestjs/axios';
 interface Location {

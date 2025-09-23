@@ -3,29 +3,32 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
-  ManyToOne,
-  OneToMany,
+  ManyToOne,  
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
-import { Order } from '../../orders/entities/order.entity';
-import { User } from '../../users/entities/user.entity';
+
 
 @Entity('locations')
+@Index(['tenantId', 'name'], { unique: true, where: '"deletedAt" IS NULL' })
 export class Location {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ length: 100 })
   name: string;
 
-  @Column()
+  @Column('text')
   address: string;
 
-  @Column({ nullable: true })
-  phone: string;
+  @Column({ nullable: true, length: 15 })
+  phone?: string;
+
+  @Column({ nullable: true, length: 20 })
+  whatsappNumber?: string;
 
   @Column({ default: true })
   isActive: boolean;
@@ -33,24 +36,9 @@ export class Location {
   @Column()
   tenantId: string;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.locations, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
-
-  @OneToMany(() => Order, (order) => order.location)
-  orders: Order[];
-
-  @OneToMany(() => User, (user) => user.location)
-  users: User[];
-
-  @Column({
-    type: 'geography',
-    spatialFeatureType: 'Polygon',
-    srid: 4326,
-    nullable: true,
-    comment: 'Área de entrega en formato GeoJSON Polygon',
-  })
-  deliveryArea: any; // Or a more specific GeoJSON type
 
   @CreateDateColumn()
   createdAt: Date;
@@ -59,5 +47,5 @@ export class Location {
   updatedAt: Date;
 
   @DeleteDateColumn()
-  deletedAt: Date;
+  deletedAt?: Date;
 }

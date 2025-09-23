@@ -10,7 +10,7 @@ import { Role } from '../roles/entities/role.entity';
 import { User, UserStatus } from '../users/entities/user.entity';
 import { License } from '../licenses/entities/license.entity';
 import { Location } from '../locations/entities/location.entity';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { LicensingService } from '../licenses/licensing.service';
 import { GenerateLicenseDto } from '../licenses/dto/generate-license.dto';
 import { AuthService } from '../auth/auth.service';

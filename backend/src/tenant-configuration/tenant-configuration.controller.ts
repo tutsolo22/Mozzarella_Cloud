@@ -6,7 +6,7 @@ import { RoleEnum } from '../roles/enums/role.enum';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
 import { TenantConfigurationService } from './tenant-configuration.service';
 import { UpdateTenantConfigurationDto } from './dto/update-tenant-configuration.dto';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from './entities/tenant-configuration.entity';
 
 @Controller('tenant/configuration')
 @UseGuards(JwtAuthGuard, RolesGuard)

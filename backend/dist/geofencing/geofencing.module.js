@@ -12,7 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const axios_1 = require("@nestjs/axios");
 const geofencing_service_1 = require("./geofencing.service");
 const order_entity_1 = require("../orders/entities/order.entity");
-const tenant_configuration_entity_1 = require("../tenants/entities/tenant-configuration.entity");
+const tenant_configuration_entity_1 = require("../tenant-configuration/entities/tenant-configuration.entity");
 const notifications_module_1 = require("../notifications/notifications.module");
 let GeofencingModule = class GeofencingModule {
 };

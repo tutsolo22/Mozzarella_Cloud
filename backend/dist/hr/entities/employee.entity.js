@@ -31,6 +31,10 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
+], Employee.prototype, "fullName", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
 ], Employee.prototype, "tenantId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant),
@@ -38,11 +42,11 @@ __decorate([
     __metadata("design:type", tenant_entity_1.Tenant)
 ], Employee.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ unique: true }),
+    (0, typeorm_1.Column)({ type: 'uuid', unique: true, nullable: true }),
     __metadata("design:type", String)
 ], Employee.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => user_entity_1.User),
+    (0, typeorm_1.OneToOne)(() => user_entity_1.User, { nullable: true, onDelete: 'SET NULL' }),
     (0, typeorm_1.JoinColumn)({ name: 'userId' }),
     __metadata("design:type", user_entity_1.User)
 ], Employee.prototype, "user", void 0);

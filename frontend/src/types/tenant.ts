@@ -30,28 +30,31 @@ export interface TenantConfiguration {
   id: string;
   tenantId: string;
   deliveryArea: any; // GeoJSON Polygon
-  openRouteServiceApiKey?: string | null;
   kdsNotificationSoundUrl?: string | null;
 
-  // Nuevos campos para Información General
-  slogan?: string;
-  contactPhone?: string;
-  fiscalAddress?: string;
+  // Información General y Fiscal
+  businessName?: string; // Razón Social
+  legalName?: string;
+  rfc?: string;
+  taxRegime?: string; // Régimen Fiscal
+  taxAddress?: string;
 
-  // Nuevos campos para Branding
+  // Información de Contacto
+  contactEmail: string;
+  contactPhone?: string;
+  businessPhone?: string;
+  businessWhatsapp?: string;
+  branchesHaveSeparatePhones: boolean;
+  branchesHaveSeparateWhatsapps: boolean;
+
+  // Branding y Redes Sociales
   logoUrl?: string;
   logoDarkUrl?: string;
   faviconUrl?: string;
-
-  // Nuevos campos para Datos Fiscales
-  rfc?: string;
-  businessName?: string; // Razón Social
-  taxRegime?: string; // Régimen Fiscal
-
-  // Nuevos campos para Redes Sociales e Impresión
-  facebookUrl?: string;
-  instagramUrl?: string;
-  tiktokUrl?: string;
+  website?: string;
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
   primaryPrinterIp?: string;
   secondaryPrinterIp?: string;
 

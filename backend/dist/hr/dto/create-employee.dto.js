@@ -16,10 +16,10 @@ class CreateEmployeeDto {
 }
 exports.CreateEmployeeDto = CreateEmployeeDto;
 __decorate([
-    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateEmployeeDto.prototype, "userId", void 0);
+], CreateEmployeeDto.prototype, "fullName", void 0);
 __decorate([
     (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsNotEmpty)(),
@@ -32,12 +32,26 @@ __decorate([
 ], CreateEmployeeDto.prototype, "salary", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(employee_entity_1.PaymentFrequency),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateEmployeeDto.prototype, "paymentFrequency", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateEmployeeDto.prototype, "hireDate", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateEmployeeDto.prototype, "createSystemUser", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)(o => o.createSystemUser),
+    (0, class_validator_1.IsEmail)({}, { message: 'El email debe ser un correo válido.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El email es requerido para crear un acceso al sistema.' }),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)(o => o.createSystemUser),
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El rol es requerido para crear un acceso al sistema.' }),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "roleId", void 0);
 //# sourceMappingURL=create-employee.dto.js.map

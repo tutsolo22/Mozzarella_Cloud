@@ -4,7 +4,7 @@ import { GeocodingService } from './geocoding.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tenant } from '../tenants/entities/tenant.entity';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 
 @Module({
   imports: [

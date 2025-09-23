@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { Tenant } from './tenant.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 @Entity('tenant_configurations')
 export class TenantConfiguration {
@@ -13,14 +13,44 @@ export class TenantConfiguration {
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  slogan?: string;
+  @Column({ length: 100 })
+  businessName: string;
+
+  @Column({ length: 100, nullable: true })
+  legalName?: string;
+
+  @Column({ length: 13, nullable: true })
+  rfc?: string;
+
+  @Column({ length: 100, nullable: true })
+  taxRegime?: string;
+
+  @Column({ type: 'text', nullable: true })
+  taxAddress?: string;
+
+  @Column({ length: 100 })
+  contactEmail: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   contactPhone?: string;
 
-  @Column({ type: 'text', nullable: true })
-  fiscalAddress?: string;
+  // --- Nuevos Campos ---
+
+  @Column({ length: 15, nullable: true, comment: 'Teléfono principal del negocio para clientes' })
+  businessPhone?: string;
+
+  @Column({ length: 20, nullable: true, comment: 'Número de WhatsApp principal del negocio' })
+  businessWhatsapp?: string;
+
+  @Column({ default: false, comment: 'Si es true, cada sucursal puede tener su propio teléfono.' })
+  branchesHaveSeparatePhones: boolean;
+
+  @Column({ default: false, comment: 'Si es true, cada sucursal puede tener su propio WhatsApp.' })
+  branchesHaveSeparateWhatsapps: boolean;
+
+  // --- Fin de Nuevos Campos ---
+
+  // --- Branding y Redes Sociales ---
 
   @Column({ type: 'varchar', length: 512, nullable: true })
   logoUrl?: string;
@@ -31,23 +61,19 @@ export class TenantConfiguration {
   @Column({ type: 'varchar', length: 512, nullable: true })
   faviconUrl?: string;
 
-  @Column({ type: 'varchar', length: 13, nullable: true })
-  rfc?: string;
+  @Column({ length: 100, nullable: true })
+  website?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  businessName?: string;
+  @Column({ length: 100, nullable: true })
+  facebook?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  taxRegime?: string;
+  @Column({ length: 100, nullable: true })
+  instagram?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  facebookUrl?: string;
+  @Column({ length: 100, nullable: true })
+  tiktok?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  instagramUrl?: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  tiktokUrl?: string;
+  // --- Integraciones y Configuraciones Técnicas ---
 
   @Column({ type: 'varchar', length: 45, nullable: true })
   primaryPrinterIp?: string;

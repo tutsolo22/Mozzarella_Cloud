@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var HrService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HrService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,10 +19,17 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const employee_entity_1 = require("./entities/employee.entity");
 const position_entity_1 = require("./entities/position.entity");
-let HrService = class HrService {
-    constructor(employeeRepository, positionRepository) {
+const user_entity_1 = require("../users/entities/user.entity");
+const auth_service_1 = require("../auth/auth.service");
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+let HrService = HrService_1 = class HrService {
+    constructor(employeeRepository, positionRepository, dataSource, authService) {
         this.employeeRepository = employeeRepository;
         this.positionRepository = positionRepository;
+        this.dataSource = dataSource;
+        this.authService = authService;
+        this.logger = new common_1.Logger(HrService_1.name);
     }
     async createPosition(dto, tenantId) {
         const position = this.positionRepository.create({ ...dto, tenantId });
@@ -47,13 +55,49 @@ let HrService = class HrService {
             throw new common_1.NotFoundException(`Puesto con ID #${id} no encontrado.`);
         }
     }
-    async createEmployee(dto, tenantId) {
-        const userAlreadyEmployee = await this.employeeRepository.findOneBy({ userId: dto.userId, tenantId });
-        if (userAlreadyEmployee) {
-            throw new common_1.ConflictException('Este usuario ya está registrado como empleado.');
+    async createEmployee(createEmployeeDto, tenantId, locationId) {
+        const { createSystemUser, email, roleId, ...employeeData } = createEmployeeDto;
+        const savedEmployee = await this.dataSource.transaction(async (transactionalEntityManager) => {
+            let newEmployee = transactionalEntityManager.create(employee_entity_1.Employee, {
+                ...employeeData,
+                tenantId,
+            });
+            newEmployee = await transactionalEntityManager.save(newEmployee);
+            if (createSystemUser) {
+                if (!email || !roleId) {
+                    throw new common_1.BadRequestException('El email y el rol son requeridos para crear un acceso al sistema.');
+                }
+                const existingUser = await transactionalEntityManager.findOneBy(user_entity_1.User, { email });
+                if (existingUser) {
+                    throw new common_1.ConflictException(`El email '${email}' ya está en uso por otro usuario.`);
+                }
+                const temporaryPassword = crypto.randomBytes(20).toString('hex');
+                const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+                const newUser = transactionalEntityManager.create(user_entity_1.User, {
+                    email,
+                    password: hashedPassword,
+                    fullName: employeeData.fullName,
+                    roleId,
+                    tenantId,
+                    locationId,
+                    status: user_entity_1.UserStatus.PendingVerification,
+                });
+                const savedUser = await transactionalEntityManager.save(newUser);
+                newEmployee.userId = savedUser.id;
+                newEmployee.user = savedUser;
+                await transactionalEntityManager.save(newEmployee);
+            }
+            return newEmployee;
+        });
+        if (createSystemUser && savedEmployee.user) {
+            try {
+                await this.authService.sendAccountSetupEmail(savedEmployee.user);
+            }
+            catch (error) {
+                this.logger.error(`Empleado creado, pero falló el envío de la invitación a ${email}`, error.stack);
+            }
         }
-        const employee = this.employeeRepository.create({ ...dto, tenantId });
-        return this.employeeRepository.save(employee);
+        return this.employeeRepository.findOne({ where: { id: savedEmployee.id }, relations: ['user', 'position'] });
     }
     findAllEmployees(tenantId, locationId) {
         const whereClause = { tenantId };
@@ -115,11 +159,13 @@ let HrService = class HrService {
     }
 };
 exports.HrService = HrService;
-exports.HrService = HrService = __decorate([
+exports.HrService = HrService = HrService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(employee_entity_1.Employee)),
     __param(1, (0, typeorm_1.InjectRepository)(position_entity_1.Position)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        typeorm_2.DataSource,
+        auth_service_1.AuthService])
 ], HrService);
 //# sourceMappingURL=hr.service.js.map

@@ -18,7 +18,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const tenant_entity_1 = require("./entities/tenant.entity");
-const tenant_configuration_entity_1 = require("./entities/tenant-configuration.entity");
+const tenant_configuration_entity_1 = require("../tenant-configuration/entities/tenant-configuration.entity");
 const files_service_1 = require("../files/files.service");
 const path = require("path");
 let TenantsService = TenantsService_1 = class TenantsService {

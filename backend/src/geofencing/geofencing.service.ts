@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../orders/entities/order.entity';
 import { OrderStatus } from '../orders/enums/order-status.enum';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Table,
   Button,
   Modal,
   Form,
   Input,
-  message,
+  notification,
   Popconfirm,
   Space,
   Card,
@@ -14,6 +14,8 @@ import {
   Typography,
   Switch,
   Tag,
+  Spin,
+  Alert,
 } from 'antd';
 import {
   PlusOutlined,
@@ -32,35 +34,43 @@ import {
   updateLocation,
   disableLocation,
   enableLocation,
-} from '../../services/locations';
+getTenantConfiguration,
+} from '../../services/api';
+import { TenantConfiguration } from '../../types/tenant';
 import { useLocationContext } from '../../contexts/LocationContext';
 
-const { Title, Text } = Typography;
-
+const { Title, Paragraph } = Typography;
 const LocationsManagementPage: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
+  const [config, setConfig] = useState<TenantConfiguration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [form] = Form.useForm();
   const { refreshLocations } = useLocationContext();
 
-  const fetchLocations = async () => {
-    setLoading(true);
+    const fetchData = useCallback(async () => {
     try {
-      const data = await getLocations(showInactive);
-      setLocations(data);
-    } catch (error) {
-      message.error('Error al cargar las sucursales');
+      setLoading(true);
+      const [locationsData, configData] = await Promise.all([
+        getLocations(showInactive),
+        getTenantConfiguration(),
+      ]);
+      setLocations(locationsData);
+      setConfig(configData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'No se pudieron cargar los datos.');
     } finally {
       setLoading(false);
     }
-  };
+}, [showInactive]);
 
   useEffect(() => {
-    fetchLocations();
-  }, [showInactive]);
+    fetchData();
+  }, [fetchData]);
 
   const showModal = (location?: Location) => {
     if (location) {
@@ -69,6 +79,7 @@ const LocationsManagementPage: React.FC = () => {
     } else {
       setEditingLocation(null);
       form.resetFields();
+      form.setFieldsValue({ isActive: true });
     }
     setIsModalOpen(true);
   };
@@ -82,40 +93,45 @@ const LocationsManagementPage: React.FC = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      // Limpieza de datos para campos opcionales
+      const dto = { ...values };
+      if (!dto.phone) dto.phone = null;
+      if (!dto.whatsappNumber) dto.whatsappNumber = null;
+
       if (editingLocation) {
-        await updateLocation(editingLocation.id, values as UpdateLocationDto);
-        message.success('Sucursal actualizada con éxito');
+        await updateLocation(editingLocation.id, dto as UpdateLocationDto);
+        notification.success({ message: 'Sucursal actualizada con éxito' });
       } else {
-        await createLocation(values as CreateLocationDto);
-        message.success('Sucursal creada con éxito');
+        await createLocation(dto as CreateLocationDto);
+        notification.success({ message: 'Sucursal creada con éxito' });
       }
-      await fetchLocations();
+      await fetchData();
       await refreshLocations(); // <-- Notifica al contexto para que se actualice
       handleCancel();
-    } catch (error) {
-      message.error('Ocurrió un error al guardar la sucursal');
+    } catch (err: any) {
+      notification.error({ message: 'Error al guardar', description: err.response?.data?.message || 'Ocurrió un error' });
     }
   };
 
   const handleDisable = async (id: string) => {
     try {
       await disableLocation(id);
-      message.success('Sucursal deshabilitada con éxito');
-      await fetchLocations();
+      notification.success({ message: 'Sucursal deshabilitada con éxito' });
+      await fetchData();
       await refreshLocations(); // <-- Notifica al contexto para que se actualice
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Error al deshabilitar la sucursal');
+      notification.error({ message: 'Error', description: error.response?.data?.message || 'Error al deshabilitar la sucursal' });
     }
   };
 
   const handleEnable = async (id: string) => {
     try {
       await enableLocation(id);
-      message.success('Sucursal habilitada con éxito');
-      await fetchLocations();
+      notification.success({ message: 'Sucursal habilitada con éxito' });
+      await fetchData();
       await refreshLocations(); // <-- Notifica al contexto para que se actualice
-    } catch (error) {
-      message.error('Error al habilitar la sucursal');
+    } catch (error: any) {
+      notification.error({ message: 'Error', description: error.response?.data?.message || 'Error al habilitar la sucursal' });
     }
   };
 
@@ -128,20 +144,22 @@ const LocationsManagementPage: React.FC = () => {
       render: (text: string, record: Location) => (
         <Space>
           {text}
-          {record.deletedAt ? <Tag color="red">Inactiva</Tag> : <Tag color="green">Activa</Tag>}
+          {record.isActive ? <Tag color="green">Activa</Tag> : <Tag color="red">Inactiva</Tag>}
         </Space>
       ),
     },
     { title: 'Dirección', dataIndex: 'address', key: 'address' },
+    { title: 'Teléfono', dataIndex: 'phone', key: 'phone', render: (text: string) => text || 'N/A' },
+    { title: 'WhatsApp', dataIndex: 'whatsappNumber', key: 'whatsappNumber', render: (text: string) => text || 'N/A' },
     {
       title: 'Acciones',
       key: 'actions',
       render: (_: any, record: Location) => (
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => showModal(record)} disabled={!!record.deletedAt}>
+          <Button icon={<EditOutlined />} onClick={() => showModal(record)} disabled={!record.isActive}>
             Editar
           </Button>
-          {record.deletedAt ? (
+          {!record.isActive ? (
             <Button icon={<CheckCircleOutlined />} onClick={() => handleEnable(record.id)}>
               Habilitar
             </Button>
@@ -163,28 +181,31 @@ const LocationsManagementPage: React.FC = () => {
     },
   ];
 
+  if (loading) return <Spin tip="Cargando sucursales..." size="large" style={{ display: 'block', marginTop: 50 }} />;
+
   return (
     <Card>
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
           <Title level={2} style={{ margin: 0 }}>Gestión de Sucursales</Title>
+          <Paragraph>Administra las ubicaciones de tu negocio.</Paragraph>
         </Col>
         <Col>
           <Space>
-            <Text>Mostrar inactivas</Text>
-            <Switch checked={showInactive} onChange={setShowInactive} />
+            <Switch checked={showInactive} onChange={setShowInactive} checkedChildren="Mostrar inactivas" unCheckedChildren="Ocultar inactivas" />
             <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
               Crear Sucursal
             </Button>
           </Space>
         </Col>
       </Row>
+      {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 20 }} />}
       <Table
         columns={columns}
         dataSource={locations}
         rowKey="id"
         loading={loading}
-        rowClassName={(record) => (record.deletedAt ? 'table-row-disabled' : '')}
+        
       />
       <Modal
         title={editingLocation ? 'Editar Sucursal' : 'Crear Sucursal'}
@@ -208,14 +229,23 @@ const LocationsManagementPage: React.FC = () => {
             label="Dirección"
             rules={[{ required: true, message: 'Por favor, ingresa la dirección.' }]}
           >
-            <Input />
+           <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="latitude" label="Latitud (Opcional)">
-            <Input type="number" step="any" />
-          </Form.Item>
-          <Form.Item name="longitude" label="Longitud (Opcional)">
-            <Input type="number" step="any" />
-          </Form.Item>
+          {config?.branchesHaveSeparatePhones && (
+            <Form.Item name="phone" label="Teléfono de la Sucursal" rules={[{ pattern: /^\d{10}$/, message: 'El teléfono debe tener 10 dígitos.' }]}>
+              <Input type="tel" placeholder="10 dígitos sin espacios" />
+            </Form.Item>
+          )}
+          {config?.branchesHaveSeparateWhatsapps && (
+            <Form.Item name="whatsappNumber" label="WhatsApp de la Sucursal">
+              <Input placeholder="Ej: 521XXXXXXXXXX" />
+            </Form.Item>
+          )}
+          {!editingLocation && (
+            <Form.Item name="isActive" label="Sucursal Activa" valuePropName="checked" initialValue={true}>
+              <Switch disabled />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </Card>

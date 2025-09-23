@@ -21,17 +21,11 @@ import {
   updateUser,
   deleteUser,
   getLocations,
+  getRoles,
 } from '../../services/api';
 import { User, CreateUserDto, UpdateUserDto } from '../../types/user';
 import { Location } from '../../types/location';
-
-// En una aplicación real, estos roles se obtendrían de un endpoint /roles
-const mockRoles = [
-  { id: 'a4b1c2d3-e4f5-g6h7-i8j9-k0l1m2n3o4p5', name: 'admin' },
-  { id: 'b5c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6', name: 'manager' },
-  { id: 'c6d3e4f5-g6h7-i8j9-k0l1-m2n3o4p5q6r7', name: 'kitchen' },
-  { id: 'd7e4f5g6-h7i8-j9k0-l1m2-n3o4p5q6r7s8', name: 'delivery' },
-];
+import { Role } from '../../types/role';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -39,6 +33,7 @@ const { Option } = Select;
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -48,9 +43,11 @@ const UserManagementPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [usersData, locationsData] = await Promise.all([getUsers(), getLocations()]);
+      const [usersData, locationsData, rolesData] = await Promise.all([getUsers(), getLocations(), getRoles()]);
       setUsers(usersData);
       setLocations(locationsData);
+      // Excluimos el rol de super_admin para que no se pueda asignar desde aquí
+      setRoles(rolesData.filter((r: Role) => r.name !== 'super_admin'));
     } catch (err) {
       setError('No se pudieron cargar los datos de usuarios y sucursales.');
     } finally {
@@ -171,7 +168,7 @@ const UserManagementPage: React.FC = () => {
           )}
           <Form.Item name="roleId" label="Rol" rules={[{ required: true, message: 'El rol es requerido.' }]}>
             <Select placeholder="Selecciona un rol">
-              {mockRoles.map(role => <Option key={role.id} value={role.id}>{role.name}</Option>)}
+              {roles.map(role => <Option key={role.id} value={role.id}>{role.name}</Option>)}
             </Select>
           </Form.Item>
           <Form.Item name="locationId" label="Sucursal Asignada">

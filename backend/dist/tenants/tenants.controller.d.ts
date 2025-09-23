@@ -1,5 +1,5 @@
 import { TenantsService } from './tenants.service';
-import { TenantConfiguration } from './entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { UserPayload } from '../auth/decorators/user.decorator';
 export declare class TenantsController {
     private readonly tenantsService;

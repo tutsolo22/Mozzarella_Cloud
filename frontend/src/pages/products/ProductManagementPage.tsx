@@ -16,6 +16,7 @@ import {
   InputNumber,
   Switch,
   Tag,
+  Collapse,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
@@ -73,6 +74,8 @@ const ProductManagementPage: React.FC = () => {
       form.setFieldsValue({
         ...product,
         categoryId: product.category.id,
+        // Aseguramos que el valor del switch sea un booleano
+        isTaxable: product.isTaxable === true,
         preparationZoneId: product.preparationZone?.id,
       });
     } else {
@@ -207,6 +210,21 @@ const ProductManagementPage: React.FC = () => {
           <Form.Item name="isAvailable" label="Disponible para la venta" valuePropName="checked">
             <Switch />
           </Form.Item>
+
+          <Collapse ghost style={{ marginBottom: '24px' }}>
+            <Collapse.Panel header="Información Fiscal (Opcional)" key="1">
+              <Form.Item name="satProductKey" label="Clave de Producto (SAT)">
+                <Input placeholder="Ej: 50202301" />
+              </Form.Item>
+              <Form.Item name="satUnitKey" label="Clave de Unidad (SAT)">
+                <Input placeholder="Ej: H87" />
+              </Form.Item>
+              <Form.Item name="isTaxable" label="Causa Impuestos" valuePropName="checked" initialValue={true}>
+                <Switch />
+              </Form.Item>
+            </Collapse.Panel>
+          </Collapse>
+
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
             <Space>
               <Button onClick={handleCancel}>Cancelar</Button>

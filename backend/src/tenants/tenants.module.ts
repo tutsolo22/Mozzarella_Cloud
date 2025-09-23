@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TenantsService } from './tenants.service';
 import { TenantsController } from './tenants.controller';
 import { Tenant } from './entities/tenant.entity';
-import { TenantConfiguration } from './entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { FilesModule } from '../files/files.module';
 
 @Module({

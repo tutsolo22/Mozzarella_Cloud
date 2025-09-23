@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@n
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
-import { TenantConfiguration } from './entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { FilesService } from '../files/files.service';
 import * as path from 'path';
 

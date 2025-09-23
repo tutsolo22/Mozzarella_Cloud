@@ -1,10 +1,22 @@
-import { IsString, IsNotEmpty, IsUUID, IsNumber, IsPositive, IsEnum, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsUUID,
+  IsNumber,
+  IsPositive,
+  IsEnum,
+  IsDateString,
+  IsBoolean,
+  IsOptional,
+  IsEmail,
+  ValidateIf,
+} from 'class-validator';
 import { PaymentFrequency } from '../entities/employee.entity';
 
 export class CreateEmployeeDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
-  userId: string;
+  fullName: string;
 
   @IsUUID()
   @IsNotEmpty()
@@ -15,10 +27,21 @@ export class CreateEmployeeDto {
   salary: number;
 
   @IsEnum(PaymentFrequency)
-  @IsNotEmpty()
   paymentFrequency: PaymentFrequency;
 
   @IsDateString()
-  @IsNotEmpty()
   hireDate: string;
+
+  @IsBoolean()
+  createSystemUser: boolean;
+
+  @ValidateIf(o => o.createSystemUser)
+  @IsEmail({}, { message: 'El email debe ser un correo válido.' })
+  @IsNotEmpty({ message: 'El email es requerido para crear un acceso al sistema.' })
+  email?: string;
+
+  @ValidateIf(o => o.createSystemUser)
+  @IsUUID()
+  @IsNotEmpty({ message: 'El rol es requerido para crear un acceso al sistema.' })
+  roleId?: string;
 }

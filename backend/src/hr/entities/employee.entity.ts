@@ -17,16 +17,19 @@ export class Employee {
   id: string;
 
   @Column()
+  fullName: string;
+
+  @Column()
   tenantId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
-  @Column({ unique: true })
-  userId: string;
+  @Column({ type: 'uuid', unique: true, nullable: true })
+  userId: string | null;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'userId' })
   user: User;
 

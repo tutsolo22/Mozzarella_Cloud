@@ -13,7 +13,7 @@ const geocoding_service_1 = require("./geocoding.service");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const tenant_entity_1 = require("../tenants/entities/tenant.entity");
-const tenant_configuration_entity_1 = require("../tenants/entities/tenant-configuration.entity");
+const tenant_configuration_entity_1 = require("../tenant-configuration/entities/tenant-configuration.entity");
 let GeocodingModule = class GeocodingModule {
 };
 exports.GeocodingModule = GeocodingModule;

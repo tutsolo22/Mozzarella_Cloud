@@ -14,6 +14,7 @@ const hr_controller_1 = require("./hr.controller");
 const employee_entity_1 = require("./entities/employee.entity");
 const position_entity_1 = require("./entities/position.entity");
 const users_module_1 = require("../users/users.module");
+const auth_module_1 = require("../auth/auth.module");
 let HrModule = class HrModule {
 };
 exports.HrModule = HrModule;
@@ -22,6 +23,7 @@ exports.HrModule = HrModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([employee_entity_1.Employee, position_entity_1.Position]),
             users_module_1.UsersModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [hr_controller_1.HrController],
         providers: [hr_service_1.HrService],

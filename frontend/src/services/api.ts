@@ -5,9 +5,11 @@ import { Product, Ingredient, RecipeItem, CreateProductDto, UpdateProductDto, Cr
 import { CreateTenantDto, Tenant, TenantConfiguration, TenantStatus, UpdateTenantDto } from '../types/tenant';
 import { OptimizedRoute } from '../types/delivery';
 import { OverheadCost } from '../types/financials';
-import { Location } from '../types/location';
+import { Location, CreateLocationDto, UpdateLocationDto } from '../types/location';
 import { CashierSession, ProfitAndLossReport } from '../types/reports';
 import { Position, Employee, CreatePositionDto, UpdatePositionDto, CreateEmployeeDto, UpdateEmployeeDto } from '../types/hr';
+import { DashboardStats } from '../types/dashboard';
+import { Role } from '../types/role';
 import { GenerateLicenseDto, License } from '../types/license';
 import { ProductCategory } from '../types/product-category';
 import { SmtpSettings, TestSmtpDto } from '../types/smtp';
@@ -269,6 +271,38 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   await axiosClient.delete(`/hr/employees/${id}`);
 };
 
+export const getRoles = async (): Promise<Role[]> => {
+  const response = await axiosClient.get('/roles');
+  return response.data;
+};
+
+// --- Locations ---
+export const getLocations = async (includeInactive = false): Promise<Location[]> => {
+  const response = await axiosClient.get('/locations', { params: { includeInactive } });
+  return response.data;
+};
+
+export const createLocation = async (data: CreateLocationDto): Promise<Location> => {
+  const response = await axiosClient.post('/locations', data);
+  return response.data;
+};
+
+export const updateLocation = async (id: string, data: UpdateLocationDto): Promise<Location> => {
+  const response = await axiosClient.patch(`/locations/${id}`, data);
+  return response.data;
+};
+
+export const disableLocation = async (id: string): Promise<void> => {
+  // El backend debe manejar DELETE como un borrado lógico (isActive: false)
+  await axiosClient.delete(`/locations/${id}`);
+};
+
+export const enableLocation = async (id: string): Promise<Location> => {
+  // El backend debe tener un endpoint para restaurar o reactivar
+  const response = await axiosClient.patch(`/locations/${id}/enable`);
+  return response.data;
+};
+
 // --- Financials ---
 export const getOverheadCosts = async (startDate?: string, endDate?: string): Promise<OverheadCost[]> => {
   const response = await axiosClient.get('/financials/overhead-costs', { params: { startDate, endDate } });
@@ -290,6 +324,11 @@ export const deleteOverheadCost = async (id: string): Promise<void> => {
 };
 
 // --- Reports ---
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await axiosClient.get('/reports/dashboard-stats');
+  return response.data;
+};
+
 export const getProfitAndLossReport = async (startDate: string, endDate: string): Promise<ProfitAndLossReport> => {
   const response = await axiosClient.get('/reports/pnl', { params: { startDate, endDate } });
   return response.data;

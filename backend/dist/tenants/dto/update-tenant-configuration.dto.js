@@ -17,25 +17,88 @@ exports.UpdateTenantConfigurationDto = UpdateTenantConfigurationDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], UpdateTenantConfigurationDto.prototype, "apiKeyGeocoding", void 0);
+], UpdateTenantConfigurationDto.prototype, "businessName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "legalName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUppercase)({ message: 'El RFC debe estar en mayúsculas.' }),
+    (0, class_validator_1.Length)(12, 13, { message: 'El RFC debe tener entre 12 y 13 caracteres.' }),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "rfc", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "taxRegime", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdateTenantConfigurationDto.prototype, "directionsApiKey", void 0);
+], UpdateTenantConfigurationDto.prototype, "taxAddress", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsLatitude)(),
-    __metadata("design:type", Number)
-], UpdateTenantConfigurationDto.prototype, "restaurantLatitude", void 0);
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "contactEmail", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsLongitude)(),
-    __metadata("design:type", Number)
-], UpdateTenantConfigurationDto.prototype, "restaurantLongitude", void 0);
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^[0-9]{10}$/, { message: 'El teléfono de contacto debe contener 10 dígitos numéricos.' }),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "contactPhone", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Object)
-], UpdateTenantConfigurationDto.prototype, "deliveryArea", void 0);
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^[0-9]{10}$/, { message: 'El teléfono del negocio debe contener 10 dígitos numéricos.' }),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "businessPhone", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(20),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "businessWhatsapp", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateTenantConfigurationDto.prototype, "branchesHaveSeparatePhones", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateTenantConfigurationDto.prototype, "branchesHaveSeparateWhatsapps", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "website", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "facebook", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "instagram", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateTenantConfigurationDto.prototype, "tiktok", void 0);
 //# sourceMappingURL=update-tenant-configuration.dto.js.map

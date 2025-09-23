@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from './entities/tenant-configuration.entity';
 import { UpdateTenantConfigurationDto } from './dto/update-tenant-configuration.dto';
 export declare class TenantConfigurationService {
     private readonly configRepository;

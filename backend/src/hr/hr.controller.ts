@@ -41,7 +41,7 @@ export class HrController {
   // --- Employees ---
   @Post('employees')
   createEmployee(@Body() createEmployeeDto: CreateEmployeeDto, @User() user: UserPayload) {
-    return this.hrService.createEmployee(createEmployeeDto, user.tenantId);
+    return this.hrService.createEmployee(createEmployeeDto, user.tenantId, user.locationId);
   }
 
   @Get('employees')

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Typography, Avatar, Dropdown, Space, theme, MenuProps } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Typography, Avatar, Dropdown, Space, theme, MenuProps, Button } from 'antd';
 import { Outlet, useLocation, Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   AppstoreOutlined,
+  QuestionCircleOutlined,
   DashboardOutlined,
   DesktopOutlined,
   CarOutlined,
@@ -27,6 +28,8 @@ import {
 } from '@ant-design/icons';
 import ThemeSwitcher from '../components/layout/ThemeSwitcher';
 import LocationSelector from '../components/layout/LocationSelector';
+import { useTour } from '../contexts/TourContext';
+import OnboardingTour from '../components/tour/OnboardingTour';
 
 const { Header, Content, Sider } = Layout;
 const { Text, Title } = Typography;
@@ -36,9 +39,30 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, hasPermission } = useAuth();
+  const { isTourRunning, startTour, stepIndex } = useTour();
   const {
     token: { colorBgContainer, colorText },
   } = theme.useToken();
+
+  // Lógica mejorada para resaltar el menú y submenú activo
+  const pathSnippets = location.pathname.split('/').filter(i => i);
+  const defaultOpenKeys = pathSnippets.length > 1 ? [`/${pathSnippets[0]}`] : [];
+
+  // Añadimos una condición para mantener abierto el submenú de Configuración
+  if (location.pathname.startsWith('/settings') || location.pathname === '/management/preparation-zones') {
+    defaultOpenKeys.push('settings-submenu');
+  }
+
+  const [openKeys, setOpenKeys] = useState<string[]>(defaultOpenKeys);
+
+  // Este efecto se encarga de abrir los submenús correctos durante el tour
+  useEffect(() => {
+    if (isTourRunning) {
+      if (stepIndex === 0) setOpenKeys(['settings-submenu']); // Abre Configuración para el primer paso
+      else if (stepIndex >= 1 && stepIndex <= 5) setOpenKeys(['/management']); // Abre Gestión para los siguientes
+      else setOpenKeys([]); // Cierra todos los menús para el último paso
+    }
+  }, [isTourRunning, stepIndex]);
 
   // --- Lógica de Redirección y Renderizado ---
   // Si hay un usuario logueado, decidimos qué renderizar o a dónde redirigir.
@@ -58,13 +82,11 @@ const MainLayout: React.FC = () => {
     navigate('/login');
   };
 
-  // Lógica mejorada para resaltar el menú y submenú activo
-  const pathSnippets = location.pathname.split('/').filter(i => i);
-  const defaultOpenKeys = pathSnippets.length > 1 ? [`/${pathSnippets[0]}`] : [];
-
-  // Añadimos una condición para mantener abierto el submenú de Configuración
-  if (location.pathname.startsWith('/settings') || location.pathname === '/management/preparation-zones') {
-    defaultOpenKeys.push('settings-submenu');
+  const onOpenChange = (keys: string[]) => {
+    // Permitir al usuario controlar el menú solo cuando el tour no está activo
+    if (!isTourRunning) {
+      setOpenKeys(keys);
+    }
   }
   
   const userMenuItems: MenuProps['items'] =
@@ -125,12 +147,12 @@ const MainLayout: React.FC = () => {
         icon: <AppstoreOutlined />,
         label: 'Gestión',
         children: [
-          hasPermission('manage:products') && { key: '/management/products', icon: <GiftOutlined />, label: <Link to="/management/products">Productos</Link> },
-          hasPermission('manage:product_categories') && { key: '/management/product-categories', icon: <AppstoreOutlined />, label: <Link to="/management/product-categories">Categorías</Link> },
+          hasPermission('manage:products') && { key: '/management/products', icon: <GiftOutlined />, label: <Link to="/management/products">Productos</Link>, 'data-tour': 'menu-products' },
+          hasPermission('manage:product_categories') && { key: '/management/product-categories', icon: <AppstoreOutlined />, label: <Link to="/management/product-categories">Categorías</Link>, 'data-tour': 'menu-product-categories' },
           hasPermission('manage:promotions') && { key: '/management/promotions', icon: <TagsOutlined />, label: <Link to="/management/promotions">Promociones</Link> },
           hasPermission('manage:users') && { key: '/management/users', icon: <UserOutlined />, label: <Link to="/management/users">Usuarios</Link> },
-          hasPermission('manage:locations') && { key: '/management/locations', icon: <ShopOutlined />, label: <Link to="/management/locations">Sucursales</Link> },
-          hasPermission('manage:hr') && { key: '/management/hr', icon: <TeamOutlined />, label: <Link to="/management/hr">Recursos Humanos</Link> },
+          hasPermission('manage:locations') && { key: '/management/locations', icon: <ShopOutlined />, label: <Link to="/management/locations">Sucursales</Link>, 'data-tour': 'menu-locations' },
+          hasPermission('manage:hr') && { key: '/management/hr', icon: <TeamOutlined />, label: <Link to="/management/hr">Recursos Humanos</Link>, 'data-tour': 'menu-hr' },
         ].filter(Boolean),
       },
       {
@@ -161,6 +183,7 @@ const MainLayout: React.FC = () => {
         key: 'settings-submenu',
         icon: <SettingOutlined />,
         label: 'Configuración',
+        'data-tour': 'menu-settings',
         children: [
           hasPermission('manage:settings') && { key: '/settings', label: <Link to="/settings">General</Link> },
           hasPermission('manage:locations') && { key: '/management/preparation-zones', icon: <FireOutlined />, label: <Link to="/management/preparation-zones">Zonas de Preparación</Link> },
@@ -178,7 +201,13 @@ const MainLayout: React.FC = () => {
         <div style={{ height: 32, margin: 16, background: '#333333', textAlign: 'center', color: '#DAA520', lineHeight: '32px', borderRadius: '6px', fontWeight: 'bold' }}>
           {collapsed ? 'MC' : 'Mozzarella Cloud'}
         </div>
-        <Menu theme="dark" selectedKeys={[location.pathname]} defaultOpenKeys={defaultOpenKeys} mode="inline" items={getMenuItems()} />
+        <Menu
+          theme="dark"
+          selectedKeys={[location.pathname]}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          mode="inline"
+          items={getMenuItems()} />
       </Sider>
       <Layout className="site-layout">
         <Header style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -188,6 +217,13 @@ const MainLayout: React.FC = () => {
               <LocationSelector />
             )}
             <ThemeSwitcher />
+            {user?.role?.name !== 'super_admin' && (
+              <Button
+                icon={<QuestionCircleOutlined />}
+                onClick={startTour}
+                title="Iniciar tour de primeros pasos"
+              />
+            )}
             <Dropdown menu={{ items: userMenuItems }} trigger={['click']}>
               <a onClick={e => e.preventDefault()} style={{cursor: 'pointer'}}>
                 <Space>
@@ -206,6 +242,7 @@ const MainLayout: React.FC = () => {
             <Outlet />
           </div>
         </Content>
+        <OnboardingTour />
       </Layout>
     </Layout>
   );

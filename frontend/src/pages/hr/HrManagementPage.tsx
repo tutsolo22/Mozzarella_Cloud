@@ -17,8 +17,10 @@ import {
   Select,
   InputNumber,
   DatePicker,
+  Checkbox,
+  Tag,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UsergroupAddOutlined, IdcardOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UsergroupAddOutlined, IdcardOutlined, MailOutlined } from '@ant-design/icons';
 import {
   getPositions,
   createPosition,
@@ -27,11 +29,12 @@ import {
   getEmployees,
   createEmployee,
   updateEmployee,
-  getUsers,
   deleteEmployee,
+  getRoles,
+  resendInvitation,
 } from '../../services/api';
 import { Position, Employee, CreatePositionDto, UpdatePositionDto, CreateEmployeeDto, UpdateEmployeeDto, PaymentFrequency } from '../../types/hr';
-import { User } from '../../types/user';
+import { Role } from '../../types/role';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 
@@ -177,25 +180,26 @@ const PositionManagement: React.FC<{ onPositionsChange: () => void }> = ({ onPos
 // --- Employee Management Component ---
 const EmployeeManagement: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [createWithUser, setCreateWithUser] = useState(false);
   const [form] = Form.useForm();
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [employeesData, usersData, positionsData] = await Promise.all([
+      const [employeesData, positionsData, rolesData] = await Promise.all([
         getEmployees(),
-        getUsers(),
         getPositions(),
+        getRoles(), // Fetch roles for the user creation form
       ]);
       setEmployees(employeesData);
-      setUsers(usersData);
       setPositions(positionsData);
+      setRoles(rolesData.filter(r => r.name !== 'super_admin')); // Exclude super_admin role
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'No se pudieron cargar los datos de empleados.');
@@ -212,11 +216,13 @@ const EmployeeManagement: React.FC = () => {
     setEditingEmployee(employee);
     if (employee) {
       form.setFieldsValue({
-        ...employee,
-        hireDate: dayjs(employee.hireDate),
-        userId: employee.user.id,
+        fullName: employee.fullName,
         positionId: employee.position.id,
+        salary: employee.salary,
+        paymentFrequency: employee.paymentFrequency,
+        hireDate: dayjs(employee.hireDate),
       });
+      setCreateWithUser(false); // Can't add a user account when editing
     } else {
       form.resetFields();
     }
@@ -226,12 +232,14 @@ const EmployeeManagement: React.FC = () => {
   const handleCancel = () => {
     setIsModalOpen(false);
     setEditingEmployee(null);
+    setCreateWithUser(false);
     form.resetFields();
   };
 
   const handleFormSubmit = async (values: any) => {
-    const dto = {
+    const dto: CreateEmployeeDto | UpdateEmployeeDto = {
       ...values,
+      createSystemUser: createWithUser,
       hireDate: dayjs(values.hireDate).format('YYYY-MM-DD'),
     };
 
@@ -266,12 +274,31 @@ const EmployeeManagement: React.FC = () => {
     }
   };
 
+  const handleResendInvitation = async (userId: string) => {
+    try {
+      await resendInvitation(userId);
+      notification.success({ message: 'Invitación reenviada con éxito' });
+    } catch (err: any) {
+      notification.error({
+        message: 'Error al reenviar',
+        description: err.response?.data?.message || 'No se pudo reenviar la invitación.',
+      });
+    }
+  };
+
   const columns: ColumnsType<Employee> = [
-    { title: 'Nombre', dataIndex: ['user', 'fullName'], key: 'name' },
-    { title: 'Email', dataIndex: ['user', 'email'], key: 'email' },
+    { title: 'Nombre', dataIndex: 'fullName', key: 'name' },
+    { title: 'Email (Usuario)', dataIndex: ['user', 'email'], key: 'email', render: (email) => email || <Tag>Sin acceso</Tag> },
     { title: 'Puesto', dataIndex: ['position', 'name'], key: 'position' },
     { title: 'Salario', dataIndex: 'salary', key: 'salary', render: (val) => `$${Number(val).toFixed(2)}` },
-    { title: 'Frecuencia de Pago', dataIndex: 'paymentFrequency', key: 'paymentFrequency' },
+    {
+      title: 'Frecuencia de Pago',
+      dataIndex: 'paymentFrequency',
+      key: 'paymentFrequency',
+      render: (freq: string) => {
+        return freq.charAt(0).toUpperCase() + freq.slice(1).replace('-',' ');
+      }
+    },
     { title: 'Fecha de Contratación', dataIndex: 'hireDate', key: 'hireDate', render: (val) => dayjs(val).format('DD/MM/YYYY') },
     {
       title: 'Acciones',
@@ -279,6 +306,13 @@ const EmployeeManagement: React.FC = () => {
       align: 'right',
       render: (_, record) => (
         <Space>
+          {record.user && record.user.status === 'pending_verification' && (
+            <Popconfirm
+              title="¿Reenviar invitación?"
+              onConfirm={() => handleResendInvitation(record.userId!)}
+              okText="Sí" cancelText="No"
+            ><Button icon={<MailOutlined />} title="Reenviar invitación" /></Popconfirm>
+          )}
           <Button icon={<EditOutlined />} onClick={() => handleOpenModal(record)} />
           <Popconfirm
             title="¿Eliminar este empleado?"
@@ -316,13 +350,29 @@ const EmployeeManagement: React.FC = () => {
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item name="userId" label="Usuario" rules={[{ required: true, message: 'Selecciona un usuario' }]}>
-            <Select showSearch optionFilterProp="children" placeholder="Buscar usuario..." disabled={!!editingEmployee}>
-              {users.map(user => (
-                <Option key={user.id} value={user.id}>{user.fullName} ({user.email})</Option>
-              ))}
-            </Select>
+          <Form.Item name="fullName" label="Nombre Completo" rules={[{ required: true, message: 'El nombre es obligatorio' }]}>
+            <Input placeholder="Ej: Juan Pérez" disabled={!!editingEmployee} />
           </Form.Item>
+
+          {!editingEmployee && (
+            <Form.Item name="createSystemUser" valuePropName="checked">
+              <Checkbox onChange={(e) => setCreateWithUser(e.target.checked)}>
+                Crear acceso al sistema para este empleado
+              </Checkbox>
+            </Form.Item>
+          )}
+
+          {createWithUser && !editingEmployee && (
+            <>
+              <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email', message: 'Ingresa un email válido' }]}>
+                <Input placeholder="ejemplo@correo.com" />
+              </Form.Item>
+              <Form.Item name="roleId" label="Rol del Sistema" rules={[{ required: true, message: 'Selecciona un rol' }]}>
+                <Select placeholder="Seleccionar rol">{roles.map(role => <Option key={role.id} value={role.id}>{role.name}</Option>)}</Select>
+              </Form.Item>
+            </>
+          )}
+
           <Form.Item name="positionId" label="Puesto" rules={[{ required: true, message: 'Selecciona un puesto' }]}>
             <Select placeholder="Seleccionar puesto">
               {positions.map(pos => (

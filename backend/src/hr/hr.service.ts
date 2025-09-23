@@ -1,20 +1,28 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, Repository } from 'typeorm';
+import { Between, DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { Employee, PaymentFrequency } from './entities/employee.entity';
 import { Position } from './entities/position.entity';
 import { CreatePositionDto } from './dto/create-position.dto';
 import { UpdatePositionDto } from './dto/update-position.dto';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { User, UserStatus } from '../users/entities/user.entity';
+import { AuthService } from '../auth/auth.service';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class HrService {
+  private readonly logger = new Logger(HrService.name);
+
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(Position)
     private readonly positionRepository: Repository<Position>,
+    private readonly dataSource: DataSource,
+    private readonly authService: AuthService,
   ) {}
 
   // --- Positions ---
@@ -47,20 +55,67 @@ export class HrService {
   }
 
   // --- Employees ---
-  async createEmployee(dto: CreateEmployeeDto, tenantId: string): Promise<Employee> {
-    const userAlreadyEmployee = await this.employeeRepository.findOneBy({ userId: dto.userId, tenantId });
-    if (userAlreadyEmployee) {
-      throw new ConflictException('Este usuario ya está registrado como empleado.');
+  async createEmployee(createEmployeeDto: CreateEmployeeDto, tenantId: string, locationId: string): Promise<Employee> {
+    const { createSystemUser, email, roleId, ...employeeData } = createEmployeeDto;
+
+    const savedEmployee = await this.dataSource.transaction(async (transactionalEntityManager) => {
+      let newEmployee = transactionalEntityManager.create(Employee, {
+        ...employeeData,
+        tenantId,
+      });
+      newEmployee = await transactionalEntityManager.save(newEmployee);
+
+      if (createSystemUser) {
+        if (!email || !roleId) {
+          throw new BadRequestException('El email y el rol son requeridos para crear un acceso al sistema.');
+        }
+
+        const existingUser = await transactionalEntityManager.findOneBy(User, { email });
+        if (existingUser) {
+          throw new ConflictException(`El email '${email}' ya está en uso por otro usuario.`);
+        }
+
+        const temporaryPassword = crypto.randomBytes(20).toString('hex');
+        const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+
+        const newUser = transactionalEntityManager.create(User, {
+          email,
+          password: hashedPassword,
+          fullName: employeeData.fullName,
+          roleId,
+          tenantId,
+          locationId,
+          status: UserStatus.PendingVerification,
+        });
+        const savedUser = await transactionalEntityManager.save(newUser);
+
+        newEmployee.userId = savedUser.id;
+        newEmployee.user = savedUser;
+        await transactionalEntityManager.save(newEmployee);
+      }
+      return newEmployee;
+    });
+
+    // Send invitation email AFTER the transaction is successful
+    if (createSystemUser && savedEmployee.user) {
+      try {
+        await this.authService.sendAccountSetupEmail(savedEmployee.user);
+      } catch (error) {
+        this.logger.error(`Empleado creado, pero falló el envío de la invitación a ${email}`, error.stack);
+        // We don't throw an error here to avoid rolling back the employee creation.
+        // The admin can resend the invitation manually.
+        // We could add a notification system here in the future.
+      }
     }
-    const employee = this.employeeRepository.create({ ...dto, tenantId });
-    return this.employeeRepository.save(employee);
+
+    // Reload the full entity to return it
+    return this.employeeRepository.findOne({ where: { id: savedEmployee.id }, relations: ['user', 'position'] });
   }
 
   findAllEmployees(tenantId: string, locationId?: string) {
     const whereClause: FindOptionsWhere<Employee> = { tenantId };
     if (locationId) {
-      // Filter employees by the location of their associated user
-      whereClause.user = { locationId };
+      whereClause.user = { locationId }; // This will only find employees that are also users of that location.
     }
     return this.employeeRepository.find({ where: whereClause, relations: ['user', 'position'] });
   }
@@ -74,6 +129,10 @@ export class HrService {
   }
 
   async removeEmployee(id: string, tenantId: string): Promise<void> {
+    // Note: This only deletes the 'employee' record.
+    // The associated 'user' account is NOT deleted, allowing them to be re-hired
+    // or to keep their access if they have other roles.
+    // The OneToOne relation is set to 'SET NULL' on the user side.
     const result = await this.employeeRepository.delete({ id, tenantId });
     if (result.affected === 0) {
       throw new NotFoundException(`Empleado con ID #${id} no encontrado.`);

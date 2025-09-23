@@ -9,9 +9,10 @@ export declare enum PaymentFrequency {
 }
 export declare class Employee {
     id: string;
+    fullName: string;
     tenantId: string;
     tenant: Tenant;
-    userId: string;
+    userId: string | null;
     user: User;
     positionId: string;
     position: Position;

@@ -9,7 +9,7 @@ export interface ProductCategoryDto {
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   category: ProductCategory;
   imageUrl?: string;
@@ -17,10 +17,26 @@ export interface Product {
   recipeIsSet: boolean;
   deletedAt?: string;
   preparationZone?: PreparationZone;
+
+  // Datos Fiscales
+  satProductKey?: string | null;
+  satUnitKey?: string | null;
+  isTaxable: boolean; // The backend entity has a default, so it will always be present.
 }
 
-export type CreateProductDto = Omit<Product, 'id' | 'category' | 'isAvailable' | 'recipeIsSet' | 'deletedAt' | 'preparationZone'> & { categoryId: string; preparationZoneId?: string | null; };
-export type UpdateProductDto = Partial<CreateProductDto & { isAvailable: boolean }>;
+export interface CreateProductDto {
+  name: string;
+  description?: string;
+  price: number;
+  categoryId: string;
+  preparationZoneId?: string | null;
+  isAvailable?: boolean;
+  satProductKey?: string;
+  satUnitKey?: string;
+  isTaxable?: boolean;
+}
+
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 export interface Ingredient {
   id: string;

@@ -1,6 +1,6 @@
 import { User } from '../../users/entities/user.entity';
 import { License } from '../../licenses/entities/license.entity';
-import { TenantConfiguration } from './tenant-configuration.entity';
+import { TenantConfiguration } from '../../tenant-configuration/entities/tenant-configuration.entity';
 import { Location } from '../../locations/entities/location.entity';
 export declare enum TenantPlan {
     Trial = "trial",

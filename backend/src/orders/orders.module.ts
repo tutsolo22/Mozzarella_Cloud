@@ -8,7 +8,7 @@ import { InventoryMovementsModule } from '../inventory-movements/inventory-movem
 import { NotificationsModule } from '../notifications/notifications.module';
 import { IngredientsModule } from '../ingredients/ingredients.module';
 import { Product } from '../products/entities/product.entity';
-import { TenantConfiguration } from '../tenants/entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { User } from '../users/entities/user.entity';

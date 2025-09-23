@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Typography, message, Skeleton, Card } from 'antd';
 import { DollarCircleOutlined, ShoppingCartOutlined, ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { getDashboardStats } from '../../services/reports';
+import { getDashboardStats } from '../../services/api';
 import { DashboardStats } from '../../types/dashboard';
 import StatCard from '../../components/dashboard/StatCard';
 import SalesChart from '../../components/dashboard/SalesChart';
 import OrderStatusPieChart from '../../components/dashboard/OrderStatusPieChart';
+import { useTour } from '../../contexts/TourContext';
 
 const { Title } = Typography;
 
 const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { startTour } = useTour();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -27,7 +29,13 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchStats();
-  }, []);
+
+    // Iniciar el tour si no se ha completado
+    const tourCompleted = localStorage.getItem('onboardingTourCompleted');
+    if (!tourCompleted) {
+      startTour();
+    }
+  }, [startTour]);
 
   return (
     <div>

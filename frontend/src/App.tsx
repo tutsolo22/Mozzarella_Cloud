@@ -4,6 +4,7 @@ import { ConfigProvider, Spin, Layout, theme as antdTheme, App as AntApp } from 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LocationProvider } from './contexts/LocationContext';
+import { TourProvider } from './contexts/TourContext';
 import MainLayout from './layouts/MainLayout';
 
 // Lazy load pages for better performance
@@ -192,9 +193,11 @@ const ThemedApp: React.FC = () => {
 const App: React.FC = () => (
   <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <ThemeProvider>
-      <AuthProvider>
-        <ThemedApp />
-      </AuthProvider>
+      <TourProvider>
+        <AuthProvider>
+          <ThemedApp />
+        </AuthProvider>
+      </TourProvider>
     </ThemeProvider>
   </Router>
 );

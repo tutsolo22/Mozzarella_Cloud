@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
-import { TenantConfiguration } from './entities/tenant-configuration.entity';
+import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { FilesService } from '../files/files.service';
 export declare class TenantsService {
     private readonly tenantConfigRepository;

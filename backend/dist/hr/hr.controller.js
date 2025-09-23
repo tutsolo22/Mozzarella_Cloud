@@ -41,7 +41,7 @@ let HrController = class HrController {
         await this.hrService.removePosition(id, user.tenantId);
     }
     createEmployee(createEmployeeDto, user) {
-        return this.hrService.createEmployee(createEmployeeDto, user.tenantId);
+        return this.hrService.createEmployee(createEmployeeDto, user.tenantId, user.locationId);
     }
     findAllEmployees(user) {
         if (user.role === role_enum_1.RoleEnum.Admin) {
