@@ -421,6 +421,12 @@ export const deleteKdsSound = async (): Promise<void> => {
   await axiosClient.delete('/tenants/configuration/kds-sound');
 };
 
+export const regenerateWhatsappApiKey = async (): Promise<string> => {
+  // El backend devuelve un objeto { apiKey: '...' }
+  const response = await axiosClient.patch('/tenants/configuration/whatsapp-api-key/regenerate');
+  return response.data.apiKey;
+};
+
 export const uploadCsdCertFile = async (file: File): Promise<TenantConfiguration> => {
   const formData = new FormData();
   formData.append('file', file);

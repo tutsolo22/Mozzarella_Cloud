@@ -30,6 +30,7 @@ import {
 } from '../../services/api'; // Corregido para usar el servicio principal de API
 import { TenantConfiguration, PaymentMethod } from '../../types/tenant';
 import DeliveryZoneMap from '../../components/Settings/DeliveryZoneMap';
+import KdsSettings from '../../components/Settings/KdsSettings';
 const { Title, Paragraph, Text } = Typography;
 
 const SettingsPage: React.FC = () => {
@@ -45,7 +46,7 @@ const SettingsPage: React.FC = () => {
         const config = await getTenantConfiguration(); // Esta función viene de api.ts
         // La configuración del formulario viene de la propiedad 'configuration'
         form.setFieldsValue(config);
-        setApiKey(config.whatsappApiKey);
+        setApiKey(config.whatsappApiKey ?? null);
 
       } catch (error) {
         notification.error({
@@ -204,11 +205,14 @@ const SettingsPage: React.FC = () => {
 
           <Collapse.Panel header="Zonas y KDS" key="delivery">
             <Row gutter={[24, 24]}>
-              <Col xs={24}>
-                <Form.Item name="deliveryArea" label="Área de Entrega">
-                  <DeliveryZoneMap />
-                </Form.Item>
+              <Col xs={24} lg={12}>
+                <Card title="Área de Entrega">
+                  <Form.Item name="deliveryArea" noStyle>
+                    <DeliveryZoneMap />
+                  </Form.Item>
+                </Card>
               </Col>
+              <Col xs={24} lg={12}><KdsSettings /></Col>
             </Row>
           </Collapse.Panel>
 
