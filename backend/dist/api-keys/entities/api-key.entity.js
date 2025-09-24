@@ -9,13 +9,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ApiKey = exports.ApiKeyServiceIdentifier = void 0;
-const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
+exports.ApiKey = exports.ExternalService = void 0;
 const typeorm_1 = require("typeorm");
-var ApiKeyServiceIdentifier;
-(function (ApiKeyServiceIdentifier) {
-    ApiKeyServiceIdentifier["INVOICING"] = "INVOICING";
-})(ApiKeyServiceIdentifier || (exports.ApiKeyServiceIdentifier = ApiKeyServiceIdentifier = {}));
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
+var ExternalService;
+(function (ExternalService) {
+    ExternalService["INVOICING"] = "INVOICING";
+})(ExternalService || (exports.ExternalService = ExternalService = {}));
 let ApiKey = class ApiKey {
 };
 exports.ApiKey = ApiKey;
@@ -33,28 +33,16 @@ __decorate([
     __metadata("design:type", tenant_entity_1.Tenant)
 ], ApiKey.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 100 }),
-    __metadata("design:type", String)
-], ApiKey.prototype, "name", void 0);
-__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
-        enum: ApiKeyServiceIdentifier,
+        enum: ExternalService,
     }),
     __metadata("design:type", String)
 ], ApiKey.prototype, "serviceIdentifier", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 512 }),
-    __metadata("design:type", String)
-], ApiKey.prototype, "apiUrl", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 512, comment: 'API Key encriptada' }),
+    (0, typeorm_1.Column)({ comment: 'La clave de API, encriptada' }),
     __metadata("design:type", String)
 ], ApiKey.prototype, "key", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: true }),
-    __metadata("design:type", Boolean)
-], ApiKey.prototype, "isActive", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -64,6 +52,7 @@ __decorate([
     __metadata("design:type", Date)
 ], ApiKey.prototype, "updatedAt", void 0);
 exports.ApiKey = ApiKey = __decorate([
-    (0, typeorm_1.Entity)('api_keys')
+    (0, typeorm_1.Entity)('api_keys'),
+    (0, typeorm_1.Index)(['tenantId', 'serviceIdentifier'], { unique: true })
 ], ApiKey);
 //# sourceMappingURL=api-key.entity.js.map

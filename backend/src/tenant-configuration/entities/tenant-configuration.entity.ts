@@ -102,6 +102,9 @@ export class TenantConfiguration {
   @Column({ type: 'simple-array', nullable: true, comment: 'List of enabled payment methods' })
   enabledPaymentMethods?: string[];
 
+  @Column({ default: false, comment: 'Si es true, la integración con HexaFact está habilitada.' })
+  isHexaFactIntegrationEnabled: boolean;
+
   // Using 'geography' type for PostGIS support.
   // The 'any' type is for TypeORM's representation.
   @Column({ type: 'geography', spatialFeatureType: 'Polygon', srid: 4326, nullable: true, comment: 'Área de entrega a nivel de tenant (fallback)' })

@@ -1,0 +1,45 @@
+Plan de Acción para la Integración
+El flujo que describiste es perfecto. Vamos a formalizarlo en un plan de acción técnico que podemos ir implementando paso a paso.
+
+Fase 1: Onboarding del Tenant (Mozzarella -> HexaFact)
+
+En Mozzarella (Backend):
+
+Crear un ApiKeysModule para gestionar de forma segura las claves de API de servicios externos. La clave de HexaFact se guardaría aquí, encriptada.
+En el TenantConfigurationService, al detectar que se activa la integración con HexaFact, se debe hacer una llamada a la API de HexaFact (POST /api/tenants) enviando los datos básicos del tenant.
+En HexaFact (Laravel):
+
+Crear un endpoint POST /api/tenants protegido por una API Key.
+Este endpoint debe implementar la lógica "buscar o crear" que describiste.
+Si el tenant es nuevo, se guarda y se dispara un evento TenantRegistered que envíe el correo de bienvenida para completar el perfil fiscal.
+Una vez que el tenant completa su perfil, se genera la URL de facturación y se dispara otro evento, TenantActivated, que llamará a un webhook en Mozzarella.
+En Mozzarella (Backend):
+
+Crear un WebhooksModule con un endpoint POST /webhooks/hexafact/tenant-activated.
+Este endpoint recibirá la URL de facturación y la guardará en el campo invoicingAppUrl de la TenantConfiguration.
+Fase 2: Flujo de Facturación del Cliente (Comunicación bidireccional)
+
+Este flujo es más complejo y demuestra el poder de la arquitectura de microservicios.
+
+En Mozzarella (Frontend/Backend):
+
+En la vista de una orden, si invoicingAppUrl existe, se muestra un botón o enlace "Facturar".
+En HexaFact (Laravel):
+
+El cliente llega a la URL pública, se registra y verifica su cuenta.
+Ingresa el folio y monto del ticket.
+HexaFact hace una llamada a la API de Mozzarella: GET /api/orders/validate-for-invoice?folio=...&amount=....
+En Mozzarella (Backend):
+
+El nuevo endpoint validate-for-invoice busca la orden.
+Verifica que no esté ya facturada (isBilled debe ser false).
+Si todo es correcto, devuelve los detalles completos de la orden (productos, impuestos, etc.).
+En HexaFact (Laravel):
+
+Recibe los datos, el cliente confirma, y se procede al timbrado.
+Una vez timbrada, HexaFact llama a un webhook en Mozzarella: POST /webhooks/hexafact/order-billed.
+En Mozzarella (Backend):
+
+El webhook recibe el ID de la orden y la URL de la factura (PDF/XML).
+Actualiza la orden: isBilled = true, invoiceUrl = '...'.
+Este plan es un excelente punto de partida. Mi sugerencia es que comencemos por la Fase 1, ya que sienta las bases de la comunicación.

@@ -11,6 +11,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   Delete,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -22,6 +23,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleEnum } from '../roles/enums/role.enum';
 import { User, UserPayload } from '../auth/decorators/user.decorator';
+import { UpdateTenantConfigurationDto } from './dto/update-tenant-configuration.dto';
 
 @Controller('tenants')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,7 +39,7 @@ export class TenantsController {
   @Patch('configuration')
   updateConfiguration(
     @User() user: UserPayload,
-    @Body() updateConfigDto: Partial<TenantConfiguration>,
+    @Body() updateConfigDto: UpdateTenantConfigurationDto,
   ): Promise<TenantConfiguration> {
     return this.tenantsService.updateConfiguration(user.tenantId, updateConfigDto);
   }

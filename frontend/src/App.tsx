@@ -45,6 +45,7 @@ const SuperAdminDashboardPage = lazy(() => import('./pages/superadmin/SuperAdmin
 const TenantManagementPage = lazy(() => import('./pages/superadmin/TenantManagementPage'));
 const LicenseManagementPage = lazy(() => import('./pages/superadmin/LicenseManagementPage'));
 const SmtpSettingsPage = lazy(() => import('./pages/superadmin/SmtpSettingsPage'));
+const TenantApiKeysPage = lazy(() => import('./pages/superadmin/TenantApiKeysPage'));
 const LogViewerPage = lazy(() => import('./pages/superadmin/LogsViewerPage'));
 
 const CenteredSpinner: React.FC = () => (
@@ -140,6 +141,7 @@ const AppRoutes: React.FC = () => (
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<SuperAdminDashboardPage />} />
             <Route path="tenants" element={<TenantManagementPage />} />
+            <Route path="tenants/:tenantId/api-keys" element={<TenantApiKeysPage />} />
             <Route path="licenses" element={<LicenseManagementPage />} />
             <Route path="smtp-settings" element={<SmtpSettingsPage />} />
             <Route path="logs" element={<LogViewerPage />} />

@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateApiKeyDto = void 0;
 const class_validator_1 = require("class-validator");
@@ -22,7 +23,7 @@ __decorate([
 ], CreateApiKeyDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(api_key_entity_1.ApiKeyServiceIdentifier),
-    __metadata("design:type", String)
+    __metadata("design:type", typeof (_a = typeof api_key_entity_1.ApiKeyServiceIdentifier !== "undefined" && api_key_entity_1.ApiKeyServiceIdentifier) === "function" ? _a : Object)
 ], CreateApiKeyDto.prototype, "serviceIdentifier", void 0);
 __decorate([
     (0, class_validator_1.IsUrl)({}, { message: 'La URL de la API debe ser una URL válida.' }),

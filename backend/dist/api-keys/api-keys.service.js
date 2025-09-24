@@ -17,41 +17,45 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const api_key_entity_1 = require("./entities/api-key.entity");
-const encryption_service_1 = require("../common/services/encryption.service");
+const encryption_service_1 = require("../encryption/encryption.service");
 let ApiKeysService = class ApiKeysService {
     constructor(apiKeyRepository, encryptionService) {
         this.apiKeyRepository = apiKeyRepository;
         this.encryptionService = encryptionService;
     }
-    async create(tenantId, createApiKeyDto) {
-        const { key, ...rest } = createApiKeyDto;
+    async upsert(tenantId, upsertApiKeyDto) {
+        const { serviceIdentifier, key } = upsertApiKeyDto;
         const encryptedKey = this.encryptionService.encrypt(key);
-        const newApiKey = this.apiKeyRepository.create({
-            ...rest,
+        let apiKey = await this.apiKeyRepository.findOneBy({
             tenantId,
-            key: encryptedKey,
+            serviceIdentifier,
         });
-        return this.apiKeyRepository.save(newApiKey);
-    }
-    async findAllForTenant(tenantId) {
-        return this.apiKeyRepository.find({ where: { tenantId } });
-    }
-    async findOne(id, tenantId) {
-        const apiKey = await this.apiKeyRepository.findOneBy({ id, tenantId });
-        if (!apiKey) {
-            throw new common_1.NotFoundException(`API Key con ID ${id} no encontrada para este tenant.`);
+        if (apiKey) {
+            apiKey.key = encryptedKey;
         }
-        return apiKey;
+        else {
+            apiKey = this.apiKeyRepository.create({
+                tenantId,
+                serviceIdentifier,
+                key: encryptedKey,
+            });
+        }
+        return this.apiKeyRepository.save(apiKey);
     }
-    async getDecryptedKey(id, tenantId) {
-        const apiKey = await this.findOne(id, tenantId);
-        return this.encryptionService.decrypt(apiKey.key);
-    }
-    async findActiveKeyForService(tenantId, service) {
-        return this.apiKeyRepository.findOneBy({
+    async getDecryptedKey(tenantId, service) {
+        const apiKey = await this.apiKeyRepository.findOneBy({
             tenantId,
             serviceIdentifier: service,
-            isActive: true,
+        });
+        if (!apiKey) {
+            return null;
+        }
+        return this.encryptionService.decrypt(apiKey.key);
+    }
+    async findAllForTenant(tenantId) {
+        return this.apiKeyRepository.find({
+            where: { tenantId },
+            select: ['id', 'serviceIdentifier', 'createdAt', 'updatedAt'],
         });
     }
     async remove(id, tenantId) {

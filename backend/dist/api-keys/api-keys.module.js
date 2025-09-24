@@ -11,16 +11,15 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const api_keys_service_1 = require("./api-keys.service");
 const api_key_entity_1 = require("./entities/api-key.entity");
-const encryption_module_1 = require("../common/encryption/encryption.module");
+const encryption_module_1 = require("../encryption/encryption.module");
+const api_keys_controller_1 = require("./api-keys.controller");
 let ApiKeysModule = class ApiKeysModule {
 };
 exports.ApiKeysModule = ApiKeysModule;
 exports.ApiKeysModule = ApiKeysModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            typeorm_1.TypeOrmModule.forFeature([api_key_entity_1.ApiKey]),
-            encryption_module_1.EncryptionModule,
-        ],
+        imports: [typeorm_1.TypeOrmModule.forFeature([api_key_entity_1.ApiKey]), encryption_module_1.EncryptionModule],
+        controllers: [api_keys_controller_1.ApiKeysController],
         providers: [api_keys_service_1.ApiKeysService],
         exports: [api_keys_service_1.ApiKeysService],
     })

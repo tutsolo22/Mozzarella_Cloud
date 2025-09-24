@@ -14,6 +14,7 @@ const tenants_controller_1 = require("./tenants.controller");
 const tenant_entity_1 = require("./entities/tenant.entity");
 const tenant_configuration_entity_1 = require("../tenant-configuration/entities/tenant-configuration.entity");
 const files_module_1 = require("../files/files.module");
+const hexafact_integration_module_1 = require("../integrations/hexafact/hexafact-integration.module");
 let TenantsModule = class TenantsModule {
 };
 exports.TenantsModule = TenantsModule;
@@ -22,6 +23,7 @@ exports.TenantsModule = TenantsModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([tenant_entity_1.Tenant, tenant_configuration_entity_1.TenantConfiguration]),
             files_module_1.FilesModule,
+            hexafact_integration_module_1.HexaFactIntegrationModule,
         ],
         controllers: [tenants_controller_1.TenantsController],
         providers: [tenants_service_1.TenantsService],

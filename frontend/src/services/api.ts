@@ -16,6 +16,18 @@ import { SmtpSettings, TestSmtpDto } from '../types/smtp';
 import { PreparationZone, CreatePreparationZoneDto, UpdatePreparationZoneDto } from '../types/preparation-zone';
 import { Customer, CreateCustomerDto, UpdateCustomerDto } from '../types/customer';
 
+// --- API Keys (Super Admin) ---
+export enum ExternalService {
+  INVOICING = 'INVOICING',
+}
+export interface ApiKey {
+  id: string;
+  serviceIdentifier: ExternalService;
+  createdAt: string;
+  updatedAt: string;
+}
+export type UpsertApiKeyDto = Pick<ApiKey, 'serviceIdentifier'> & { key: string };
+
 export interface SuperAdminStats {
   tenants: {
     total: number;
@@ -499,6 +511,20 @@ export const getLogFiles = async (): Promise<string[]> => {
 export const getLogContent = async (fileName: string, lines: number): Promise<{ log: string }> => {
   const response = await axiosClient.get('/super-admin/logs', { params: { file: fileName, lines } });
   return response.data;
+};
+
+export const getApiKeysForTenant = async (tenantId: string): Promise<ApiKey[]> => {
+  const response = await axiosClient.get(`/super-admin/tenants/${tenantId}/api-keys`);
+  return response.data;
+};
+
+export const upsertApiKey = async (tenantId: string, data: UpsertApiKeyDto): Promise<ApiKey> => {
+  const response = await axiosClient.post(`/super-admin/tenants/${tenantId}/api-keys`, data);
+  return response.data;
+};
+
+export const deleteApiKey = async (tenantId: string, keyId: string): Promise<void> => {
+  await axiosClient.delete(`/super-admin/tenants/${tenantId}/api-keys/${keyId}`);
 };
 
 // --- Cashier Sessions History ---

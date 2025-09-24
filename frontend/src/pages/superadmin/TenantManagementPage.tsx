@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Tag, Tooltip, Space, Popconfirm } from 'antd';
-import { PlusOutlined, MailOutlined, EditOutlined, StopOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Tag, Tooltip, Space, Popconfirm, Dropdown, Menu } from 'antd';
+import { PlusOutlined, EditOutlined, MoreOutlined, StopOutlined, CheckCircleOutlined, MailOutlined, DeleteOutlined, IdcardOutlined, KeyOutlined } from '@ant-design/icons';
 import { getTenants, createTenant, resendInvitation, updateTenant, updateTenantStatus, deleteTenant } from '../../services/api';
 import { Tenant, TenantStatus } from '../../types/tenant';
 import { User, UserStatus } from '../../types/user';
+import { useNavigate } from 'react-router-dom';
 
 const TenantManagementPage: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -14,6 +15,7 @@ const TenantManagementPage: React.FC = () => {
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
+  const navigate = useNavigate();
 
   const fetchTenants = async () => {
     setLoading(true);
@@ -181,36 +183,37 @@ const TenantManagementPage: React.FC = () => {
       render: (_: any, record: Tenant): React.ReactNode => {
         const admin = record.users?.find(u => u.role.name === 'admin');
         const isSuspended = record.status === TenantStatus.Suspended;
-        return (
-          <Space>
-            <Button icon={<EditOutlined />} onClick={() => showEditModal(record)}>
-              Editar
-            </Button>
-            <Popconfirm
-              title={`¿Seguro que quieres ${isSuspended ? 'reactivar' : 'suspender'} este tenant?`}
-              onConfirm={() => handleUpdateStatus(record.id, isSuspended ? TenantStatus.Active : TenantStatus.Suspended)}
-              okText="Sí"
-              cancelText="No"
-            >
-              <Button
-                type={isSuspended ? 'primary' : 'default'}
-                danger={!isSuspended}
-                style={
-                  isSuspended ? { background: '#8B8000', borderColor: '#8B8000' } : undefined
-                }
-                icon={isSuspended ? <CheckCircleOutlined /> : <StopOutlined />}
-              >
-                {isSuspended ? 'Reactivar' : 'Suspender'}
-              </Button>
-            </Popconfirm>
+
+        const handleMenuClick = (e: { key: string }) => {
+          switch (e.key) {
+            case 'edit':
+              showEditModal(record);
+              break;
+            case 'license':
+              // Asumiendo que tienes una ruta para esto
+              navigate(`/super-admin/licenses`);
+              break;
+            case 'api-keys':
+              navigate(`/super-admin/tenants/${record.id}/api-keys`);
+              break;
+            case 'resend':
+              if (admin?.id) handleResendInvitation(admin.id);
+              break;
+            case 'delete':
+              handleDelete(record.id);
+              break;
+          }
+        };
+
+        const menu = (
+          <Menu onClick={handleMenuClick}>
+            <Menu.Item key="edit" icon={<EditOutlined />}>Editar Nombre</Menu.Item>
+            <Menu.Item key="license" icon={<IdcardOutlined />}>Gestionar Licencia</Menu.Item>
+            <Menu.Item key="api-keys" icon={<KeyOutlined />}>Gestionar API Keys</Menu.Item>
             {admin && admin.status === UserStatus.PendingVerification && (
-              <Tooltip title="Reenviar correo de configuración de cuenta">
-                <Button
-                  icon={<MailOutlined />}
-                  onClick={() => handleResendInvitation(admin?.id)}
-                />
-              </Tooltip>
+              <Menu.Item key="resend" icon={<MailOutlined />}>Reenviar Invitación</Menu.Item>
             )}
+            <Menu.Divider />
             <Popconfirm
               title="¿ELIMINAR PERMANENTEMENTE?"
               description="Esta acción es irreversible y borrará todos los datos del tenant."
@@ -219,10 +222,31 @@ const TenantManagementPage: React.FC = () => {
               cancelText="Cancelar"
               okButtonProps={{ danger: true }}
             >
-              <Button danger icon={<DeleteOutlined />}>
-                Borrar
+              <Menu.Item key="delete" icon={<DeleteOutlined />} danger>
+                Borrar Tenant
+              </Menu.Item>
+            </Popconfirm>
+          </Menu>
+        );
+
+        return (
+          <Space>
+            <Popconfirm
+              title={`¿Seguro que quieres ${isSuspended ? 'reactivar' : 'suspender'} este tenant?`}
+              onConfirm={() => handleUpdateStatus(record.id, isSuspended ? TenantStatus.Active : TenantStatus.Suspended)}
+              okText="Sí"
+              cancelText="No"
+            >
+              <Button
+                type={isSuspended ? 'primary' : 'default'} danger={!isSuspended}
+                icon={isSuspended ? <CheckCircleOutlined /> : <StopOutlined />}
+              >
+                {isSuspended ? 'Reactivar' : 'Suspender'}
               </Button>
             </Popconfirm>
+            <Dropdown overlay={menu} trigger={['click']}>
+              <Button icon={<MoreOutlined />} />
+            </Dropdown>
           </Space>
         );
       },

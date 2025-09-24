@@ -21,6 +21,7 @@ const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_enum_1 = require("../roles/enums/role.enum");
 const user_decorator_1 = require("../auth/decorators/user.decorator");
+const update_tenant_configuration_dto_1 = require("./dto/update-tenant-configuration.dto");
 let TenantsController = class TenantsController {
     constructor(tenantsService) {
         this.tenantsService = tenantsService;
@@ -51,7 +52,7 @@ __decorate([
     __param(0, (0, user_decorator_1.User)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, update_tenant_configuration_dto_1.UpdateTenantConfigurationDto]),
     __metadata("design:returntype", Promise)
 ], TenantsController.prototype, "updateConfiguration", null);
 __decorate([

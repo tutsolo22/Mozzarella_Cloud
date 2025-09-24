@@ -1,6 +1,12 @@
 import { License } from './license';
 import { User } from './user';
 
+export enum PaymentMethod {
+  Cash = 'cash',
+  Card = 'card',
+  MercadoPago = 'mercado_pago',
+}
+
 export enum TenantStatus {
   Active = 'active',
   Trial = 'trial',
@@ -14,6 +20,7 @@ export interface Tenant {
   status: TenantStatus;
   createdAt: string;
   updatedAt: string;
+  whatsappApiKey?: string;
   license: License | null;
   users?: User[];
 }
@@ -60,4 +67,11 @@ export interface TenantConfiguration {
 
   // Nuevos campos para Integración de Facturación
   invoicingAppUrl?: string;
+  whatsappApiKey?: string;
+  isHexaFactIntegrationEnabled?: boolean;
+
+  // Integraciones de pago
+  mercadoPagoAccessToken?: string;
+  enabledPaymentMethods?: PaymentMethod[];
+  tenant?: Tenant;
 }

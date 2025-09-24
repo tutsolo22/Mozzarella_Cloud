@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Alert,
   Form,
   Input,
   Button,
@@ -11,24 +12,40 @@ import {
   Col,
   Collapse,
   Checkbox,
+  message,
+  Popconfirm,
+  Tooltip,
 } from 'antd';
-
-import { SaveOutlined } from '@ant-design/icons';
-import { getTenantConfiguration, updateTenantConfiguration } from '../../services/api';
-import { TenantConfiguration } from '../../types/tenant';
-
-const { Title, Paragraph } = Typography;
+import {
+  SaveOutlined,
+  WhatsAppOutlined,
+  CreditCardOutlined,
+  CopyOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
+import {
+  getTenantConfiguration,
+  updateTenantConfiguration,
+  regenerateWhatsappApiKey,
+} from '../../services/api'; // Corregido para usar el servicio principal de API
+import { TenantConfiguration, PaymentMethod } from '../../types/tenant';
+import DeliveryZoneMap from '../../components/Settings/DeliveryZoneMap';
+const { Title, Paragraph, Text } = Typography;
 
 const SettingsPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const config = await getTenantConfiguration();
+        // Usamos la función que trae toda la configuración, incluyendo la del tenant
+        const config = await getTenantConfiguration(); // Esta función viene de api.ts
+        // La configuración del formulario viene de la propiedad 'configuration'
         form.setFieldsValue(config);
+        setApiKey(config.whatsappApiKey);
 
       } catch (error) {
         notification.error({
@@ -43,18 +60,11 @@ const SettingsPage: React.FC = () => {
     fetchConfig();
   }, [form]);
 
-    const handleSave = async (values: Partial<TenantConfiguration>) => {
+  const handleSave = async (values: Partial<TenantConfiguration>) => {
     setSaving(true);
 
     try {
-      // Limpieza de datos: convierte campos vacíos a `null` para evitar errores de validación en el backend.
-      // Esto soluciona el bug donde no se podía guardar.
-      const cleanedValues = Object.entries(values).reduce((acc, [key, value]) => {
-        acc[key] = value === '' ? null : value;
-        return acc;
-      }, {} as any);
-
-      await updateTenantConfiguration(cleanedValues);
+      await updateTenantConfiguration(values);
       notification.success({
         message: 'Configuración guardada',
         description: 'La información de tu negocio ha sido actualizada con éxito.',
@@ -69,17 +79,45 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleRegenerateKey = async () => {
+    setSaving(true);
+    try {
+      const newKey = await regenerateWhatsappApiKey();
+      setApiKey(newKey);
+      message.success('Nueva clave de API de WhatsApp generada con éxito.');
+    } catch (error) {
+      message.error('No se pudo generar la clave de API.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (apiKey) {
+      navigator.clipboard.writeText(apiKey);
+      message.success('Clave de API copiada al portapapeles.');
+    }
+  };
   
   if (loading) {
    return <Spin tip="Cargando configuración..." size="large" style={{ display: 'block', marginTop: 50 }} />; 
   }
 
   return (
-    <Card>
+    <div>
       <Title level={2}>Configuración del Negocio</Title>
-      <Paragraph>Aquí puedes editar la información general, fiscal y de contacto de tu negocio.</Paragraph>
+      <Paragraph>
+        Aquí puedes editar la información general, fiscal, de contacto, zonas de entrega y otras configuraciones de tu negocio.
+      </Paragraph>
       <Form form={form} layout="vertical" onFinish={handleSave}>
-        <Collapse defaultActiveKey={['general', 'contact', 'multi-branch']} ghost>
+        <Alert 
+          message="Recuerda guardar tus cambios"
+          description="Después de hacer cualquier modificación, no olvides presionar el botón 'Guardar Configuración' al final de la página."
+          type="info"
+          showIcon
+          style={{ marginBottom: 24 }}
+        />
+        <Collapse defaultActiveKey={['general', 'delivery', 'integrations']} ghost>
           <Collapse.Panel header="Información General" key="general">
             <Row gutter={16}>
               <Col xs={24} md={12}>
@@ -164,6 +202,63 @@ const SettingsPage: React.FC = () => {
             </Form.Item>
           </Collapse.Panel>
 
+          <Collapse.Panel header="Zonas y KDS" key="delivery">
+            <Row gutter={[24, 24]}>
+              <Col xs={24}>
+                <Form.Item name="deliveryArea" label="Área de Entrega">
+                  <DeliveryZoneMap />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Collapse.Panel>
+
+          <Collapse.Panel header="Integraciones y API Keys" key="integrations">
+            <Paragraph>
+              Configura aquí las conexiones con servicios externos como WhatsApp, procesadores de pago y facturación electrónica.
+            </Paragraph>
+            <Card size="small" title={<><WhatsAppOutlined /> Integración con WhatsApp</>} style={{ marginBottom: 16 }}>
+              <Paragraph>Usa esta clave en la cabecera <Text code>X-API-Key</Text> para conectar tu chatbot.</Paragraph>
+              <Input.Group compact>
+                <Input style={{ width: 'calc(100% - 120px)' }} value={apiKey || 'No generada'} readOnly />
+                <Tooltip title="Copiar"><Button icon={<CopyOutlined />} onClick={handleCopy} disabled={!apiKey} /></Tooltip>
+                <Popconfirm title="¿Regenerar clave?" description="La clave actual dejará de funcionar." onConfirm={handleRegenerateKey} okText="Sí" cancelText="No">
+                  <Button icon={<ReloadOutlined />} loading={saving}>{apiKey ? 'Regenerar' : 'Generar'}</Button>
+                </Popconfirm>
+              </Input.Group>
+            </Card>
+
+            <Card size="small" title={<><CreditCardOutlined /> Configuración de Pagos</>}>
+              <Form.Item name="enabledPaymentMethods" label="Métodos de Pago Habilitados">
+                <Checkbox.Group options={Object.values(PaymentMethod).map((pm: string) => ({ label: pm.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), value: pm }))} />
+              </Form.Item>
+              <Form.Item name="mercadoPagoAccessToken" label="Access Token de Mercado Pago" tooltip="Encuentra esto en tu panel de desarrollador de Mercado Pago.">
+                <Input.Password placeholder="Pega tu Access Token de Producción aquí" />
+              </Form.Item>
+            </Card>
+
+            <Paragraph>
+              Activa las integraciones con servicios externos para potenciar tu negocio.
+            </Paragraph>
+            <Form.Item name="isHexaFactIntegrationEnabled" valuePropName="checked">
+              <Checkbox>Habilitar integración con HexaFact para facturación electrónica</Checkbox>
+            </Form.Item>
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, currentValues) =>
+                prevValues.isHexaFactIntegrationEnabled !== currentValues.isHexaFactIntegrationEnabled ||
+                prevValues.invoicingAppUrl !== currentValues.invoicingAppUrl
+              }
+            >
+              {({ getFieldValue }) =>
+                getFieldValue('isHexaFactIntegrationEnabled') && getFieldValue('invoicingAppUrl') && (
+                  <Form.Item label="URL del Portal de Facturación">
+                    <Input readOnly value={getFieldValue('invoicingAppUrl')} addonAfter={<Button type="text" size="small" onClick={() => navigator.clipboard.writeText(getFieldValue('invoicingAppUrl'))}>Copiar</Button>} />
+                  </Form.Item>
+                )
+              }
+            </Form.Item>
+          </Collapse.Panel>
+
           <Collapse.Panel header="Redes Sociales y Web" key="social">
             <Row gutter={16}>
               <Col xs={24} md={12}><Form.Item name="website" label="Sitio Web"><Input type="url" /></Form.Item></Col>
@@ -180,7 +275,7 @@ const SettingsPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
-    </Card>
+    </div>
   );
 };
 

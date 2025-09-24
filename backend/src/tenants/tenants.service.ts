@@ -1,10 +1,12 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
 import { TenantConfiguration } from '../tenant-configuration/entities/tenant-configuration.entity';
 import { FilesService } from '../files/files.service';
 import * as path from 'path';
+import { HexaFactIntegrationService } from '../integrations/hexafact/hexafact-integration.service';
+import { UpdateTenantConfigurationDto } from './dto/update-tenant-configuration.dto';
 
 @Injectable()
 export class TenantsService {
@@ -16,6 +18,7 @@ export class TenantsService {
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
     private readonly filesService: FilesService,
+    private readonly hexaFactIntegrationService: HexaFactIntegrationService,
   ) {}
 
   async findOne(id: string): Promise<Tenant> {
@@ -43,7 +46,6 @@ export class TenantsService {
   async getConfiguration(tenantId: string): Promise<TenantConfiguration> {
     const config = await this.tenantConfigRepository.findOneBy({ tenantId });
     if (!config) {
-      // In a real scenario, we might create a default one. For now, we throw.
       throw new NotFoundException('Configuración del negocio no encontrada.');
     }
     return config;
@@ -51,17 +53,41 @@ export class TenantsService {
 
   async updateConfiguration(
     tenantId: string,
-    updateConfigDto: Partial<TenantConfiguration>,
+    updateConfigDto: UpdateTenantConfigurationDto,
   ): Promise<TenantConfiguration> {
-    const config = await this.getConfiguration(tenantId);
-    // Ensure only allowed fields are updated from this generic endpoint
-    const allowedUpdates = ['deliveryArea', 'directionsApiKey'] as const;
-    for (const key of allowedUpdates) {
-      if (updateConfigDto[key] !== undefined) {
-        config[key] = updateConfigDto[key];
+    const currentConfig = await this.getConfiguration(tenantId);
+    const wasHexaFactEnabled = currentConfig.isHexaFactIntegrationEnabled;
+
+    Object.assign(currentConfig, updateConfigDto);
+
+    const updatedConfig = await this.tenantConfigRepository.save(currentConfig);
+
+    // --- Lógica de Integración ---
+    // Si la integración se acaba de activar, registramos el tenant en HexaFact.
+    if (updatedConfig.isHexaFactIntegrationEnabled && !wasHexaFactEnabled) {
+      this.logger.log(`La integración con HexaFact fue activada para el tenant ${tenantId}. Iniciando registro.`);
+      // Obtenemos la entidad completa del tenant para pasarla al servicio de integración.
+      const tenant = await this.tenantRepository.findOne({
+        where: { id: tenantId },
+        relations: ['users', 'users.role'], // Incluimos los usuarios y sus roles
+      });
+      if (tenant) {
+        await this.hexaFactIntegrationService.registerTenant(tenant);
       }
     }
-    return this.tenantConfigRepository.save(config);
+
+    return updatedConfig;
+  }
+
+  async setInvoicingUrl(tenantId: string, invoicingAppUrl: string): Promise<void> {
+    const config = await this.getConfiguration(tenantId);
+    if (!config) {
+      this.logger.error(`Intento de establecer URL de facturación para un tenant inexistente: ${tenantId}`);
+      throw new NotFoundException(`Configuración para el tenant con ID ${tenantId} no encontrada.`);
+    }
+    config.invoicingAppUrl = invoicingAppUrl;
+    await this.tenantConfigRepository.save(config);
+    this.logger.log(`URL de facturación actualizada para el tenant ${tenantId}`);
   }
 
   async setKdsSound(
@@ -70,7 +96,6 @@ export class TenantsService {
   ): Promise<TenantConfiguration> {
     const config = await this.getConfiguration(tenantId);
 
-    // If a sound already exists, delete it from storage first
     if (config.kdsNotificationSoundUrl) {
       try {
         const oldFileKey = path.basename(config.kdsNotificationSoundUrl);
@@ -85,7 +110,6 @@ export class TenantsService {
     if (!file) {
       config.kdsNotificationSoundUrl = null;
     } else {
-      // The filesService will generate a unique name for the file inside the tenant's folder.
       const uploadedFile = await this.filesService.uploadPublicFile(file, tenantId);
       config.kdsNotificationSoundUrl = uploadedFile.url;
     }
